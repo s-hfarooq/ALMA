@@ -36,7 +36,7 @@ def onStateChanged(state, msg):
 
 def setup():
     GPIO.setmode(GPIO.BOARD)
-    GPIO.setup(P_BUTTON, GPIO.IN, GPIO.PUD_UP)
+    GPIO.setup(PIN, GPIO.IN, GPIO.PUD_UP)
 
 setup()
 server = TCPServer(IP_PORT, stateChanged = onStateChanged)
