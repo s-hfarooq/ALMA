@@ -14,11 +14,25 @@ def onStateChanged(state, msg):
         print "Server:-- Connected to", msg
     elif state == "MESSAGE":
         print "Server:-- Message received:", msg
-        if msg == "go":
-            if GPIO.input(P_BUTTON) == GPIO.LOW:
-                server.sendMessage("Button pressed")
+        if msg == "on":
+            if GPIO.output(P_BUTTON) == GPIO.LOW:
+                GPIO.output() = GPIO.high
+                server.sendMessage("Turned to high")
             else:
-                server.sendMessage("Button released")
+                server.sendMessage("Already high")
+        else:
+            if GPIO.output(P_BUTTON) == GPIO.high:
+                GPIO.output() = GPIO.low
+                server.sendMessage("Turned to low")
+            else:
+                server.sendMessage("Already low")
+    # elif state == "MESSAGE":
+    #     print "Server:-- Message received:", msg
+    #     if msg == "go":
+    #         if GPIO.input(P_BUTTON) == GPIO.LOW:
+    #             server.sendMessage("Button pressed")
+    #         else:
+    #             server.sendMessage("Button released")
 
 def setup():
     GPIO.setmode(GPIO.BOARD)

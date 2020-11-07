@@ -22,8 +22,9 @@ rc = client.connect()
 if rc:
     isConnected = True
     while isConnected:
-        print "Client:-- Sending command: go..."
-        client.sendMessage("go")
+        msgSending = raw_input("Message: ")
+        print "Client:-- Sending command: " + msgSending
+        client.sendMessage(msgSending)
         #time.sleep(0.5)
     print "Done"
 else:
