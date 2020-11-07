@@ -26,17 +26,9 @@ def onStateChanged(state, msg):
                 server.sendMessage("Turned to low")
             else:
                 server.sendMessage("Already low")
-    # elif state == "MESSAGE":
-    #     print "Server:-- Message received:", msg
-    #     if msg == "go":
-    #         if GPIO.input(P_BUTTON) == GPIO.LOW:
-    #             server.sendMessage("Button pressed")
-    #         else:
-    #             server.sendMessage("Button released")
-
 def setup():
     GPIO.setmode(GPIO.BOARD)
-    GPIO.setup(PIN, GPIO.IN, GPIO.PUD_UP)
+    GPIO.setup(PIN, GPIO.OUT)
 
 setup()
 server = TCPServer(IP_PORT, stateChanged = onStateChanged)
