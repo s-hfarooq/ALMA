@@ -15,13 +15,13 @@ def onStateChanged(state, msg):
     elif state == "MESSAGE":
         print "Server:-- Message received:", msg
         if msg == "on":
-            if GPIO.output(PIN) == GPIO.LOW:
+            if GPIO.input(PIN) == GPIO.LOW:
                 GPIO.output(PIN, 1)
                 server.sendMessage("Turned to high")
             else:
                 server.sendMessage("Already high")
         else:
-            if GPIO.output(PIN) == GPIO.high:
+            if GPIO.input(PIN) == GPIO.HIGH:
                 GPIO.output(PIN, 0)
                 server.sendMessage("Turned to low")
             else:
