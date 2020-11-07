@@ -5,7 +5,7 @@ import time
 import RPi.GPIO as GPIO
 
 IP_PORT = 22000
-P_BUTTON = 8 # adapt to your wiring
+PIN = 8 # adapt to your wiring
 
 def onStateChanged(state, msg):
     if state == "LISTENING":
@@ -16,13 +16,13 @@ def onStateChanged(state, msg):
         print "Server:-- Message received:", msg
         if msg == "on":
             if GPIO.output(P_BUTTON) == GPIO.LOW:
-                GPIO.output() = GPIO.high
+                GPIO.output(PIN, 1)
                 server.sendMessage("Turned to high")
             else:
                 server.sendMessage("Already high")
         else:
             if GPIO.output(P_BUTTON) == GPIO.high:
-                GPIO.output() = GPIO.low
+                GPIO.output(PIN, 0)
                 server.sendMessage("Turned to low")
             else:
                 server.sendMessage("Already low")
