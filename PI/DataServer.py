@@ -1,5 +1,6 @@
 import socket
 import sys
+import subprocess
 import RPi.GPIO as GPIO
 
 IP_ADDRESS = "192.168.0.237"
@@ -22,6 +23,7 @@ GPIO.setup(PIN, GPIO.OUT)
 
 
 currentState = 'OFF'
+fProc = None
 
 while True:
     # Wait for a connection
@@ -41,6 +43,9 @@ while True:
                 print("Server:-- Message received:", data)
                 if data == b'on':
                     if currentState != 'ON':
+                        if currentState == 'FADE':
+                            fProc.kill()
+                            fProc = None
                         GPIO.output(PIN, 1)
                         currentState = 'ON'
                         connection.sendall(b"Turned to high")
@@ -48,6 +53,9 @@ while True:
                         connection.sendall(b"Already high")
                 elif data == b'off':
                     if currentState != 'OFF':
+                        if currentState == 'FADE':
+                            fProc.kill()
+                            fProc = None
                         GPIO.output(PIN, 0)
                         currentState = 'OFF'
                         connection.sendall(b"Turned to low")
@@ -55,7 +63,7 @@ while True:
                         connection.sendall(b"Already low")
                 elif data == b'fade':
                     if currentState != 'FADE':
-                        # call FADE
+                        fProc = subprocess.Popen([sys.executable, "fading.py"])
                         currentState = 'FADE'
                         connection.sendall(b"Turned to fade")
                     else:

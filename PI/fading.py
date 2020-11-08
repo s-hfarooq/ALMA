@@ -56,7 +56,7 @@ import termios
 import tty
 import pigpio
 import time
-from thread import start_new_thread
+from _thread import start_new_thread
 
 bright = 255
 r = 255.0
