@@ -57,11 +57,11 @@ while True:
                     if currentState != 'FADE':
                         # call FADE
                         currentState = 'FADE'
-                        connection.sendall(b"Turned to fade (not currently implemented)")
+                        connection.sendall(b"Turned to fade")
                     else:
                         connection.sendall(b"Already fade")
                 else:
-                    connection.sendall(b"Unrecognized command")
+                    connection.sendall(b"not recognized")
 
             else:
                 print('no data from', client_address)
