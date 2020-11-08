@@ -1,34 +1,57 @@
-# DataServer2.py
-
-from tcpcom import TCPServer
-import time
+import socket
+import sys
 import RPi.GPIO as GPIO
 
-IP_PORT = 22000
-PIN = 8 # adapt to your wiring
+IP_ADDRESS = "192.168.0.237"
+IP_PORT = 10000
+PIN = 8
 
-def onStateChanged(state, msg):
-    if state == "LISTENING":
-        print "Server:-- Listening..."
-    elif state == "CONNECTED":
-        print "Server:-- Connected to", msg
-    elif state == "MESSAGE":
-        print "Server:-- Message received:", msg
-        if msg == "on":
-            if GPIO.input(PIN) == GPIO.LOW:
-                GPIO.output(PIN, 1)
-                server.sendMessage("Turned to high")
-            else:
-                server.sendMessage("Already high")
-        else:
-            if GPIO.input(PIN) == GPIO.HIGH:
-                GPIO.output(PIN, 0)
-                server.sendMessage("Turned to low")
-            else:
-                server.sendMessage("Already low")
-def setup():
-    GPIO.setmode(GPIO.BOARD)
-    GPIO.setup(PIN, GPIO.OUT)
+# Create a TCP/IP socket
+sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-setup()
-server = TCPServer(IP_PORT, stateChanged = onStateChanged)
+# Bind the socket to the port
+server_address = (IP_ADDRESS, IP_PORT)
+print('starting up on {} port {}'.format(*server_address))
+sock.bind(server_address)
+
+# Listen for incoming connections
+sock.listen(1)
+
+GPIO.setmode(GPIO.BOARD)
+GPIO.setup(PIN, GPIO.OUT)
+
+while True:
+    # Wait for a connection
+    print('waiting for a connection')
+    connection, client_address = sock.accept()
+    try:
+        print('connection from', client_address)
+
+        # Receive the data in small chunks and retransmit it
+        while True:
+            data = connection.recv(16)
+            print('received {!r}'.format(data))
+            if data:
+                # print('sending data back to the client')
+                # connection.sendall(data)
+
+                print("Server:-- Message received:", data)
+                if data == b"on":
+                    if GPIO.input(PIN) == GPIO.LOW:
+                        GPIO.output(PIN, 1)
+                        connection.sendall(b"Turned to high")
+                    else:
+                        connection.sendall(b"Already high")
+                else:
+                    if GPIO.input(PIN) == GPIO.HIGH:
+                        GPIO.output(PIN, 0)
+                        connection.sendall(b"Turned to low")
+                    else:
+                        connection.sendall(b"Already low")
+            else:
+                print('no data from', client_address)
+                break
+
+    finally:
+        # Clean up the connection
+        connection.close()
