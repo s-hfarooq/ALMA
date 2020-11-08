@@ -37,9 +37,9 @@
 # RED_PIN   = 17
 # GREEN_PIN = 22
 # BLUE_PIN  = 24
-RED_PIN   = 8
-GREEN_PIN = 10
-BLUE_PIN  = 12
+RED_PIN   = 14
+GREEN_PIN = 15
+BLUE_PIN  = 18
 
 # Number of color changes per step (more is faster, less is slower).
 # You also can use 0.X floats.
