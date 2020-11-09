@@ -7,4 +7,6 @@ http://www.python-exemplary.com/index_en.php?inhalt_links=navigation_en.inc.php&
 
 https://dordnung.de/raspberrypi-ledstrip/
 
+https://github.com/michaeljtbrooks/raspiled
+
 kill: ps, kill -9 ID

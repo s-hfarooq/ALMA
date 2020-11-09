@@ -5,7 +5,9 @@ import RPi.GPIO as GPIO
 
 IP_ADDRESS = "192.168.0.237"
 IP_PORT = 10000
-PIN = 8
+PIN_1 = 8
+PIN_2 = 10
+PIN_3 = 12
 
 # Create a TCP/IP socket
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -46,7 +48,9 @@ while True:
                         if currentState == 'FADE':
                             fProc.kill()
                             fProc = None
-                        GPIO.output(PIN, 1)
+                        GPIO.output(PIN_1, 1)
+                        GPIO.output(PIN_2, 1)
+                        GPIO.output(PIN_3, 1)
                         currentState = 'ON'
                         connection.sendall(b"Turned to high")
                     else:
@@ -56,7 +60,9 @@ while True:
                         if currentState == 'FADE':
                             fProc.kill()
                             fProc = None
-                        GPIO.output(PIN, 0)
+                        GPIO.output(PIN_1, 0)
+                        GPIO.output(PIN_2, 0)
+                        GPIO.output(PIN_3, 0)
                         currentState = 'OFF'
                         connection.sendall(b"Turned to low")
                     else:
