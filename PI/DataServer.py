@@ -21,7 +21,10 @@ sock.bind(server_address)
 sock.listen(1)
 
 GPIO.setmode(GPIO.BOARD)
-GPIO.setup(PIN, GPIO.OUT)
+GPIO.setup(PIN_1, GPIO.OUT)
+GPIO.setup(PIN_2, GPIO.OUT)
+GPIO.setup(PIN_3, GPIO.OUT)
+
 
 
 currentState = 'OFF'
