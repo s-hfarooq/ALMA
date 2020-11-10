@@ -43,7 +43,7 @@ BLUE_PIN  = 18
 
 # Number of color changes per step (more is faster, less is slower).
 # You also can use 0.X floats.
-STEPS     = 1
+STEPS     = 0.1
 
 ###### END ######
 

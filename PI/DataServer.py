@@ -2,6 +2,8 @@ import socket
 import sys
 import subprocess
 import RPi.GPIO as GPIO
+import os
+import pigpio
 
 IP_ADDRESS = "192.168.0.237"
 IP_PORT = 10000
@@ -25,6 +27,13 @@ GPIO.setup(PIN_1, GPIO.OUT)
 GPIO.setup(PIN_2, GPIO.OUT)
 GPIO.setup(PIN_3, GPIO.OUT)
 
+
+pi = pigpio.pi()
+
+def setNewCol(first, second, third):
+    pi.set_PWM_dutycycle(PIN_1, first)
+    pi.set_PWM_dutycycle(PIN_2, second)
+    pi.set_PWM_dutycycle(PIN_3, third)
 
 
 currentState = 'OFF'
@@ -77,6 +86,9 @@ while True:
                         connection.sendall(b"Turned to fade")
                     else:
                         connection.sendall(b"Already fade")
+
+                elif data == b'test':
+                    setNewCol(232, 74, 39)
                 else:
                     connection.sendall(b"not recognized")
 
