@@ -11,6 +11,10 @@ PIN_1 = 8
 PIN_2 = 10
 PIN_3 = 12
 
+PIN_1_GP   = 14
+PIN_2_GP = 15
+PIN_3_GP  = 18
+
 # Create a TCP/IP socket
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
@@ -31,9 +35,9 @@ GPIO.setup(PIN_3, GPIO.OUT)
 pi = pigpio.pi()
 
 def setNewCol(first, second, third):
-    pi.set_PWM_dutycycle(PIN_1, first)
-    pi.set_PWM_dutycycle(PIN_2, second)
-    pi.set_PWM_dutycycle(PIN_3, third)
+    pi.set_PWM_dutycycle(PIN_1_GP, first)
+    pi.set_PWM_dutycycle(PIN_2_GP, second)
+    pi.set_PWM_dutycycle(PIN_3_GP, third)
 
 
 currentState = 'OFF'
