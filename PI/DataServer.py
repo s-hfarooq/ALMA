@@ -33,7 +33,6 @@ sock.listen(1)
 
 
 pi = pigpio.pi()
-setNewCol(0, 0, 0)
 
 def setNewCol(first, second, third):
     pi.set_PWM_dutycycle(PIN_1_GP, first)
@@ -43,6 +42,8 @@ def setNewCol(first, second, third):
 
 currentState = 'OFF'
 fProc = None
+
+setNewCol(0, 0, 0)
 
 while True:
     # Wait for a connection
