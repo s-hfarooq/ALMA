@@ -92,9 +92,12 @@ while True:
                         connection.sendall(b"Already fade")
 
                 elif data == b'test':
+                    GPIO.output(PIN_1, 0)
+                    GPIO.output(PIN_2, 0)
+                    GPIO.output(PIN_3, 0)
                     setNewCol(232, 74, 39)
                     currentState = 'TEST'
-                    connection.sendall(b"Turned to test color")
+                    connection.sendall(b"Turned to test")
                 else:
                     connection.sendall(b"not recognized")
 
