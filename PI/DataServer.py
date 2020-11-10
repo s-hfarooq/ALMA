@@ -26,13 +26,14 @@ sock.bind(server_address)
 # Listen for incoming connections
 sock.listen(1)
 
-GPIO.setmode(GPIO.BOARD)
-GPIO.setup(PIN_1, GPIO.OUT)
-GPIO.setup(PIN_2, GPIO.OUT)
-GPIO.setup(PIN_3, GPIO.OUT)
+# GPIO.setmode(GPIO.BOARD)
+# GPIO.setup(PIN_1, GPIO.OUT)
+# GPIO.setup(PIN_2, GPIO.OUT)
+# GPIO.setup(PIN_3, GPIO.OUT)
 
 
 pi = pigpio.pi()
+setNewCol(0, 0, 0)
 
 def setNewCol(first, second, third):
     pi.set_PWM_dutycycle(PIN_1_GP, first)
@@ -55,18 +56,12 @@ while True:
             data = connection.recv(16).decode("utf-8")
             print('received {!r}'.format(data))
             if data:
-                # print('sending data back to the client')
-                # connection.sendall(data)
-
                 print("Server:-- Message received:", data)
                 if data == 'on':
                     if currentState != 'ON':
                         if currentState == 'FADE':
                             fProc.kill()
                             fProc = None
-                        # GPIO.output(PIN_1, 1)
-                        # GPIO.output(PIN_2, 1)
-                        # GPIO.output(PIN_3, 1)
                         setNewCol(255, 255, 255)
                         currentState = 'ON'
                         connection.sendall(b"Turned to high")
@@ -77,9 +72,6 @@ while True:
                         if currentState == 'FADE':
                             fProc.kill()
                             fProc = None
-                        # GPIO.output(PIN_1, 0)
-                        # GPIO.output(PIN_2, 0)
-                        # GPIO.output(PIN_3, 0)
                         setNewCol(0, 0, 0)
                         currentState = 'OFF'
                         connection.sendall(b"Turned to low")
@@ -93,11 +85,13 @@ while True:
                     else:
                         connection.sendall(b"Already fade")
 
-                elif data.startsWith('col'):
-                    # GPIO.output(PIN_1, 0)
-                    # GPIO.output(PIN_2, 0)
-                    # GPIO.output(PIN_3, 0)
+                elif "col" in data:
                     vals = [int(i) for i in data.split() if i.isdigit()]
+                    if len(vals) < 3:
+                        vals = [255, 255, 255]
+                    for i in range(0, 3):
+                        if vals[i] > 255 or vals[i] < 0:
+                            vals[i] = 150
                     setNewCol(vals[0], vals[1], vals[2])
                     currentState = 'COL'
                     connection.sendall(b"Set new col")
