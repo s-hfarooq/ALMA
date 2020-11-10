@@ -93,6 +93,8 @@ while True:
 
                 elif data == b'test':
                     setNewCol(232, 74, 39)
+                    currentState = 'TEST'
+                    connection.sendall(b"Turned to test color")
                 else:
                     connection.sendall(b"not recognized")
 
