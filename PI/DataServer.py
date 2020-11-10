@@ -52,38 +52,40 @@ while True:
 
         # Receive the data in small chunks and retransmit it
         while True:
-            data = connection.recv(16)
+            data = connection.recv(16).decode("utf-8")
             print('received {!r}'.format(data))
             if data:
                 # print('sending data back to the client')
                 # connection.sendall(data)
 
                 print("Server:-- Message received:", data)
-                if data == b'on':
+                if data == 'on':
                     if currentState != 'ON':
                         if currentState == 'FADE':
                             fProc.kill()
                             fProc = None
-                        GPIO.output(PIN_1, 1)
-                        GPIO.output(PIN_2, 1)
-                        GPIO.output(PIN_3, 1)
+                        # GPIO.output(PIN_1, 1)
+                        # GPIO.output(PIN_2, 1)
+                        # GPIO.output(PIN_3, 1)
+                        setNewCol(255, 255, 255)
                         currentState = 'ON'
                         connection.sendall(b"Turned to high")
                     else:
                         connection.sendall(b"Already high")
-                elif data == b'off':
+                elif data == 'off':
                     if currentState != 'OFF':
                         if currentState == 'FADE':
                             fProc.kill()
                             fProc = None
-                        GPIO.output(PIN_1, 0)
-                        GPIO.output(PIN_2, 0)
-                        GPIO.output(PIN_3, 0)
+                        # GPIO.output(PIN_1, 0)
+                        # GPIO.output(PIN_2, 0)
+                        # GPIO.output(PIN_3, 0)
+                        setNewCol(0, 0, 0)
                         currentState = 'OFF'
                         connection.sendall(b"Turned to low")
                     else:
                         connection.sendall(b"Already low")
-                elif data == b'fade':
+                elif data == 'fade':
                     if currentState != 'FADE':
                         fProc = subprocess.Popen([sys.executable, "fading.py"])
                         currentState = 'FADE'
@@ -91,13 +93,14 @@ while True:
                     else:
                         connection.sendall(b"Already fade")
 
-                elif data == b'test':
-                    GPIO.output(PIN_1, 0)
-                    GPIO.output(PIN_2, 0)
-                    GPIO.output(PIN_3, 0)
-                    setNewCol(232, 74, 39)
-                    currentState = 'TEST'
-                    connection.sendall(b"Turned to test")
+                elif data.startsWith('col'):
+                    # GPIO.output(PIN_1, 0)
+                    # GPIO.output(PIN_2, 0)
+                    # GPIO.output(PIN_3, 0)
+                    vals = [int(i) for i in data.split() if i.isdigit()]
+                    setNewCol(vals[0], vals[1], vals[2])
+                    currentState = 'COL'
+                    connection.sendall(b"Set new col")
                 else:
                     connection.sendall(b"not recognized")
 
