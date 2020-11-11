@@ -34,7 +34,7 @@ def setNewCol(first, second, third):
     pi.set_PWM_dutycycle(PIN_1_GP, first)
     pi.set_PWM_dutycycle(PIN_2_GP, second)
     pi.set_PWM_dutycycle(PIN_3_GP, third)
-def setNewColSec(first, second third):
+def setNewColSec(first, second, third):
     pi.set_PWM_dutycycle(PIN_1_SEC, first)
     pi.set_PWM_dutycycle(PIN_2_SEC, second)
     pi.set_PWM_dutycycle(PIN_3_SEC, third)
