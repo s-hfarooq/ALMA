@@ -7,13 +7,14 @@ import pigpio
 
 IP_ADDRESS = "192.168.0.237"
 IP_PORT = 10000
-PIN_1 = 8
-PIN_2 = 10
-PIN_3 = 12
 
-PIN_1_GP   = 14
+PIN_1_GP = 14
 PIN_2_GP = 15
-PIN_3_GP  = 18
+PIN_3_GP = 18
+
+PIN_1_SEC = 23
+PIN_2_SEC = 24
+PIN_3_SEC = 25
 
 # Create a TCP/IP socket
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -26,11 +27,6 @@ sock.bind(server_address)
 # Listen for incoming connections
 sock.listen(1)
 
-# GPIO.setmode(GPIO.BOARD)
-# GPIO.setup(PIN_1, GPIO.OUT)
-# GPIO.setup(PIN_2, GPIO.OUT)
-# GPIO.setup(PIN_3, GPIO.OUT)
-
 
 pi = pigpio.pi()
 
@@ -38,12 +34,17 @@ def setNewCol(first, second, third):
     pi.set_PWM_dutycycle(PIN_1_GP, first)
     pi.set_PWM_dutycycle(PIN_2_GP, second)
     pi.set_PWM_dutycycle(PIN_3_GP, third)
+def setNewColSec(first, second third):
+    pi.set_PWM_dutycycle(PIN_1_SEC, first)
+    pi.set_PWM_dutycycle(PIN_2_SEC, second)
+    pi.set_PWM_dutycycle(PIN_3_SEC, third)
 
 
 currentState = 'OFF'
 fProc = None
 
 setNewCol(0, 0, 0)
+setNewColSec(0, 0, 0)
 
 while True:
     # Wait for a connection
@@ -64,6 +65,7 @@ while True:
                             fProc.kill()
                             fProc = None
                         setNewCol(255, 255, 255)
+                        setNewColSec(255, 255, 255)
                         currentState = 'ON'
                         connection.sendall(b"Turned to high")
                     else:
@@ -74,6 +76,7 @@ while True:
                             fProc.kill()
                             fProc = None
                         setNewCol(0, 0, 0)
+                        setNewColSec(0, 0, 0)
                         currentState = 'OFF'
                         connection.sendall(b"Turned to low")
                     else:
@@ -92,8 +95,13 @@ while True:
                         vals = [255, 255, 255]
                     for i in range(0, 3):
                         if vals[i] > 255 or vals[i] < 0:
-                            vals[i] = 150
-                    setNewCol(vals[0], vals[1], vals[2])
+                            while vals[i] < 0:
+                                vals[i] = vals[i] + 255
+                            vals[i] = vals[i] % 255
+                    if "col2" not in data:
+                        setNewCol(vals[0], vals[1], vals[2])
+                    else:
+                        setNewColSec(vals[0], vals[1], vals[2])
                     currentState = 'COL'
                     connection.sendall(b"Set new col")
                 else:

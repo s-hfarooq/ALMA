@@ -10,3 +10,6 @@ https://dordnung.de/raspberrypi-ledstrip/
 https://github.com/michaeljtbrooks/raspiled
 
 kill: ps, kill -9 ID
+
+
+nohup python3 DataServer.py &
