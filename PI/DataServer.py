@@ -4,6 +4,7 @@ import subprocess
 import RPi.GPIO as GPIO
 import os
 import pigpio
+import time
 
 IP_ADDRESS = "192.168.0.237"
 IP_PORT = 10000
@@ -42,6 +43,7 @@ def setNewColSec(first, second, third):
 
 currentState = 'OFF'
 fProc = None
+fProc2 = None
 
 setNewCol(0, 0, 0)
 setNewColSec(0, 0, 0)
@@ -75,6 +77,8 @@ while True:
                         if currentState == 'FADE':
                             fProc.kill()
                             fProc = None
+                            fProc2.kill()
+                            fProc2 = None
                         setNewCol(0, 0, 0)
                         setNewColSec(0, 0, 0)
                         currentState = 'OFF'
@@ -84,6 +88,8 @@ while True:
                 elif data == 'fade':
                     if currentState != 'FADE':
                         fProc = subprocess.Popen([sys.executable, "fading.py"])
+                        time.sleep(0.75)
+                        fProc2 = subprocess.Popen([sys.executable, "fading2.py"])
                         currentState = 'FADE'
                         connection.sendall(b"Turned to fade")
                     else:
