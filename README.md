@@ -16,10 +16,11 @@
     * currently unused
 
 ## Server folder
-  * app.js
-    * script to run webserver. Run using `node app.js`. site will be visible at localhost:3000 or 192.168.0.241:3000. Run even after closing terminal using `forever start app.js`
-  * public/index.html
-    * webpage for input from user
+  * api
+    * Backend server stuff to connect to other pi via tcp and send commands
+  * frontend-controller
+    * Frontend website to control lights
+  * Run - `npm run dev` in the api folder and `npm start` in the frontend-controller folder
 
 
 
