@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css';
 import { changeColor } from './services/additionalFunctions'
-import { ChromePicker, SketchPicker } from 'react-color';
+import { ChromePicker, SketchPicker, PhotoshopPicker } from 'react-color';
 
 class App extends React.Component {
 
@@ -44,6 +44,7 @@ class App extends React.Component {
 
     return (
       <SketchPicker
+        //color="#333"
         color={ this.state.background }
         onChangeComplete={ this.handleChangeComplete }
         // onChange={ this.handleChange }
