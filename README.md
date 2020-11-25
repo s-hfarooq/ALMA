@@ -20,7 +20,7 @@
     * Backend server stuff to connect to other pi via tcp and send commands
   * frontend-controller
     * Frontend website to control lights
-  * Run - `npm run dev` in the api folder and `npm start` in the frontend-controller folder
+  * Run - `npm run dev` in the api folder and `npm start` in the frontend-controller folder. To run forever- `forever start -c "npm run dev" ./` and `forever start -c "npm start" ./`
 
 
 
