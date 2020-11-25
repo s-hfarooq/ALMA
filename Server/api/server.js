@@ -5,10 +5,6 @@ const app = express(),
       port = 3080;
 var net = require('net');
 
-
-// place holder for the data
-const users = [];
-
 app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, '../my-app/build')));
 

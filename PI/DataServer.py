@@ -12,7 +12,6 @@ IP_PORT = 10000
 PIN_1_GP = 14
 PIN_2_GP = 15
 PIN_3_GP = 18
-
 PIN_1_SEC = 23
 PIN_2_SEC = 24
 PIN_3_SEC = 25
@@ -27,10 +26,9 @@ sock.bind(server_address)
 
 # Listen for incoming connections
 sock.listen(1)
-
-
 pi = pigpio.pi()
 
+# Functions to set colors on each strip
 def setNewCol(first, second, third):
     pi.set_PWM_dutycycle(PIN_1_GP, first)
     pi.set_PWM_dutycycle(PIN_2_GP, second)
@@ -40,13 +38,12 @@ def setNewColSec(first, second, third):
     pi.set_PWM_dutycycle(PIN_2_SEC, second)
     pi.set_PWM_dutycycle(PIN_3_SEC, third)
 
-
 currentState = 'OFF'
 fProc = None
-fProc2 = None
 
-setNewCol(0, 0, 0)
-setNewColSec(0, 0, 0)
+# Initially turn lights on
+setNewCol(255, 255, 255)
+setNewColSec(255, 255, 255)
 
 while True:
     # Wait for a connection
@@ -77,8 +74,6 @@ while True:
                         if currentState == 'FADE':
                             fProc.kill()
                             fProc = None
-                            fProc2.kill()
-                            fProc2 = None
                         setNewCol(0, 0, 0)
                         setNewColSec(0, 0, 0)
                         currentState = 'OFF'
@@ -88,8 +83,6 @@ while True:
                 elif data == 'fade':
                     if currentState != 'FADE':
                         fProc = subprocess.Popen([sys.executable, "fading.py"])
-                        time.sleep(0.75)
-                        fProc2 = subprocess.Popen([sys.executable, "fading2.py"])
                         currentState = 'FADE'
                         connection.sendall(b"Turned to fade")
                     else:
@@ -99,15 +92,21 @@ while True:
                     vals = [int(i) for i in data.split() if i.isdigit()]
                     if len(vals) < 3:
                         vals = [255, 255, 255]
+
                     for i in range(0, 3):
                         if vals[i] > 255 or vals[i] < 0:
                             while vals[i] < 0:
                                 vals[i] = vals[i] + 255
                             vals[i] = vals[i] % 255
-                    if "col2" not in data:
-                        setNewCol(vals[0], vals[1], vals[2])
-                    else:
+
+                    if "col2" in data:
                         setNewColSec(vals[0], vals[1], vals[2])
+                    elif "colB" in data:
+                        setNewCol(vals[0], vals[1], vals[2])
+                        setNewColSec(vals[0], vals[1], vals[2])
+                    else:
+                        setNewCol(vals[0], vals[1], vals[2])
+
                     currentState = 'COL'
                     connection.sendall(b"Set new col")
                 else:
@@ -115,7 +114,6 @@ while True:
 
             else:
                 print('no data from', client_address)
-                break
 
     finally:
         # Clean up the connection

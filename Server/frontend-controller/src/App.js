@@ -9,7 +9,7 @@ class App extends React.Component {
 
   state = {
     background: '#fff',
-    selectedOption: "both"
+    selectedOption: "off"
   }
 
   // runs once color stops changing
@@ -22,14 +22,9 @@ class App extends React.Component {
     else if(option === "off" || option === "fade")
       newColStr = option;
     else if(option === "both")
-      newColStr = "col " + color.rgb.r + " " + color.rgb.g + " " + color.rgb.b;
+      newColStr = "colB " + color.rgb.r + " " + color.rgb.g + " " + color.rgb.b;
     console.log(newColStr);
     changeColor(newColStr);
-
-    if(option === "both") {
-      newColStr = "col2 " + color.rgb.r + " " + color.rgb.g + " " + color.rgb.b;
-      changeColor(newColStr);
-    }
   };
 
   // runs everytime a color changes
