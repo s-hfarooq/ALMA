@@ -1,6 +1,6 @@
 import React, { Component, Fragment } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import { changeColor, lightOptions } from './services/additionalFunctions'
+import { changeCol, connectC, endConn, changeColor, lightOptions } from './services/additionalFunctions'
 import { ChromePicker, SketchPicker, PhotoshopPicker } from 'react-color';
 import Select from 'react-select';
 
@@ -9,14 +9,17 @@ class App extends React.Component {
 
   state = {
     background: '#fff',
-    selectedOption: "off"
+    selectedOption: "off",
+    isConnected: false,
   }
 
   // runs once color stops changing
-  handleChangeComplete = (color) => {
+  handleChangeComplete = async (color) => {
+
+
     this.setState({ background: color.hex });
     let option = this.state.selectedOption.value;
-    let newColStr = "off"
+    let newColStr = ""
     if(option === "col" || option === "col2")
       newColStr = option + " " + color.rgb.r + " " + color.rgb.g + " " + color.rgb.b;
     else if(option === "off" || option === "fade")
@@ -24,8 +27,28 @@ class App extends React.Component {
     else if(option === "both")
       newColStr = "colB " + color.rgb.r + " " + color.rgb.g + " " + color.rgb.b;
     console.log(newColStr);
-    changeColor(newColStr);
+    if(this.state.isConnected === false) {
+      console.log("starting connection")
+      await connectC(newColStr);
+      console.log("connected");
+      this.setState({ isConnected: true });
+    }
+
+    if(newColStr.length > 1) {
+      console.log('sending new col')
+      await changeCol(newColStr);
+      console.log('sent new col')
+    }
+
+    // if(this.state.isConnected === true) {
+    //   await endConn(newColStr);
+    //   this.setState({ isConnected: false });
+    //   console.log("disconnected");
+    // }
+
+    //changeColor(newColStr);
   };
+
 
   // runs everytime a color changes
   handleChange(color, event) {
@@ -46,7 +69,7 @@ class App extends React.Component {
     // }
     let newColStr = "col " + color.rgb.r + " " + color.rgb.g + " " + color.rgb.b;
     console.log(newColStr);
-    changeColor(newColStr);
+    //changeColor(newColStr);
   }
 
   handleSelectChange = selectedOption => {
