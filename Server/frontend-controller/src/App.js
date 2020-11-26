@@ -1,6 +1,6 @@
 import React, { Component, Fragment } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import { changeCol, connectC, endConn, changeColor, lightOptions } from './services/additionalFunctions'
+import { connectChanger, endConnection, changeColor, lightOptions } from './services/additionalFunctions'
 import { ChromePicker, SketchPicker, PhotoshopPicker } from 'react-color';
 import Select from 'react-select';
 
@@ -13,45 +13,8 @@ class App extends React.Component {
     isConnected: false,
   }
 
-  // runs once color stops changing
-  handleChangeComplete = async (color) => {
-
-
-    this.setState({ background: color.hex });
-    let option = this.state.selectedOption.value;
-    let newColStr = ""
-    if(option === "col" || option === "col2")
-      newColStr = option + " " + color.rgb.r + " " + color.rgb.g + " " + color.rgb.b;
-    else if(option === "off" || option === "fade")
-      newColStr = option;
-    else if(option === "both")
-      newColStr = "colB " + color.rgb.r + " " + color.rgb.g + " " + color.rgb.b;
-    console.log(newColStr);
-    if(this.state.isConnected === false) {
-      console.log("starting connection")
-      await connectC(newColStr);
-      console.log("connected");
-      this.setState({ isConnected: true });
-    }
-
-    if(newColStr.length > 1) {
-      console.log('sending new col')
-      await changeCol(newColStr);
-      console.log('sent new col')
-    }
-
-    // if(this.state.isConnected === true) {
-    //   await endConn(newColStr);
-    //   this.setState({ isConnected: false });
-    //   console.log("disconnected");
-    // }
-
-    //changeColor(newColStr);
-  };
-
-
   // runs everytime a color changes
-  handleChange(color, event) {
+  handleChange = async (color, event) => {
     // color = {
     //   hex: '#333',
     //   rgb: {
@@ -67,9 +30,32 @@ class App extends React.Component {
     //     a: 1,
     //   },
     // }
-    let newColStr = "col " + color.rgb.r + " " + color.rgb.g + " " + color.rgb.b;
+
+    this.setState({ background: color.hex });
+    let option = this.state.selectedOption.value;
+    let newColStr = ""
+    if(option === "col" || option === "col2")
+      newColStr = option + " " + color.rgb.r + " " + color.rgb.g + " " + color.rgb.b;
+    else if(option === "off" || option === "fade")
+      newColStr = option;
+    else if(option === "both")
+      newColStr = "colB " + color.rgb.r + " " + color.rgb.g + " " + color.rgb.b;
     console.log(newColStr);
-    //changeColor(newColStr);
+    if(!this.state.isConnected) {
+      console.log("starting connection")
+      await connectChanger(newColStr);
+      console.log("connected");
+      this.setState({ isConnected: true });
+    }
+
+    if(newColStr.length > 1) {
+      console.log('sending new col')
+      await changeColor(newColStr);
+      console.log('sent new col')
+    }
+
+    // Probably should kill the connection at some point
+    // Also need to figure out what to do when multiple users connect - currently just breaks everything
   }
 
   handleSelectChange = selectedOption => {
@@ -85,8 +71,8 @@ class App extends React.Component {
       <div>
         <ChromePicker
           color={ this.state.background }
-          onChangeComplete={ this.handleChangeComplete }
-          // onChange={ this.handleChange }
+          //onChangeComplete={ this.handleChangeComplete }
+          onChange={ this.handleChange }
         />
 
         <br/>

@@ -1,41 +1,38 @@
+// export async function changeColor(data) {
+//   const response = await fetch('/colorChanger', {
+//     method: 'POST',
+//     headers: {'Content-Type': 'application/json'},
+//     body: JSON.stringify({ color: data })
+//   })
+//   return await response.json();
+// }
+
+export async function connectChanger(data) {
+  const response = await fetch('/connectChanger', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({ color: data })
+  })
+  return await response;
+}
+
+export async function endConnection(data) {
+  const response = await fetch('/endConnection', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({ color: data })
+  })
+  return await response;
+}
+
 export async function changeColor(data) {
-  const response = await fetch('/colorChanger', {
-    method: 'POST',
-    headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({ color: data })
-  })
-  return await response.json();
-}
-
-export async function connectC(data) {
-  const response = await fetch('/connectC', {
-    method: 'POST',
-    headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({ color: data })
-  })
-  //return await response;
-}
-
-
-export async function endConn(data) {
-  const response = await fetch('/endConn', {
+  const response = await fetch('/changeColor', {
     method: 'POST',
     headers: {'Content-Type': 'application/json'},
     body: JSON.stringify({ color: data })
   })
   return await response;
 }
-
-
-export async function changeCol(data) {
-  const response = await fetch('/changeCol', {
-    method: 'POST',
-    headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({ color: data })
-  })
-  return await response;
-}
-
 
 export const lightOptions = [
   { value: 'off', label: 'Off', color: '#FF8B00' },

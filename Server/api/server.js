@@ -8,20 +8,21 @@ var net = require('net');
 app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, '../my-app/build')));
 var client = new net.Socket();
-app.post('/colorChanger', (req, res) => {
-    console.log(req.body.color);
-    var client = new net.Socket();
 
-    client.connect(10000, '192.168.0.237', function() {
-    	console.log('Connected');
-      client.write(req.body.color);
-      client.destroy();
-      console.log('Destroyed');
-    });
+// app.post('/colorChanger', (req, res) => {
+//     console.log(req.body.color);
+//     var client = new net.Socket();
+//
+//     client.connect(10000, '192.168.0.237', function() {
+//     	console.log('Connected');
+//       client.write(req.body.color);
+//       client.destroy();
+//       console.log('Destroyed');
+//     });
+//
+// });
 
-});
-
-app.post('/connectC', (req, res) => {
+app.post('/connectChanger', (req, res) => {
     client.connect(10000, '192.168.0.237', function() {
     	console.log('Connected');
     });
@@ -29,13 +30,13 @@ app.post('/connectC', (req, res) => {
     res.json({connection: "connected"})
 });
 
-app.post('/endConn', (req, res) => {
+app.post('/endConnection', (req, res) => {
     client.destroy();
     console.log('Destroyed');
     res.json({connection: "ended"})
 });
 
-app.post('/changeCol', (req, res) => {
+app.post('/changeColor', (req, res) => {
     console.log(req.body.color);
     client.write(req.body.color);
     res.json({connection: "changed col"})
