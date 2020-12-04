@@ -42,6 +42,11 @@ nohup python3 DataServer.py &
 
 https://www.digikey.com/en/products/detail/OKI-78SR-5%2f1.5-W36-C/811-2196-5-ND/2259781?itemSeq=345251247
 
+https://www.nxp.com/docs/en/white-paper/JN-WP-7005.pdf
+specifically look at NXP ZigBee (JN5169, JN5179)
+
+https://www.silabs.com/development-tools/wireless/z-wave/908-mhz-regional-development-kit
+
 
 PINOUT
 NONE
