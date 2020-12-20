@@ -1,7 +1,7 @@
 import socket
 import sys
 
-IP_ADDRESS = "192.168.0.237"
+IP_ADDRESS = "192.168.1.126"
 IP_PORT = 10000
 
 # Create a TCP/IP socket
@@ -16,11 +16,11 @@ try:
 
     while True:
         # Send data
-        message = input("message: ").encode()
+        message = (input("message: ") + "\r\n\r\n").encode()
         print('sending {!r}'.format(message))
         sock.sendall(message)
 
-        data = sock.recv(16)
+        data = sock.recv(1024)
         print('received {!r}'.format(data))
 
 finally:

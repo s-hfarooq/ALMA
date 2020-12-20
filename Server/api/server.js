@@ -23,7 +23,7 @@ var client = new net.Socket();
 // });
 
 app.post('/connectChanger', (req, res) => {
-    client.connect(10000, '192.168.0.237', function() {
+    client.connect(10000, '192.168.1.126', function() {
     	console.log('Connected');
     });
 

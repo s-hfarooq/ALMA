@@ -1,7 +1,7 @@
 import React, { Component, Fragment } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { connectChanger, endConnection, changeColor, lightOptions } from './services/additionalFunctions'
-import { ChromePicker, SketchPicker, PhotoshopPicker } from 'react-color';
+import { ChromePicker } from 'react-color';
 import Select from 'react-select';
 
 
@@ -9,37 +9,19 @@ class App extends React.Component {
 
   state = {
     background: '#fff',
-    selectedOption: "off",
+    selectedOption: "col",
     isConnected: false,
   }
 
   // runs everytime a color changes
   handleChange = async (color, event) => {
-    // color = {
-    //   hex: '#333',
-    //   rgb: {
-    //     r: 51,
-    //     g: 51,
-    //     b: 51,
-    //     a: 1,
-    //   },
-    //   hsl: {
-    //     h: 0,
-    //     s: 0,
-    //     l: .20,
-    //     a: 1,
-    //   },
-    // }
-
     this.setState({ background: color.hex });
     let option = this.state.selectedOption.value;
     let newColStr = ""
-    if(option === "col" || option === "col2")
-      newColStr = option + " " + color.rgb.r + " " + color.rgb.g + " " + color.rgb.b;
-    else if(option === "off" || option === "fade")
-      newColStr = option;
-    else if(option === "both")
-      newColStr = "colB " + color.rgb.r + " " + color.rgb.g + " " + color.rgb.b;
+    if(option === "col")
+      newColStr = color.rgb.r + " " + color.rgb.g + " " + color.rgb.b + " " + option;
+    // else if(option === "fade")
+    //   newColStr = option;
     console.log(newColStr);
     if(!this.state.isConnected) {
       console.log("starting connection")

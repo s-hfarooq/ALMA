@@ -35,9 +35,8 @@ export async function changeColor(data) {
 }
 
 export const lightOptions = [
-  { value: 'off', label: 'Off', color: '#FF8B00' },
-  { value: 'both', label: 'Both', color: '#00B8D9' },
   { value: 'col', label: 'Strip 1', color: '#0052CC' },
-  { value: 'col2', label: 'Strip 2', color: '#5243AA' },
-  { value: 'fade', label: 'Fade', color: '#FF5630' },
+  // { value: 'col2', label: 'Strip 2', color: '#5243AA' },
+  // { value: 'both', label: 'Both', color: '#00B8D9' },
+  // { value: 'fade', label: 'Fade', color: '#FF5630' },
 ];
