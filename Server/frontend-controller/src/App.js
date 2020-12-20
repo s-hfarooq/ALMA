@@ -35,11 +35,17 @@ class App extends React.Component {
       await changeColor(newColStr);
       console.log('sent new col')
     }
-
-    // Probably should kill the connection at some point
-    // Also need to figure out what to do when multiple users connect - currently just breaks everything
   }
 
+  // Kill connection when colors aren't being changed
+  handleChangeComplete = async (color, event) => {
+    if(this.state.isConnected) {
+      await endConnection(color.hex);
+      this.setState({ isConnected: false });
+    }
+  }
+
+  // Handle strip selection dropdown menu
   handleSelectChange = selectedOption => {
     this.setState(
       { selectedOption },
@@ -53,7 +59,7 @@ class App extends React.Component {
       <div>
         <ChromePicker
           color={ this.state.background }
-          //onChangeComplete={ this.handleChangeComplete }
+          onChangeComplete={ this.handleChangeComplete }
           onChange={ this.handleChange }
         />
 
