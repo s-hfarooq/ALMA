@@ -4,11 +4,12 @@
 #define LED_PIN_R 32
 #define LED_PIN_G 33
 #define LED_PIN_B 25
+#define PORT 10000
 
 const char* ssid = "ssid";
 const char* password = "password";
 
-WiFiServer server(10000);
+WiFiServer server(PORT);
 
 void setup()
 {

@@ -1,6 +1,5 @@
 # ALMA
 
-
 ## Client folder
   * DataClient.py
     * connects to pi, can send commands via terminal
@@ -8,6 +7,7 @@
     * test script to connect to pi via tcp
 
 ## PI folder
+  * Shouldn't really be used anymore - all devices apart from server should no longer be a RPi
   * DataServer.py
     * Server side tcp script to set light strips. First run `sudo pigpiod`, then run `python3 DataServer.py`. Run even after closing terminal using `nohup python3 DataServer.py &`
   * fading.py / fading2.py
@@ -15,14 +15,19 @@
   * test.py
     * currently unused
 
+## ESP32
+  * Install the Arduino IDE - from within it, go to `Tools -> Board -> Board Manager` and install packages for the ESP32
+  * Switch board in `Tools -> Board` to `ESP32 Dev Module`
+  * Flash code by pressing the upload button. If an error pops up about not being able to open the port, ensure the correct port is selected in `Tools -> Port` and that read/write access is allowed (run `sudo chmod a+rw /dev/ttyUSB0`, replacing `/dev/ttyUSB0` with the correct port)
+  * Make sure to set the ssid/password variables to correct values
+  * Program will run automatically when device powered on
+
 ## Server folder
   * api
     * Backend server stuff to connect to other pi via tcp and send commands
   * frontend-controller
     * Frontend website to control lights
   * Run - `npm run dev` in the api folder and `npm start` in the frontend-controller folder. To run forever- `forever start -c "npm run dev" ./` and `forever start -c "npm start" ./`
-
-
 
 #### Pi IP's
   * light strip: 192.168.0.237
