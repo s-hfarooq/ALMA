@@ -18,10 +18,10 @@ class App extends React.Component {
     this.setState({ background: color.hex });
     let option = this.state.selectedOption.value;
     let newColStr = ""
-    if(option === "col")
+    
+    if(option === "1col" || option === "2col" || option === "both")
       newColStr = color.rgb.r + " " + color.rgb.g + " " + color.rgb.b + " " + option;
-    // else if(option === "fade")
-    //   newColStr = option;
+
     console.log(newColStr);
     if(!this.state.isConnected) {
       console.log("starting connection")
@@ -54,7 +54,6 @@ class App extends React.Component {
   };
 
   render() {
-
     return (
       <div>
         <ChromePicker
