@@ -46,6 +46,15 @@ app.get('/', (req,res) => {
   res.sendFile(path.join(__dirname, '../my-app/build/index.html'));
 });
 
+client.on('error', function(exception) {
+  console.log('SOCKET ERROR');
+  client.destroy();
+})
+
+client.on('close', function(exception) {
+  console.log('SOCKET CLOSED');
+})
+
 app.listen(port, () => {
     console.log(`Server listening on the port::${port}`);
 });
