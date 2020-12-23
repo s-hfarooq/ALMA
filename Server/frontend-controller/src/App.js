@@ -6,11 +6,11 @@ import Select from 'react-select';
 
 
 class App extends React.Component {
-
   state = {
     background: '#fff',
     selectedOption: "col",
     isConnected: false,
+    prevTime: new Date(),
   }
 
   // runs everytime a color changes
@@ -18,30 +18,37 @@ class App extends React.Component {
     this.setState({ background: color.hex });
     let option = this.state.selectedOption.value;
     let newColStr = ""
-    
+
     if(option === "1col" || option === "2col" || option === "both")
       newColStr = color.rgb.r + " " + color.rgb.g + " " + color.rgb.b + " " + option;
 
     console.log(newColStr);
     if(!this.state.isConnected) {
       console.log("starting connection")
-      await connectChanger(newColStr);
+      connectChanger(newColStr);
       console.log("connected");
       this.setState({ isConnected: true });
     }
 
     if(newColStr.length > 1) {
       console.log('sending new col')
-      await changeColor(newColStr);
-      console.log('sent new col')
+      let currTime = new Date();
+
+      if(currTime - this.state.prevTime > 10) {
+        this.setState({ prevTime: currTime });
+        changeColor(newColStr);
+        console.log('sent new col')
+      }
     }
   }
 
   // Kill connection when colors aren't being changed
   handleChangeComplete = async (color, event) => {
     if(this.state.isConnected) {
-      await endConnection(color.hex);
-      this.setState({ isConnected: false });
+      let currTime = new Date();
+      if(currTime - this.state.prevTime > 10)
+        endConnection(color.hex);
+      this.setState({ isConnected: false, prevTime: currTime });
     }
   }
 
