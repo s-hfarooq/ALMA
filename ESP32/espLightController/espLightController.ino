@@ -1,6 +1,9 @@
 #include <WiFi.h>
 #include <analogWrite.h>
 
+#include <esp_bt.h>
+#include "driver/adc.h"
+
 #define LED_PIN_R_1 32
 #define LED_PIN_G_1 33
 #define LED_PIN_B_1 25
@@ -15,36 +18,41 @@ const char* password = "password";
 WiFiServer server(PORT);
 
 void setup() {
-    Serial.begin(115200);
-    pinMode(LED_PIN_R_1, OUTPUT);
-    pinMode(LED_PIN_G_1, OUTPUT);
-    pinMode(LED_PIN_B_1, OUTPUT);
-    pinMode(LED_PIN_R_2, OUTPUT);
-    pinMode(LED_PIN_G_2, OUTPUT);
-    pinMode(LED_PIN_B_2, OUTPUT);
+  Serial.begin(115200);
+  pinMode(LED_PIN_R_1, OUTPUT);
+  pinMode(LED_PIN_G_1, OUTPUT);
+  pinMode(LED_PIN_B_1, OUTPUT);
+  pinMode(LED_PIN_R_2, OUTPUT);
+  pinMode(LED_PIN_G_2, OUTPUT);
+  pinMode(LED_PIN_B_2, OUTPUT);
 
-    delay(10);
+  delay(10);
 
-    // Connect to WiFi network
-    Serial.println();
-    Serial.println();
-    Serial.print("Connecting to ");
-    Serial.println(ssid);
+  // Connect to WiFi network
+  Serial.println();
+  Serial.println();
+  Serial.print("Connecting to ");
+  Serial.println(ssid);
 
+  WiFi.begin(ssid, password);
+
+  while (WiFi.status() != WL_CONNECTED) {
+    Serial.print(".");
     WiFi.begin(ssid, password);
+    delay(500);
+  }
 
-    while (WiFi.status() != WL_CONNECTED) {
-        Serial.print(".");
-        WiFi.begin(ssid, password);
-        delay(500);
-    }
+  Serial.println("");
+  Serial.println("WiFi connected.");
+  Serial.println("IP address: ");
+  Serial.println(WiFi.localIP());
 
-    Serial.println("");
-    Serial.println("WiFi connected.");
-    Serial.println("IP address: ");
-    Serial.println(WiFi.localIP());
+  Serial.println("Turning off things...");
+  btStop();
+  esp_bt_controller_disable();
+  adc_power_off();
 
-    server.begin();
+  server.begin();
 }
 
 // Get RGB values from input string
