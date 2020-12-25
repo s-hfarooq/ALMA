@@ -4,7 +4,6 @@ import { connectChanger, endConnection, changeColor, lightOptions } from './serv
 import { ChromePicker } from 'react-color';
 import Select from 'react-select';
 
-
 class App extends React.Component {
   state = {
     background: '#fff',

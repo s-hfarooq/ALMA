@@ -1,6 +1,5 @@
 #include <WiFi.h>
 #include <analogWrite.h>
-
 #include <esp_bt.h>
 #include "driver/adc.h"
 
@@ -106,23 +105,14 @@ void loop() {
         currentLine += c;
 
         // Check if request is a valid option
-        if(currentLine.endsWith("ON")) {
-          digitalWrite(LED_PIN_R_1, HIGH);
-          digitalWrite(LED_PIN_G_1, HIGH);
-          digitalWrite(LED_PIN_B_1, HIGH);
-          digitalWrite(LED_PIN_R_2, HIGH);
-          digitalWrite(LED_PIN_G_2, HIGH);
-          digitalWrite(LED_PIN_B_2, HIGH);
-          client.write("Turned to high");
-          currentLine = "";
-        } else if(currentLine.endsWith("OFF")) {
-          digitalWrite(LED_PIN_R_1, LOW);
-          digitalWrite(LED_PIN_G_1, LOW);
-          digitalWrite(LED_PIN_B_1, LOW);
-          digitalWrite(LED_PIN_R_2, LOW);
-          digitalWrite(LED_PIN_G_2, LOW);
-          digitalWrite(LED_PIN_B_2, LOW);
-          client.write("Turned to low");
+        if(currentLine.endsWith("1COL")) {
+          int rCol = 0, gCol = 0, bCol = 0;
+          getValues(currentLine, &rCol, &gCol, &bCol);
+
+          analogWrite(LED_PIN_R_1, rCol);
+          analogWrite(LED_PIN_G_1, gCol);
+          analogWrite(LED_PIN_B_1, bCol);
+          client.write("Set new 1col");
           currentLine = "";
         } else if(currentLine.endsWith("2COL")) {
           int rCol = 0, gCol = 0, bCol = 0;
@@ -132,15 +122,6 @@ void loop() {
           analogWrite(LED_PIN_G_2, gCol);
           analogWrite(LED_PIN_B_2, bCol);
           client.write("Set new 2col");
-          currentLine = "";
-        } else if(currentLine.endsWith("1COL")) {
-          int rCol = 0, gCol = 0, bCol = 0;
-          getValues(currentLine, &rCol, &gCol, &bCol);
-
-          analogWrite(LED_PIN_R_1, rCol);
-          analogWrite(LED_PIN_G_1, gCol);
-          analogWrite(LED_PIN_B_1, bCol);
-          client.write("Set new 1col");
           currentLine = "";
         } else if(currentLine.endsWith("BOTH")) {
           int rCol = 0, gCol = 0, bCol = 0;

@@ -1,12 +1,3 @@
-// export async function changeColor(data) {
-//   const response = await fetch('/colorChanger', {
-//     method: 'POST',
-//     headers: {'Content-Type': 'application/json'},
-//     body: JSON.stringify({ color: data })
-//   })
-//   return await response.json();
-// }
-
 export async function connectChanger(data) {
   const response = await fetch('/connectChanger', {
     method: 'POST',
