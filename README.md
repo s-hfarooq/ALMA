@@ -16,12 +16,16 @@
     * currently unused
 
 ## ESP32
-  * Install the Arduino IDE - from within it, go to `Tools -> Board -> Board Manager` and install packages for the ESP32
-  * Switch board in `Tools -> Board` to `ESP32 Dev Module`
-  * Set CPU frequency to 80MHz in `Tools -> CPU Frequency` to reduce power consumption
-  * Flash code by pressing the upload button. If an error pops up about not being able to open the port, ensure the correct port is selected in `Tools -> Port` and that read/write access is allowed (run `sudo chmod a+rw /dev/ttyUSB0`, replacing `/dev/ttyUSB0` with the correct port)
-  * Make sure to set the ssid/password variables to correct values
-  * Program will run automatically when device powered on
+  * espBTSpeaker
+    * Flash using idf.py (`idf.py -p /dev/ttyUSB0 flash monitor`), make sure to configure the esp32 first using `idf.py menuconfig`
+    * `. $HOME/esp/esp-idf/export.sh` to add idf.py to the current folder. Install esp stuff first using the esp32 getting started guide
+  * espLightController
+    * Install the Arduino IDE - from within it, go to `Tools -> Board -> Board Manager` and install packages for the ESP32
+    * Switch board in `Tools -> Board` to `ESP32 Dev Module`
+    * Set CPU frequency to 80MHz in `Tools -> CPU Frequency` to reduce power consumption
+    * Flash code by pressing the upload button. If an error pops up about not being able to open the port, ensure the correct port is selected in `Tools -> Port` and that read/write access is allowed (run `sudo chmod a+rw /dev/ttyUSB0`, replacing `/dev/ttyUSB0` with the correct port)
+    * Make sure to set the ssid/password variables to correct values
+    * Program will run automatically when device powered on
 
 ## Server folder
   * api
@@ -36,7 +40,4 @@
   * both have default passwords (`raspberry`)
 
 ### Future
-* Zigbee
-  * TI has $50 dev kits (~$3-5 MCUs), need 2 for development (receiver/transmitter) - https://www.ti.com/tool/LAUNCHXL-CC26X2R1#order-start-development
-  * Examples: http://dev.ti.com/tirex/explore/node?node=AIHpFUnGAZPCyIyMVNwlJA__pTTHBmu__LATEST
-* For now maybe create own mesh network with esp32 devices? Have central unit connect to wifi/bluetooth to website/app
+* Create mesh network with esp32, no central device. Instead connect to any unit via bluetooth/app to control any device
