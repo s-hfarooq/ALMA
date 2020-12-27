@@ -34,10 +34,11 @@
     * Frontend website to control lights
   * Run - `npm run dev` in the api folder and `npm start` in the frontend-controller folder. To run forever- `forever start -c "npm run dev" ./` and `forever start -c "npm start" ./`
 
+## Other info
 #### Pi IP's
   * light strip: 192.168.0.237
   * webserver: 192.168.0.241 (website at port 3000)
   * both have default passwords (`raspberry`)
 
-### Future
+#### Future
 * Create mesh network with esp32, no central device. Instead connect to any unit via bluetooth/app to control any device
