@@ -16,16 +16,17 @@
     * currently unused
 
 ## ESP32
-  * espBTSpeaker
-    * Flash using idf.py (`idf.py -p /dev/ttyUSB0 flash monitor`), make sure to configure the esp32 first using `idf.py menuconfig`
-    * `. $HOME/esp/esp-idf/export.sh` to add idf.py to the current folder. Install esp stuff first using the esp32 getting started guide
-  * espLightController
+  * General info
     * Install the Arduino IDE - from within it, go to `Tools -> Board -> Board Manager` and install packages for the ESP32
     * Switch board in `Tools -> Board` to `ESP32 Dev Module`
     * Set CPU frequency to 80MHz in `Tools -> CPU Frequency` to reduce power consumption
     * Flash code by pressing the upload button. If an error pops up about not being able to open the port, ensure the correct port is selected in `Tools -> Port` and that read/write access is allowed (run `sudo chmod a+rw /dev/ttyUSB0`, replacing `/dev/ttyUSB0` with the correct port)
+    * Programs will run automatically when device powered on
+  * espBTSpeaker
+    * Ensure you have this repo (https://github.com/pschatzmann/ESP32-A2DP) added as a ZIP library in the Arduino IDE
+  * espLightController
     * Make sure to set the ssid/password variables to correct values
-    * Program will run automatically when device powered on
+    * SCK - GND, DIN - 22, BCK - 26, LCK - 25
 
 ## Server folder
   * api
