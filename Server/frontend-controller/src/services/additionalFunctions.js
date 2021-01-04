@@ -1,5 +1,5 @@
-export async function connectChanger(data) {
-  const response = await fetch('/connectChanger', {
+export async function connectChangerCeiling(data) {
+  const response = await fetch('/connectChangerCeiling', {
     method: 'POST',
     headers: {'Content-Type': 'application/json'},
     body: JSON.stringify({ color: data })
@@ -7,8 +7,8 @@ export async function connectChanger(data) {
   return await response;
 }
 
-export async function endConnection(data) {
-  const response = await fetch('/endConnection', {
+export async function endConnectionCeiling(data) {
+  const response = await fetch('/endConnectionCeiling', {
     method: 'POST',
     headers: {'Content-Type': 'application/json'},
     body: JSON.stringify({ color: data })
@@ -16,8 +16,35 @@ export async function endConnection(data) {
   return await response;
 }
 
-export async function changeColor(data) {
-  const response = await fetch('/changeColor', {
+export async function changeColorCeiling(data) {
+  const response = await fetch('/changeColorCeiling', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({ color: data })
+  })
+  return await response;
+}
+
+export async function connectChangerCouch(data) {
+  const response = await fetch('/connectChangerCouch', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({ color: data })
+  })
+  return await response;
+}
+
+export async function endConnectionCouch(data) {
+  const response = await fetch('/endConnectionCouch', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({ color: data })
+  })
+  return await response;
+}
+
+export async function changeColorCouch(data) {
+  const response = await fetch('/changeColorCouch', {
     method: 'POST',
     headers: {'Content-Type': 'application/json'},
     body: JSON.stringify({ color: data })
@@ -26,7 +53,11 @@ export async function changeColor(data) {
 }
 
 export const lightOptions = [
-  { value: '1col', label: 'Strip 1', color: '#0052CC' },
-  { value: '2col', label: 'Strip 2', color: '#5243AA' },
-  { value: 'both', label: 'Both', color: '#00B8D9' },
+  { value: '1colceiling', label: 'Ceiling Strip 1', color: '#0052CC' },
+  { value: '2colceiling', label: 'Ceiling Strip 2', color: '#5243AA' },
+  { value: 'bothceiling', label: 'Ceiling - Both', color: '#00B8D9' },
+  { value: '1colcouch', label: 'Couch Strip 1', color: '#0052CC' },
+  { value: '2colcouch', label: 'Couch Strip 2', color: '#5243AA' },
+  { value: 'bothcouch', label: 'Couch - Both', color: '#00B8D9' },
+  { value: 'all', label: 'All', color: '#00B8D9' },
 ];

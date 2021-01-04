@@ -1,6 +1,6 @@
 import React, { Component, Fragment } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import { connectChanger, endConnection, changeColor, lightOptions } from './services/additionalFunctions'
+import { connectChangerCeiling, endConnectionCeiling, changeColorCeiling, connectChangerCouch, endConnectionCouch, changeColorCouch, lightOptions } from './services/additionalFunctions'
 import { ChromePicker } from 'react-color';
 import Select from 'react-select';
 
@@ -8,7 +8,8 @@ class App extends React.Component {
   state = {
     background: '#fff',
     selectedOption: "col",
-    isConnected: false,
+    isConnectedCeiling: false,
+    isConnectedCouch: false,
   }
 
   // Runs everytime a color changes
@@ -17,47 +18,95 @@ class App extends React.Component {
     let option = this.state.selectedOption.value;
     let newColStr = ""
 
-    if(option === "1col" || option === "2col" || option === "both")
-      newColStr = color.rgb.r + " " + color.rgb.g + " " + color.rgb.b + " " + option;
+    if(option === "1colceiling" || option === "1colcouch")
+      newColStr = color.rgb.r + " " + color.rgb.g + " " + color.rgb.b + " 1col";
+    else if(option === "2colceiling" || option === "2colcouch")
+      newColStr = color.rgb.r + " " + color.rgb.g + " " + color.rgb.b + " 2col";
+    else
+      newColStr = color.rgb.r + " " + color.rgb.g + " " + color.rgb.b + " both";
 
     console.log(newColStr);
-    if(!this.state.isConnected) {
-      console.log("Starting connection")
-      connectChanger();
-      console.log("Connected");
-      this.setState({ isConnected: true });
+
+    if(option.includes("ceiling") || option === "all") {
+      if(!this.state.isConnectedCeiling) {
+        console.log("Starting ceiling connection")
+        connectChangerCeiling();
+        console.log("Ceiling connected");
+        this.setState({ isConnectedCeiling: true });
+      }
+
+      if(newColStr.length > 1) {
+        console.log('Sending new color')
+        changeColorCeiling(newColStr);
+        console.log('Sent new color')
+      }
     }
 
-    if(newColStr.length > 1) {
-      console.log('Sending new color')
-      changeColor(newColStr);
-      console.log('Sent new color')
+    if(option.includes("couch") || option === "all") {
+      if(!this.state.isConnectedCouch) {
+        console.log("Starting couch connection")
+        connectChangerCouch();
+        console.log("Couch connected");
+        this.setState({ isConnectedCouch: true });
+      }
+
+      if(newColStr.length > 1) {
+        console.log('Sending new color')
+        changeColorCouch(newColStr);
+        console.log('Sent new color')
+      }
     }
   }
 
   // Kill connection when colors aren't being changed
   handleChangeComplete = async (color, event) => {
-    if(!this.state.isConnected) {
-      console.log("Starting connection")
-      await connectChanger();
-      console.log("Connected");
-      this.setState({ isConnected: true });
+    let option = this.state.selectedOption.value;
+    let newColStr = ""
+
+    if(option === "1colceiling" || option === "1colcouch")
+      newColStr = color.rgb.r + " " + color.rgb.g + " " + color.rgb.b + " 1col";
+    else if(option === "2colceiling" || option === "2colcouch")
+      newColStr = color.rgb.r + " " + color.rgb.g + " " + color.rgb.b + " 2col";
+    else
+      newColStr = color.rgb.r + " " + color.rgb.g + " " + color.rgb.b + " both";
+
+
+    if(option.includes("ceiling") || option === "all") {
+      if(!this.state.isConnectedCeiling) {
+        console.log("Starting ceiling connection")
+        await connectChangerCeiling();
+        console.log("Ceiling connected");
+        this.setState({ isConnectedCeiling: true });
+      }
+
+      if(this.state.isConnectedCeiling) {
+        // Ensure color is set - just send same command 5 times
+        // Bad way to do it - need to figure out better method later
+        for(let i = 0; i < 5; i++)
+          changeColorCeiling(newColStr);
+
+        endConnectionCeiling();
+        this.setState({ isConnectedCeiling: false });
+      }
     }
 
-    if(this.state.isConnected) {
-      let option = this.state.selectedOption.value;
-      let newColStr = ""
+    if(option.includes("couch") || option === "all") {
+      if(!this.state.isConnectedCouch) {
+        console.log("Starting couch connection")
+        await connectChangerCouch();
+        console.log("Couch connected");
+        this.setState({ isConnectedCouch: true });
+      }
 
-      if(option === "1col" || option === "2col" || option === "both")
-        newColStr = color.rgb.r + " " + color.rgb.g + " " + color.rgb.b + " " + option;
+      if(this.state.isConnectedCouch) {
+        // Ensure color is set - just send same command 5 times
+        // Bad way to do it - need to figure out better method later
+        for(let i = 0; i < 5; i++)
+          changeColorCouch(newColStr);
 
-      // Ensure color is set - just send same command 5 times
-      // Bad way to do it - need to figure out better method later
-      for(let i = 0; i < 5; i++)
-        changeColor(newColStr);
-
-      endConnection();
-      this.setState({ isConnected: false });
+        endConnectionCouch();
+        this.setState({ isConnectedCouch: false });
+      }
     }
   }
 

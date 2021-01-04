@@ -4,32 +4,39 @@ const app = express(),
       bodyParser = require("body-parser");
       port = 3080;
 var net = require('net');
-var lastSentTime = new Date();
+
+var lastSentTimeCeiling = new Date();
+var lastSentTimeCouch = new Date();
+
+var ceilingIP = '192.168.1.126';
+var couchIP = '192.168.1.126';
 
 app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, '../my-app/build')));
-var client = new net.Socket();
 
-app.post('/connectChanger', (req, res) => {
-  client.connect(10000, '192.168.1.126', function() {
+var clientCeiling = new net.Socket();
+var clientCouch = new net.Socket();
+
+app.post('/connectChangerCeiling', (req, res) => {
+  clientCeiling.connect(10000, ceilingIP, function() {
   	console.log('Connected');
   });
 
   res.json({connection: "Connected"})
 });
 
-app.post('/endConnection', (req, res) => {
-  client.destroy();
+app.post('/endConnectionCeiling', (req, res) => {
+  clientCeiling.destroy();
   console.log('Destroyed');
   res.json({connection: "Ended"})
 });
 
-app.post('/changeColor', (req, res) => {
+app.post('/changeColorCeiling', (req, res) => {
   let currTime = new Date();
-  if(currTime - lastSentTime > 20) {
-    lastSentTime = currTime;
+  if(currTime - lastSentTimeCeiling > 20) {
+    lastSentTimeCeiling = currTime;
     console.log(req.body.color);
-    client.write(req.body.color);
+    clientCeiling.write(req.body.color);
     res.json({ connection: "Changed col" })
   } else {
     res.json({ conection: "Not enough time between commands" })
@@ -40,14 +47,49 @@ app.get('/', (req,res) => {
   res.sendFile(path.join(__dirname, '../my-app/build/index.html'));
 });
 
-client.on('error', function(exception) {
+clientCeiling.on('error', function(exception) {
   console.log('SOCKET ERROR');
   client.destroy();
-})
+});
 
-client.on('close', function(exception) {
+clientCeiling.on('close', function(exception) {
   console.log('SOCKET CLOSED');
-})
+});
+
+app.post('/connectChangerCouch', (req, res) => {
+  clientCeiling.connect(10000, couchIP, function() {
+  	console.log('Connected');
+  });
+
+  res.json({connection: "Connected"})
+});
+
+app.post('/endConnectionCouch', (req, res) => {
+  clientCouch.destroy();
+  console.log('Destroyed');
+  res.json({connection: "Ended"})
+});
+
+app.post('/changeColorCouch', (req, res) => {
+  let currTime = new Date();
+  if(currTime - lastSentTimeCouch > 20) {
+    lastSentTimeCouch = currTime;
+    console.log(req.body.color);
+    clientCouch.write(req.body.color);
+    res.json({ connection: "Changed col" })
+  } else {
+    res.json({ conection: "Not enough time between commands" })
+  }
+});
+
+clientCouch.on('error', function(exception) {
+  console.log('SOCKET ERROR');
+  client.destroy();
+});
+
+clientCouch.on('close', function(exception) {
+  console.log('SOCKET CLOSED');
+});
 
 app.listen(port, () => {
   console.log(`Server listening on the port::${port}`);
