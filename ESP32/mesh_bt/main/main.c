@@ -14,32 +14,29 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
 #include <string.h>
+#include <unistd.h>
+
+#include "bt_app_av.h"
+#include "bt_app_core.h"
+#include "driver/gpio.h"
+#include "driver/i2s.h"
+#include "esp_a2dp_api.h"
+#include "esp_avrc_api.h"
+#include "esp_bt.h"
+#include "esp_bt_device.h"
+#include "esp_bt_main.h"
+#include "esp_event.h"
+#include "esp_gap_bt_api.h"
+#include "esp_log.h"
+#include "esp_mesh.h"
+#include "esp_mesh_internal.h"
+#include "esp_system.h"
+#include "esp_wifi.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "nvs.h"
 #include "nvs_flash.h"
-#include "esp_system.h"
-#include "esp_log.h"
-
-#include "esp_bt.h"
-#include "bt_app_core.h"
-#include "bt_app_av.h"
-#include "esp_bt_main.h"
-#include "esp_bt_device.h"
-#include "esp_gap_bt_api.h"
-#include "esp_a2dp_api.h"
-#include "esp_avrc_api.h"
-#include "driver/i2s.h"
-
-#include <string.h>
-#include "esp_wifi.h"
-#include "esp_system.h"
-#include "esp_event.h"
-#include "esp_mesh.h"
-#include "esp_mesh_internal.h"
-#include "driver/gpio.h"
 #include "sdkconfig.h"
 
 /* event for handler "bt_av_hdl_stack_up */
@@ -50,7 +47,6 @@ enum {
 /* handler for bluetooth stack enabled events */
 static void bt_av_hdl_stack_evt(uint16_t event, void *p_param);
 
-
 #define BLINK_GPIO 17
 
 /*******************************************************
@@ -60,16 +56,20 @@ static void bt_av_hdl_stack_evt(uint16_t event, void *p_param);
 /*******************************************************
  *                Constants
  *******************************************************/
-#define RX_SIZE          (1500)
-#define TX_SIZE          (1460)
+#define RX_SIZE (1500)
+#define TX_SIZE (1460)
 
 /*******************************************************
  *                Variable Definitions
  *******************************************************/
 static const char *MESH_TAG = "mesh_main";
-static const uint8_t MESH_ID[6] = { 0x77, 0x77, 0x77, 0x77, 0x77, 0x77};
-static uint8_t tx_buf[TX_SIZE] = { 0, };
-static uint8_t rx_buf[RX_SIZE] = { 0, };
+static const uint8_t MESH_ID[6] = {0x77, 0x77, 0x77, 0x77, 0x77, 0x77};
+static uint8_t tx_buf[TX_SIZE] = {
+    0,
+};
+static uint8_t rx_buf[RX_SIZE] = {
+    0,
+};
 static bool is_running = true;
 static bool is_mesh_connected = false;
 static mesh_addr_t mesh_parent_addr;
@@ -78,194 +78,186 @@ static esp_netif_t *netif_sta = NULL;
 
 bool isOn = false;
 
-
-
-
 void bt_setup() {
-  /* Initialize NVS — it is used to store PHY calibration data */
-  esp_err_t err = nvs_flash_init();
-  if (err == ESP_ERR_NVS_NO_FREE_PAGES || err == ESP_ERR_NVS_NEW_VERSION_FOUND) {
-      ESP_ERROR_CHECK(nvs_flash_erase());
-      err = nvs_flash_init();
-  }
-  ESP_ERROR_CHECK(err);
+    /* Initialize NVS — it is used to store PHY calibration data */
+    esp_err_t err = nvs_flash_init();
+    if (err == ESP_ERR_NVS_NO_FREE_PAGES ||
+        err == ESP_ERR_NVS_NEW_VERSION_FOUND) {
+        ESP_ERROR_CHECK(nvs_flash_erase());
+        err = nvs_flash_init();
+    }
+    ESP_ERROR_CHECK(err);
 
-  i2s_config_t i2s_config = {
+    i2s_config_t i2s_config = {
 #ifdef CONFIG_EXAMPLE_A2DP_SINK_OUTPUT_INTERNAL_DAC
-      .mode = I2S_MODE_MASTER | I2S_MODE_TX | I2S_MODE_DAC_BUILT_IN,
+        .mode = I2S_MODE_MASTER | I2S_MODE_TX | I2S_MODE_DAC_BUILT_IN,
 #else
-      .mode = I2S_MODE_MASTER | I2S_MODE_TX,                                  // Only TX
+        .mode = I2S_MODE_MASTER | I2S_MODE_TX,  // Only TX
 #endif
-      .sample_rate = 44100,
-      .bits_per_sample = 16,
-      .channel_format = I2S_CHANNEL_FMT_RIGHT_LEFT,                           //2-channels
-      .communication_format = I2S_COMM_FORMAT_STAND_MSB,
-      .dma_buf_count = 6,
-      .dma_buf_len = 60,
-      .intr_alloc_flags = 0,                                                  //Default interrupt priority
-      .tx_desc_auto_clear = true                                              //Auto clear tx descriptor on underflow
-  };
+        .sample_rate = 44100,
+        .bits_per_sample = 16,
+        .channel_format = I2S_CHANNEL_FMT_RIGHT_LEFT,  // 2-channels
+        .communication_format = I2S_COMM_FORMAT_STAND_MSB,
+        .dma_buf_count = 6,
+        .dma_buf_len = 60,
+        .intr_alloc_flags = 0,      // Default interrupt priority
+        .tx_desc_auto_clear = true  // Auto clear tx descriptor on underflow
+    };
 
-
-  i2s_driver_install(0, &i2s_config, 0, NULL);
+    i2s_driver_install(0, &i2s_config, 0, NULL);
 #ifdef CONFIG_EXAMPLE_A2DP_SINK_OUTPUT_INTERNAL_DAC
-  i2s_set_dac_mode(I2S_DAC_CHANNEL_BOTH_EN);
-  i2s_set_pin(0, NULL);
+    i2s_set_dac_mode(I2S_DAC_CHANNEL_BOTH_EN);
+    i2s_set_pin(0, NULL);
 #else
-  i2s_pin_config_t pin_config = {
-      .bck_io_num = CONFIG_EXAMPLE_I2S_BCK_PIN,
-      .ws_io_num = CONFIG_EXAMPLE_I2S_LRCK_PIN,
-      .data_out_num = CONFIG_EXAMPLE_I2S_DATA_PIN,
-      .data_in_num = -1                                                       //Not used
-  };
+    i2s_pin_config_t pin_config = {
+        .bck_io_num = CONFIG_EXAMPLE_I2S_BCK_PIN,
+        .ws_io_num = CONFIG_EXAMPLE_I2S_LRCK_PIN,
+        .data_out_num = CONFIG_EXAMPLE_I2S_DATA_PIN,
+        .data_in_num = -1  // Not used
+    };
 
-  i2s_set_pin(0, &pin_config);
+    i2s_set_pin(0, &pin_config);
 #endif
 
+    ESP_ERROR_CHECK(esp_bt_controller_mem_release(ESP_BT_MODE_BLE));
 
-  ESP_ERROR_CHECK(esp_bt_controller_mem_release(ESP_BT_MODE_BLE));
+    esp_bt_controller_config_t bt_cfg = BT_CONTROLLER_INIT_CONFIG_DEFAULT();
+    if ((err = esp_bt_controller_init(&bt_cfg)) != ESP_OK) {
+        ESP_LOGE(BT_AV_TAG, "%s initialize controller failed: %s\n", __func__,
+                 esp_err_to_name(err));
+        return;
+    }
 
-  esp_bt_controller_config_t bt_cfg = BT_CONTROLLER_INIT_CONFIG_DEFAULT();
-  if ((err = esp_bt_controller_init(&bt_cfg)) != ESP_OK) {
-      ESP_LOGE(BT_AV_TAG, "%s initialize controller failed: %s\n", __func__, esp_err_to_name(err));
-      return;
-  }
+    if ((err = esp_bt_controller_enable(ESP_BT_MODE_CLASSIC_BT)) != ESP_OK) {
+        ESP_LOGE(BT_AV_TAG, "%s enable controller failed: %s\n", __func__,
+                 esp_err_to_name(err));
+        return;
+    }
 
-  if ((err = esp_bt_controller_enable(ESP_BT_MODE_CLASSIC_BT)) != ESP_OK) {
-      ESP_LOGE(BT_AV_TAG, "%s enable controller failed: %s\n", __func__, esp_err_to_name(err));
-      return;
-  }
+    if ((err = esp_bluedroid_init()) != ESP_OK) {
+        ESP_LOGE(BT_AV_TAG, "%s initialize bluedroid failed: %s\n", __func__,
+                 esp_err_to_name(err));
+        return;
+    }
 
-  if ((err = esp_bluedroid_init()) != ESP_OK) {
-      ESP_LOGE(BT_AV_TAG, "%s initialize bluedroid failed: %s\n", __func__, esp_err_to_name(err));
-      return;
-  }
+    if ((err = esp_bluedroid_enable()) != ESP_OK) {
+        ESP_LOGE(BT_AV_TAG, "%s enable bluedroid failed: %s\n", __func__,
+                 esp_err_to_name(err));
+        return;
+    }
 
-  if ((err = esp_bluedroid_enable()) != ESP_OK) {
-      ESP_LOGE(BT_AV_TAG, "%s enable bluedroid failed: %s\n", __func__, esp_err_to_name(err));
-      return;
-  }
+    /* create application task */
+    bt_app_task_start_up();
 
-  /* create application task */
-  bt_app_task_start_up();
-
-  /* Bluetooth device name, connection mode and profile set up */
-  bt_app_work_dispatch(bt_av_hdl_stack_evt, BT_APP_EVT_STACK_UP, NULL, 0, NULL);
+    /* Bluetooth device name, connection mode and profile set up */
+    bt_app_work_dispatch(bt_av_hdl_stack_evt, BT_APP_EVT_STACK_UP, NULL, 0,
+                         NULL);
 
 #if (CONFIG_BT_SSP_ENABLED == true)
-  /* Set default parameters for Secure Simple Pairing */
-  esp_bt_sp_param_t param_type = ESP_BT_SP_IOCAP_MODE;
-  esp_bt_io_cap_t iocap = ESP_BT_IO_CAP_IO;
-  esp_bt_gap_set_security_param(param_type, &iocap, sizeof(uint8_t));
+    /* Set default parameters for Secure Simple Pairing */
+    esp_bt_sp_param_t param_type = ESP_BT_SP_IOCAP_MODE;
+    esp_bt_io_cap_t iocap = ESP_BT_IO_CAP_IO;
+    esp_bt_gap_set_security_param(param_type, &iocap, sizeof(uint8_t));
 #endif
 
-  /*
-   * Set default parameters for Legacy Pairing
-   * Use fixed pin code
-   */
-  esp_bt_pin_type_t pin_type = ESP_BT_PIN_TYPE_FIXED;
-  esp_bt_pin_code_t pin_code;
-  pin_code[0] = '1';
-  pin_code[1] = '2';
-  pin_code[2] = '3';
-  pin_code[3] = '4';
-  esp_bt_gap_set_pin(pin_type, 4, pin_code);
+    /*
+     * Set default parameters for Legacy Pairing
+     * Use fixed pin code
+     */
+    esp_bt_pin_type_t pin_type = ESP_BT_PIN_TYPE_FIXED;
+    esp_bt_pin_code_t pin_code;
+    pin_code[0] = '1';
+    pin_code[1] = '2';
+    pin_code[2] = '3';
+    pin_code[3] = '4';
+    esp_bt_gap_set_pin(pin_type, 4, pin_code);
 
-  //vTaskDelete(NULL);
+    // vTaskDelete(NULL);
 }
 
-void bt_app_gap_cb(esp_bt_gap_cb_event_t event, esp_bt_gap_cb_param_t *param)
-{
+void bt_app_gap_cb(esp_bt_gap_cb_event_t event, esp_bt_gap_cb_param_t *param) {
     switch (event) {
-    case ESP_BT_GAP_AUTH_CMPL_EVT: {
-        if (param->auth_cmpl.stat == ESP_BT_STATUS_SUCCESS) {
-            ESP_LOGI(BT_AV_TAG, "authentication success: %s", param->auth_cmpl.device_name);
-            esp_log_buffer_hex(BT_AV_TAG, param->auth_cmpl.bda, ESP_BD_ADDR_LEN);
-        } else {
-            ESP_LOGE(BT_AV_TAG, "authentication failed, status:%d", param->auth_cmpl.stat);
+        case ESP_BT_GAP_AUTH_CMPL_EVT: {
+            if (param->auth_cmpl.stat == ESP_BT_STATUS_SUCCESS) {
+                ESP_LOGI(BT_AV_TAG, "authentication success: %s",
+                         param->auth_cmpl.device_name);
+                esp_log_buffer_hex(BT_AV_TAG, param->auth_cmpl.bda,
+                                   ESP_BD_ADDR_LEN);
+            } else {
+                ESP_LOGE(BT_AV_TAG, "authentication failed, status:%d",
+                         param->auth_cmpl.stat);
+            }
+            break;
         }
-        break;
-    }
 
 #if (CONFIG_BT_SSP_ENABLED == true)
-    case ESP_BT_GAP_CFM_REQ_EVT:
-        ESP_LOGI(BT_AV_TAG, "ESP_BT_GAP_CFM_REQ_EVT Please compare the numeric value: %d", param->cfm_req.num_val);
-        esp_bt_gap_ssp_confirm_reply(param->cfm_req.bda, true);
-        break;
-    case ESP_BT_GAP_KEY_NOTIF_EVT:
-        ESP_LOGI(BT_AV_TAG, "ESP_BT_GAP_KEY_NOTIF_EVT passkey:%d", param->key_notif.passkey);
-        break;
-    case ESP_BT_GAP_KEY_REQ_EVT:
-        ESP_LOGI(BT_AV_TAG, "ESP_BT_GAP_KEY_REQ_EVT Please enter passkey!");
-        break;
+        case ESP_BT_GAP_CFM_REQ_EVT:
+            ESP_LOGI(
+                BT_AV_TAG,
+                "ESP_BT_GAP_CFM_REQ_EVT Please compare the numeric value: %d",
+                param->cfm_req.num_val);
+            esp_bt_gap_ssp_confirm_reply(param->cfm_req.bda, true);
+            break;
+        case ESP_BT_GAP_KEY_NOTIF_EVT:
+            ESP_LOGI(BT_AV_TAG, "ESP_BT_GAP_KEY_NOTIF_EVT passkey:%d",
+                     param->key_notif.passkey);
+            break;
+        case ESP_BT_GAP_KEY_REQ_EVT:
+            ESP_LOGI(BT_AV_TAG, "ESP_BT_GAP_KEY_REQ_EVT Please enter passkey!");
+            break;
 #endif
 
-    case ESP_BT_GAP_MODE_CHG_EVT:
-        ESP_LOGI(BT_AV_TAG, "ESP_BT_GAP_MODE_CHG_EVT mode:%d", param->mode_chg.mode);
-        break;
+        case ESP_BT_GAP_MODE_CHG_EVT:
+            ESP_LOGI(BT_AV_TAG, "ESP_BT_GAP_MODE_CHG_EVT mode:%d",
+                     param->mode_chg.mode);
+            break;
 
-    default: {
-        ESP_LOGI(BT_AV_TAG, "event: %d", event);
-        break;
-    }
+        default: {
+            ESP_LOGI(BT_AV_TAG, "event: %d", event);
+            break;
+        }
     }
     return;
 }
-static void bt_av_hdl_stack_evt(uint16_t event, void *p_param)
-{
+static void bt_av_hdl_stack_evt(uint16_t event, void *p_param) {
     ESP_LOGD(BT_AV_TAG, "%s evt %d", __func__, event);
     switch (event) {
-    case BT_APP_EVT_STACK_UP: {
-        /* set up device name */
-        char *dev_name = "ESP";
-        esp_bt_dev_set_device_name(dev_name);
+        case BT_APP_EVT_STACK_UP: {
+            /* set up device name */
+            char *dev_name = "ESP";
+            esp_bt_dev_set_device_name(dev_name);
 
-        esp_bt_gap_register_callback(bt_app_gap_cb);
+            esp_bt_gap_register_callback(bt_app_gap_cb);
 
-        /* initialize AVRCP controller */
-        esp_avrc_ct_init();
-        esp_avrc_ct_register_callback(bt_app_rc_ct_cb);
-        /* initialize AVRCP target */
-        assert (esp_avrc_tg_init() == ESP_OK);
-        esp_avrc_tg_register_callback(bt_app_rc_tg_cb);
+            /* initialize AVRCP controller */
+            esp_avrc_ct_init();
+            esp_avrc_ct_register_callback(bt_app_rc_ct_cb);
+            /* initialize AVRCP target */
+            assert(esp_avrc_tg_init() == ESP_OK);
+            esp_avrc_tg_register_callback(bt_app_rc_tg_cb);
 
-        esp_avrc_rn_evt_cap_mask_t evt_set = {0};
-        esp_avrc_rn_evt_bit_mask_operation(ESP_AVRC_BIT_MASK_OP_SET, &evt_set, ESP_AVRC_RN_VOLUME_CHANGE);
-        assert(esp_avrc_tg_set_rn_evt_cap(&evt_set) == ESP_OK);
+            esp_avrc_rn_evt_cap_mask_t evt_set = {0};
+            esp_avrc_rn_evt_bit_mask_operation(
+                ESP_AVRC_BIT_MASK_OP_SET, &evt_set, ESP_AVRC_RN_VOLUME_CHANGE);
+            assert(esp_avrc_tg_set_rn_evt_cap(&evt_set) == ESP_OK);
 
-        /* initialize A2DP sink */
-        esp_a2d_register_callback(&bt_app_a2d_cb);
-        esp_a2d_sink_register_data_callback(bt_app_a2d_data_cb);
-        esp_a2d_sink_init();
+            /* initialize A2DP sink */
+            esp_a2d_register_callback(&bt_app_a2d_cb);
+            esp_a2d_sink_register_data_callback(bt_app_a2d_data_cb);
+            esp_a2d_sink_init();
 
-        /* set discoverable and connectable mode, wait to be connected */
-        esp_bt_gap_set_scan_mode(ESP_BT_CONNECTABLE, ESP_BT_GENERAL_DISCOVERABLE);
-        break;
-    }
-    default:
-        ESP_LOGE(BT_AV_TAG, "%s unhandled evt %d", __func__, event);
-        break;
+            /* set discoverable and connectable mode, wait to be connected */
+            esp_bt_gap_set_scan_mode(ESP_BT_CONNECTABLE,
+                                     ESP_BT_GENERAL_DISCOVERABLE);
+            break;
+        }
+        default:
+            ESP_LOGE(BT_AV_TAG, "%s unhandled evt %d", __func__, event);
+            break;
     }
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-void esp_mesh_p2p_tx_main(void *arg)
-{
+void esp_mesh_p2p_tx_main(void *arg) {
     int i;
     esp_err_t err;
     int send_count = 0;
@@ -283,21 +275,21 @@ void esp_mesh_p2p_tx_main(void *arg)
         if (!esp_mesh_is_root()) {
             ESP_LOGI(MESH_TAG, "layer:%d, rtableSize:%d, %s", mesh_layer,
                      esp_mesh_get_routing_table_size(),
-                     (is_mesh_connected && esp_mesh_is_root()) ? "ROOT" : is_mesh_connected ? "NODE" : "DISCONNECT");
+                     (is_mesh_connected && esp_mesh_is_root()) ? "ROOT"
+                     : is_mesh_connected                       ? "NODE"
+                                                               : "DISCONNECT");
             vTaskDelay(10 * 1000 / portTICK_RATE_MS);
             continue;
         }
-        esp_mesh_get_routing_table((mesh_addr_t *) &route_table,
-                                   CONFIG_MESH_ROUTE_TABLE_SIZE * 6, &route_table_size);
+        esp_mesh_get_routing_table((mesh_addr_t *)&route_table,
+                                   CONFIG_MESH_ROUTE_TABLE_SIZE * 6,
+                                   &route_table_size);
 
         send_count++;
 
-        if(send_count > 100)
-          send_count = 1;
+        if (send_count > 100) send_count = 1;
 
-
-        for(int i = 0; i < RX_SIZE / 4; i++)
-          tx_buf[i] = rand();
+        for (int i = 0; i < RX_SIZE / 4; i++) tx_buf[i] = rand();
 
         tx_buf[25] = (send_count >> 24) & 0xff;
         tx_buf[24] = (send_count >> 16) & 0xff;
@@ -305,20 +297,20 @@ void esp_mesh_p2p_tx_main(void *arg)
         tx_buf[22] = (send_count >> 0) & 0xff;
         uint8_t tmp = 0;
 
-        if(isOn)
-          tmp = 1;
+        if (isOn) tmp = 1;
         tx_buf[26] = tmp;
 
         for (i = 0; i < route_table_size; i++) {
             err = esp_mesh_send(&route_table[i], &data, MESH_DATA_P2P, NULL, 0);
             if (err) {
                 ESP_LOGE(MESH_TAG,
-                         "[ROOT-2-UNICAST:%d][L:%d]parent:"MACSTR" to "MACSTR", heap:%d[err:0x%x, proto:%d, tos:%d]",
+                         "[ROOT-2-UNICAST:%d][L:%d]parent:" MACSTR " to " MACSTR
+                         ", heap:%d[err:0x%x, proto:%d, tos:%d]",
                          send_count, mesh_layer, MAC2STR(mesh_parent_addr.addr),
-                         MAC2STR(route_table[i].addr), esp_get_minimum_free_heap_size(),
-                         err, data.proto, data.tos);
+                         MAC2STR(route_table[i].addr),
+                         esp_get_minimum_free_heap_size(), err, data.proto,
+                         data.tos);
             }
-
         }
 
         isOn = !isOn;
@@ -330,10 +322,7 @@ void esp_mesh_p2p_tx_main(void *arg)
     vTaskDelete(NULL);
 }
 
-
-
-void esp_mesh_p2p_rx_main(void *arg)
-{
+void esp_mesh_p2p_rx_main(void *arg) {
     int recv_count = 0;
     esp_err_t err;
     mesh_addr_t from;
@@ -353,29 +342,28 @@ void esp_mesh_p2p_rx_main(void *arg)
         }
         /* extract send count */
         if (data.size >= sizeof(send_count)) {
-            send_count = (data.data[25] << 24) | (data.data[24] << 16)
-                         | (data.data[23] << 8) | data.data[22];
+            send_count = (data.data[25] << 24) | (data.data[24] << 16) |
+                         (data.data[23] << 8) | data.data[22];
 
-           isOn = false;
-           if(data.data[26] == 1)
-             isOn = true;
-           gpio_set_level(BLINK_GPIO, isOn);
+            isOn = false;
+            if (data.data[26] == 1) isOn = true;
+            gpio_set_level(BLINK_GPIO, isOn);
         }
         recv_count++;
         if (!(recv_count % 1)) {
             ESP_LOGW(MESH_TAG,
-                     "[#RX:%d/%d][L:%d] parent:"MACSTR", receive from "MACSTR", size:%d, heap:%d, flag:%d[err:0x%x, proto:%d, tos:%d]",
+                     "[#RX:%d/%d][L:%d] parent:" MACSTR ", receive from " MACSTR
+                     ", size:%d, heap:%d, flag:%d[err:0x%x, proto:%d, tos:%d]",
                      recv_count, send_count, mesh_layer,
                      MAC2STR(mesh_parent_addr.addr), MAC2STR(from.addr),
-                     data.size, esp_get_minimum_free_heap_size(), flag, err, data.proto,
-                     data.tos);
+                     data.size, esp_get_minimum_free_heap_size(), flag, err,
+                     data.proto, data.tos);
         }
     }
     vTaskDelete(NULL);
 }
 
-esp_err_t esp_mesh_comm_p2p_start(void)
-{
+esp_err_t esp_mesh_comm_p2p_start(void) {
     static bool is_comm_p2p_started = false;
     if (!is_comm_p2p_started) {
         is_comm_p2p_started = true;
@@ -385,287 +373,316 @@ esp_err_t esp_mesh_comm_p2p_start(void)
     return ESP_OK;
 }
 
-
 void mesh_event_handler(void *arg, esp_event_base_t event_base,
-                        int32_t event_id, void *event_data)
-{
-    mesh_addr_t id = {0,};
+                        int32_t event_id, void *event_data) {
+    mesh_addr_t id = {
+        0,
+    };
     static uint16_t last_layer = 0;
 
     switch (event_id) {
-    case MESH_EVENT_STARTED: {
-        esp_mesh_get_id(&id);
-        ESP_LOGI(MESH_TAG, "<MESH_EVENT_MESH_STARTED>ID:"MACSTR"", MAC2STR(id.addr));
-        is_mesh_connected = false;
-        mesh_layer = esp_mesh_get_layer();
-    }
-    break;
-    case MESH_EVENT_STOPPED: {
-        ESP_LOGI(MESH_TAG, "<MESH_EVENT_STOPPED>");
-        is_mesh_connected = false;
-        mesh_layer = esp_mesh_get_layer();
-    }
-    break;
-    case MESH_EVENT_CHILD_CONNECTED: {
-        mesh_event_child_connected_t *child_connected = (mesh_event_child_connected_t *)event_data;
-        ESP_LOGI(MESH_TAG, "<MESH_EVENT_CHILD_CONNECTED>aid:%d, "MACSTR"",
-                 child_connected->aid,
-                 MAC2STR(child_connected->mac));
-    }
-    break;
-    case MESH_EVENT_CHILD_DISCONNECTED: {
-        mesh_event_child_disconnected_t *child_disconnected = (mesh_event_child_disconnected_t *)event_data;
-        ESP_LOGI(MESH_TAG, "<MESH_EVENT_CHILD_DISCONNECTED>aid:%d, "MACSTR"",
-                 child_disconnected->aid,
-                 MAC2STR(child_disconnected->mac));
-    }
-    break;
-    case MESH_EVENT_ROUTING_TABLE_ADD: {
-        mesh_event_routing_table_change_t *routing_table = (mesh_event_routing_table_change_t *)event_data;
-        ESP_LOGW(MESH_TAG, "<MESH_EVENT_ROUTING_TABLE_ADD>add %d, new:%d, layer:%d",
-                 routing_table->rt_size_change,
-                 routing_table->rt_size_new, mesh_layer);
-    }
-    break;
-    case MESH_EVENT_ROUTING_TABLE_REMOVE: {
-        mesh_event_routing_table_change_t *routing_table = (mesh_event_routing_table_change_t *)event_data;
-        ESP_LOGW(MESH_TAG, "<MESH_EVENT_ROUTING_TABLE_REMOVE>remove %d, new:%d, layer:%d",
-                 routing_table->rt_size_change,
-                 routing_table->rt_size_new, mesh_layer);
-    }
-    break;
-    case MESH_EVENT_NO_PARENT_FOUND: {
-        mesh_event_no_parent_found_t *no_parent = (mesh_event_no_parent_found_t *)event_data;
-        ESP_LOGI(MESH_TAG, "<MESH_EVENT_NO_PARENT_FOUND>scan times:%d",
-                 no_parent->scan_times);
-    }
-    /* TODO handler for the failure */
-    break;
-    case MESH_EVENT_PARENT_CONNECTED: {
-        mesh_event_connected_t *connected = (mesh_event_connected_t *)event_data;
-        esp_mesh_get_id(&id);
-        mesh_layer = connected->self_layer;
-        memcpy(&mesh_parent_addr.addr, connected->connected.bssid, 6);
-        ESP_LOGI(MESH_TAG,
-                 "<MESH_EVENT_PARENT_CONNECTED>layer:%d-->%d, parent:"MACSTR"%s, ID:"MACSTR", duty:%d",
-                 last_layer, mesh_layer, MAC2STR(mesh_parent_addr.addr),
-                 esp_mesh_is_root() ? "<ROOT>" :
-                 (mesh_layer == 2) ? "<layer2>" : "", MAC2STR(id.addr), connected->duty);
-        last_layer = mesh_layer;
-        //mesh_connected_indicator(mesh_layer);
-        is_mesh_connected = true;
-        if (esp_mesh_is_root()) {
-            esp_netif_dhcpc_start(netif_sta);
+        case MESH_EVENT_STARTED: {
+            esp_mesh_get_id(&id);
+            ESP_LOGI(MESH_TAG, "<MESH_EVENT_MESH_STARTED>ID:" MACSTR "",
+                     MAC2STR(id.addr));
+            is_mesh_connected = false;
+            mesh_layer = esp_mesh_get_layer();
+        } break;
+        case MESH_EVENT_STOPPED: {
+            ESP_LOGI(MESH_TAG, "<MESH_EVENT_STOPPED>");
+            is_mesh_connected = false;
+            mesh_layer = esp_mesh_get_layer();
+        } break;
+        case MESH_EVENT_CHILD_CONNECTED: {
+            mesh_event_child_connected_t *child_connected =
+                (mesh_event_child_connected_t *)event_data;
+            ESP_LOGI(MESH_TAG, "<MESH_EVENT_CHILD_CONNECTED>aid:%d, " MACSTR "",
+                     child_connected->aid, MAC2STR(child_connected->mac));
+        } break;
+        case MESH_EVENT_CHILD_DISCONNECTED: {
+            mesh_event_child_disconnected_t *child_disconnected =
+                (mesh_event_child_disconnected_t *)event_data;
+            ESP_LOGI(MESH_TAG,
+                     "<MESH_EVENT_CHILD_DISCONNECTED>aid:%d, " MACSTR "",
+                     child_disconnected->aid, MAC2STR(child_disconnected->mac));
+        } break;
+        case MESH_EVENT_ROUTING_TABLE_ADD: {
+            mesh_event_routing_table_change_t *routing_table =
+                (mesh_event_routing_table_change_t *)event_data;
+            ESP_LOGW(MESH_TAG,
+                     "<MESH_EVENT_ROUTING_TABLE_ADD>add %d, new:%d, layer:%d",
+                     routing_table->rt_size_change, routing_table->rt_size_new,
+                     mesh_layer);
+        } break;
+        case MESH_EVENT_ROUTING_TABLE_REMOVE: {
+            mesh_event_routing_table_change_t *routing_table =
+                (mesh_event_routing_table_change_t *)event_data;
+            ESP_LOGW(
+                MESH_TAG,
+                "<MESH_EVENT_ROUTING_TABLE_REMOVE>remove %d, new:%d, layer:%d",
+                routing_table->rt_size_change, routing_table->rt_size_new,
+                mesh_layer);
+        } break;
+        case MESH_EVENT_NO_PARENT_FOUND: {
+            mesh_event_no_parent_found_t *no_parent =
+                (mesh_event_no_parent_found_t *)event_data;
+            ESP_LOGI(MESH_TAG, "<MESH_EVENT_NO_PARENT_FOUND>scan times:%d",
+                     no_parent->scan_times);
         }
-        esp_mesh_comm_p2p_start();
-    }
-    break;
-    case MESH_EVENT_PARENT_DISCONNECTED: {
-        mesh_event_disconnected_t *disconnected = (mesh_event_disconnected_t *)event_data;
-        ESP_LOGI(MESH_TAG,
-                 "<MESH_EVENT_PARENT_DISCONNECTED>reason:%d",
-                 disconnected->reason);
-        is_mesh_connected = false;
-        //mesh_disconnected_indicator();
-        mesh_layer = esp_mesh_get_layer();
-    }
-    break;
-    case MESH_EVENT_LAYER_CHANGE: {
-        mesh_event_layer_change_t *layer_change = (mesh_event_layer_change_t *)event_data;
-        mesh_layer = layer_change->new_layer;
-        ESP_LOGI(MESH_TAG, "<MESH_EVENT_LAYER_CHANGE>layer:%d-->%d%s",
-                 last_layer, mesh_layer,
-                 esp_mesh_is_root() ? "<ROOT>" :
-                 (mesh_layer == 2) ? "<layer2>" : "");
-        last_layer = mesh_layer;
-        //mesh_connected_indicator(mesh_layer);
-    }
-    break;
-    case MESH_EVENT_ROOT_ADDRESS: {
-        mesh_event_root_address_t *root_addr = (mesh_event_root_address_t *)event_data;
-        ESP_LOGI(MESH_TAG, "<MESH_EVENT_ROOT_ADDRESS>root address:"MACSTR"",
-                 MAC2STR(root_addr->addr));
-    }
-    break;
-    case MESH_EVENT_VOTE_STARTED: {
-        mesh_event_vote_started_t *vote_started = (mesh_event_vote_started_t *)event_data;
-        ESP_LOGI(MESH_TAG,
-                 "<MESH_EVENT_VOTE_STARTED>attempts:%d, reason:%d, rc_addr:"MACSTR"",
-                 vote_started->attempts,
-                 vote_started->reason,
-                 MAC2STR(vote_started->rc_addr.addr));
-    }
-    break;
-    case MESH_EVENT_VOTE_STOPPED: {
-        ESP_LOGI(MESH_TAG, "<MESH_EVENT_VOTE_STOPPED>");
+        /* TODO handler for the failure */
         break;
-    }
-    case MESH_EVENT_ROOT_SWITCH_REQ: {
-        mesh_event_root_switch_req_t *switch_req = (mesh_event_root_switch_req_t *)event_data;
-        ESP_LOGI(MESH_TAG,
-                 "<MESH_EVENT_ROOT_SWITCH_REQ>reason:%d, rc_addr:"MACSTR"",
-                 switch_req->reason,
-                 MAC2STR( switch_req->rc_addr.addr));
-    }
-    break;
-    case MESH_EVENT_ROOT_SWITCH_ACK: {
-        /* new root */
-        mesh_layer = esp_mesh_get_layer();
-        esp_mesh_get_parent_bssid(&mesh_parent_addr);
-        ESP_LOGI(MESH_TAG, "<MESH_EVENT_ROOT_SWITCH_ACK>layer:%d, parent:"MACSTR"", mesh_layer, MAC2STR(mesh_parent_addr.addr));
-    }
-    break;
-    case MESH_EVENT_TODS_STATE: {
-        mesh_event_toDS_state_t *toDs_state = (mesh_event_toDS_state_t *)event_data;
-        ESP_LOGI(MESH_TAG, "<MESH_EVENT_TODS_REACHABLE>state:%d", *toDs_state);
-    }
-    break;
-    case MESH_EVENT_ROOT_FIXED: {
-        mesh_event_root_fixed_t *root_fixed = (mesh_event_root_fixed_t *)event_data;
-        ESP_LOGI(MESH_TAG, "<MESH_EVENT_ROOT_FIXED>%s",
-                 root_fixed->is_fixed ? "fixed" : "not fixed");
-    }
-    break;
-    case MESH_EVENT_ROOT_ASKED_YIELD: {
-        mesh_event_root_conflict_t *root_conflict = (mesh_event_root_conflict_t *)event_data;
-        ESP_LOGI(MESH_TAG,
-                 "<MESH_EVENT_ROOT_ASKED_YIELD>"MACSTR", rssi:%d, capacity:%d",
-                 MAC2STR(root_conflict->addr),
-                 root_conflict->rssi,
-                 root_conflict->capacity);
-    }
-    break;
-    case MESH_EVENT_CHANNEL_SWITCH: {
-        mesh_event_channel_switch_t *channel_switch = (mesh_event_channel_switch_t *)event_data;
-        ESP_LOGI(MESH_TAG, "<MESH_EVENT_CHANNEL_SWITCH>new channel:%d", channel_switch->channel);
-    }
-    break;
-    case MESH_EVENT_SCAN_DONE: {
-        mesh_event_scan_done_t *scan_done = (mesh_event_scan_done_t *)event_data;
-        ESP_LOGI(MESH_TAG, "<MESH_EVENT_SCAN_DONE>number:%d",
-                 scan_done->number);
-    }
-    break;
-    case MESH_EVENT_NETWORK_STATE: {
-        mesh_event_network_state_t *network_state = (mesh_event_network_state_t *)event_data;
-        ESP_LOGI(MESH_TAG, "<MESH_EVENT_NETWORK_STATE>is_rootless:%d",
-                 network_state->is_rootless);
-    }
-    break;
-    case MESH_EVENT_STOP_RECONNECTION: {
-        ESP_LOGI(MESH_TAG, "<MESH_EVENT_STOP_RECONNECTION>");
-    }
-    break;
-    case MESH_EVENT_FIND_NETWORK: {
-        mesh_event_find_network_t *find_network = (mesh_event_find_network_t *)event_data;
-        ESP_LOGI(MESH_TAG, "<MESH_EVENT_FIND_NETWORK>new channel:%d, router BSSID:"MACSTR"",
-                 find_network->channel, MAC2STR(find_network->router_bssid));
-    }
-    break;
-    case MESH_EVENT_ROUTER_SWITCH: {
-        mesh_event_router_switch_t *router_switch = (mesh_event_router_switch_t *)event_data;
-        ESP_LOGI(MESH_TAG, "<MESH_EVENT_ROUTER_SWITCH>new router:%s, channel:%d, "MACSTR"",
-                 router_switch->ssid, router_switch->channel, MAC2STR(router_switch->bssid));
-    }
-    break;
-    case MESH_EVENT_PS_PARENT_DUTY: {
-        mesh_event_ps_duty_t *ps_duty = (mesh_event_ps_duty_t *)event_data;
-        ESP_LOGI(MESH_TAG, "<MESH_EVENT_PS_PARENT_DUTY>duty:%d", ps_duty->duty);
-    }
-    break;
-    case MESH_EVENT_PS_CHILD_DUTY: {
-        mesh_event_ps_duty_t *ps_duty = (mesh_event_ps_duty_t *)event_data;
-        ESP_LOGI(MESH_TAG, "<MESH_EVENT_PS_CHILD_DUTY>cidx:%d, "MACSTR", duty:%d", ps_duty->child_connected.aid-1,
-                MAC2STR(ps_duty->child_connected.mac), ps_duty->duty);
-    }
-    break;
-    default:
-        ESP_LOGI(MESH_TAG, "unknown id:%d", event_id);
-        break;
+        case MESH_EVENT_PARENT_CONNECTED: {
+            mesh_event_connected_t *connected =
+                (mesh_event_connected_t *)event_data;
+            esp_mesh_get_id(&id);
+            mesh_layer = connected->self_layer;
+            memcpy(&mesh_parent_addr.addr, connected->connected.bssid, 6);
+            ESP_LOGI(
+                MESH_TAG,
+                "<MESH_EVENT_PARENT_CONNECTED>layer:%d-->%d, parent:" MACSTR
+                "%s, ID:" MACSTR ", duty:%d",
+                last_layer, mesh_layer, MAC2STR(mesh_parent_addr.addr),
+                esp_mesh_is_root()  ? "<ROOT>"
+                : (mesh_layer == 2) ? "<layer2>"
+                                    : "",
+                MAC2STR(id.addr), connected->duty);
+            last_layer = mesh_layer;
+            // mesh_connected_indicator(mesh_layer);
+            is_mesh_connected = true;
+            if (esp_mesh_is_root()) {
+                esp_netif_dhcpc_start(netif_sta);
+            }
+            esp_mesh_comm_p2p_start();
+        } break;
+        case MESH_EVENT_PARENT_DISCONNECTED: {
+            mesh_event_disconnected_t *disconnected =
+                (mesh_event_disconnected_t *)event_data;
+            ESP_LOGI(MESH_TAG, "<MESH_EVENT_PARENT_DISCONNECTED>reason:%d",
+                     disconnected->reason);
+            is_mesh_connected = false;
+            // mesh_disconnected_indicator();
+            mesh_layer = esp_mesh_get_layer();
+        } break;
+        case MESH_EVENT_LAYER_CHANGE: {
+            mesh_event_layer_change_t *layer_change =
+                (mesh_event_layer_change_t *)event_data;
+            mesh_layer = layer_change->new_layer;
+            ESP_LOGI(MESH_TAG, "<MESH_EVENT_LAYER_CHANGE>layer:%d-->%d%s",
+                     last_layer, mesh_layer,
+                     esp_mesh_is_root()  ? "<ROOT>"
+                     : (mesh_layer == 2) ? "<layer2>"
+                                         : "");
+            last_layer = mesh_layer;
+            // mesh_connected_indicator(mesh_layer);
+        } break;
+        case MESH_EVENT_ROOT_ADDRESS: {
+            mesh_event_root_address_t *root_addr =
+                (mesh_event_root_address_t *)event_data;
+            ESP_LOGI(MESH_TAG,
+                     "<MESH_EVENT_ROOT_ADDRESS>root address:" MACSTR "",
+                     MAC2STR(root_addr->addr));
+        } break;
+        case MESH_EVENT_VOTE_STARTED: {
+            mesh_event_vote_started_t *vote_started =
+                (mesh_event_vote_started_t *)event_data;
+            ESP_LOGI(MESH_TAG,
+                     "<MESH_EVENT_VOTE_STARTED>attempts:%d, reason:%d, "
+                     "rc_addr:" MACSTR "",
+                     vote_started->attempts, vote_started->reason,
+                     MAC2STR(vote_started->rc_addr.addr));
+        } break;
+        case MESH_EVENT_VOTE_STOPPED: {
+            ESP_LOGI(MESH_TAG, "<MESH_EVENT_VOTE_STOPPED>");
+            break;
+        }
+        case MESH_EVENT_ROOT_SWITCH_REQ: {
+            mesh_event_root_switch_req_t *switch_req =
+                (mesh_event_root_switch_req_t *)event_data;
+            ESP_LOGI(MESH_TAG,
+                     "<MESH_EVENT_ROOT_SWITCH_REQ>reason:%d, rc_addr:" MACSTR
+                     "",
+                     switch_req->reason, MAC2STR(switch_req->rc_addr.addr));
+        } break;
+        case MESH_EVENT_ROOT_SWITCH_ACK: {
+            /* new root */
+            mesh_layer = esp_mesh_get_layer();
+            esp_mesh_get_parent_bssid(&mesh_parent_addr);
+            ESP_LOGI(MESH_TAG,
+                     "<MESH_EVENT_ROOT_SWITCH_ACK>layer:%d, parent:" MACSTR "",
+                     mesh_layer, MAC2STR(mesh_parent_addr.addr));
+        } break;
+        case MESH_EVENT_TODS_STATE: {
+            mesh_event_toDS_state_t *toDs_state =
+                (mesh_event_toDS_state_t *)event_data;
+            ESP_LOGI(MESH_TAG, "<MESH_EVENT_TODS_REACHABLE>state:%d",
+                     *toDs_state);
+        } break;
+        case MESH_EVENT_ROOT_FIXED: {
+            mesh_event_root_fixed_t *root_fixed =
+                (mesh_event_root_fixed_t *)event_data;
+            ESP_LOGI(MESH_TAG, "<MESH_EVENT_ROOT_FIXED>%s",
+                     root_fixed->is_fixed ? "fixed" : "not fixed");
+        } break;
+        case MESH_EVENT_ROOT_ASKED_YIELD: {
+            mesh_event_root_conflict_t *root_conflict =
+                (mesh_event_root_conflict_t *)event_data;
+            ESP_LOGI(MESH_TAG,
+                     "<MESH_EVENT_ROOT_ASKED_YIELD>" MACSTR
+                     ", rssi:%d, capacity:%d",
+                     MAC2STR(root_conflict->addr), root_conflict->rssi,
+                     root_conflict->capacity);
+        } break;
+        case MESH_EVENT_CHANNEL_SWITCH: {
+            mesh_event_channel_switch_t *channel_switch =
+                (mesh_event_channel_switch_t *)event_data;
+            ESP_LOGI(MESH_TAG, "<MESH_EVENT_CHANNEL_SWITCH>new channel:%d",
+                     channel_switch->channel);
+        } break;
+        case MESH_EVENT_SCAN_DONE: {
+            mesh_event_scan_done_t *scan_done =
+                (mesh_event_scan_done_t *)event_data;
+            ESP_LOGI(MESH_TAG, "<MESH_EVENT_SCAN_DONE>number:%d",
+                     scan_done->number);
+        } break;
+        case MESH_EVENT_NETWORK_STATE: {
+            mesh_event_network_state_t *network_state =
+                (mesh_event_network_state_t *)event_data;
+            ESP_LOGI(MESH_TAG, "<MESH_EVENT_NETWORK_STATE>is_rootless:%d",
+                     network_state->is_rootless);
+        } break;
+        case MESH_EVENT_STOP_RECONNECTION: {
+            ESP_LOGI(MESH_TAG, "<MESH_EVENT_STOP_RECONNECTION>");
+        } break;
+        case MESH_EVENT_FIND_NETWORK: {
+            mesh_event_find_network_t *find_network =
+                (mesh_event_find_network_t *)event_data;
+            ESP_LOGI(
+                MESH_TAG,
+                "<MESH_EVENT_FIND_NETWORK>new channel:%d, router BSSID:" MACSTR
+                "",
+                find_network->channel, MAC2STR(find_network->router_bssid));
+        } break;
+        case MESH_EVENT_ROUTER_SWITCH: {
+            mesh_event_router_switch_t *router_switch =
+                (mesh_event_router_switch_t *)event_data;
+            ESP_LOGI(
+                MESH_TAG,
+                "<MESH_EVENT_ROUTER_SWITCH>new router:%s, channel:%d, " MACSTR
+                "",
+                router_switch->ssid, router_switch->channel,
+                MAC2STR(router_switch->bssid));
+        } break;
+        case MESH_EVENT_PS_PARENT_DUTY: {
+            mesh_event_ps_duty_t *ps_duty = (mesh_event_ps_duty_t *)event_data;
+            ESP_LOGI(MESH_TAG, "<MESH_EVENT_PS_PARENT_DUTY>duty:%d",
+                     ps_duty->duty);
+        } break;
+        case MESH_EVENT_PS_CHILD_DUTY: {
+            mesh_event_ps_duty_t *ps_duty = (mesh_event_ps_duty_t *)event_data;
+            ESP_LOGI(MESH_TAG,
+                     "<MESH_EVENT_PS_CHILD_DUTY>cidx:%d, " MACSTR ", duty:%d",
+                     ps_duty->child_connected.aid - 1,
+                     MAC2STR(ps_duty->child_connected.mac), ps_duty->duty);
+        } break;
+        default:
+            ESP_LOGI(MESH_TAG, "unknown id:%d", event_id);
+            break;
     }
 }
 
-void ip_event_handler(void *arg, esp_event_base_t event_base,
-                      int32_t event_id, void *event_data)
-{
-    ip_event_got_ip_t *event = (ip_event_got_ip_t *) event_data;
-    ESP_LOGI(MESH_TAG, "<IP_EVENT_STA_GOT_IP>IP:" IPSTR, IP2STR(&event->ip_info.ip));
-
+void ip_event_handler(void *arg, esp_event_base_t event_base, int32_t event_id,
+                      void *event_data) {
+    ip_event_got_ip_t *event = (ip_event_got_ip_t *)event_data;
+    ESP_LOGI(MESH_TAG, "<IP_EVENT_STA_GOT_IP>IP:" IPSTR,
+             IP2STR(&event->ip_info.ip));
 }
-
 
 void setup_mesh_network() {
-  ESP_ERROR_CHECK(nvs_flash_init());
-  /*  tcpip initialization */
-  ESP_ERROR_CHECK(esp_netif_init());
-  /*  event initialization */
-  ESP_ERROR_CHECK(esp_event_loop_create_default());
-  /*  create network interfaces for mesh (only station instance saved for further manipulation, soft AP instance ignored */
-  ESP_ERROR_CHECK(esp_netif_create_default_wifi_mesh_netifs(&netif_sta, NULL));
-  /*  wifi initialization */
-  wifi_init_config_t config = WIFI_INIT_CONFIG_DEFAULT();
-  ESP_ERROR_CHECK(esp_wifi_init(&config));
-  ESP_ERROR_CHECK(esp_event_handler_register(IP_EVENT, IP_EVENT_STA_GOT_IP, &ip_event_handler, NULL));
-  ESP_ERROR_CHECK(esp_wifi_set_storage(WIFI_STORAGE_FLASH));
-  ESP_ERROR_CHECK(esp_wifi_start());
-  /*  mesh initialization */
-  ESP_ERROR_CHECK(esp_mesh_init());
-  ESP_ERROR_CHECK(esp_event_handler_register(MESH_EVENT, ESP_EVENT_ANY_ID, &mesh_event_handler, NULL));
-  /*  set mesh topology */
-  ESP_ERROR_CHECK(esp_mesh_set_topology(CONFIG_MESH_TOPOLOGY));
-  /*  set mesh max layer according to the topology */
-  ESP_ERROR_CHECK(esp_mesh_set_max_layer(CONFIG_MESH_MAX_LAYER));
-  ESP_ERROR_CHECK(esp_mesh_set_vote_percentage(1));
-  ESP_ERROR_CHECK(esp_mesh_set_xon_qsize(128));
+    ESP_ERROR_CHECK(nvs_flash_init());
+    /*  tcpip initialization */
+    ESP_ERROR_CHECK(esp_netif_init());
+    /*  event initialization */
+    ESP_ERROR_CHECK(esp_event_loop_create_default());
+    /*  create network interfaces for mesh (only station instance saved for
+     * further manipulation, soft AP instance ignored */
+    ESP_ERROR_CHECK(
+        esp_netif_create_default_wifi_mesh_netifs(&netif_sta, NULL));
+    /*  wifi initialization */
+    wifi_init_config_t config = WIFI_INIT_CONFIG_DEFAULT();
+    ESP_ERROR_CHECK(esp_wifi_init(&config));
+    ESP_ERROR_CHECK(esp_event_handler_register(IP_EVENT, IP_EVENT_STA_GOT_IP,
+                                               &ip_event_handler, NULL));
+    ESP_ERROR_CHECK(esp_wifi_set_storage(WIFI_STORAGE_FLASH));
+    ESP_ERROR_CHECK(esp_wifi_start());
+    /*  mesh initialization */
+    ESP_ERROR_CHECK(esp_mesh_init());
+    ESP_ERROR_CHECK(esp_event_handler_register(MESH_EVENT, ESP_EVENT_ANY_ID,
+                                               &mesh_event_handler, NULL));
+    /*  set mesh topology */
+    ESP_ERROR_CHECK(esp_mesh_set_topology(CONFIG_MESH_TOPOLOGY));
+    /*  set mesh max layer according to the topology */
+    ESP_ERROR_CHECK(esp_mesh_set_max_layer(CONFIG_MESH_MAX_LAYER));
+    ESP_ERROR_CHECK(esp_mesh_set_vote_percentage(1));
+    ESP_ERROR_CHECK(esp_mesh_set_xon_qsize(128));
 #ifdef CONFIG_MESH_ENABLE_PS
-  /* Enable mesh PS function */
-  ESP_ERROR_CHECK(esp_mesh_enable_ps());
-  /* better to increase the associate expired time, if a small duty cycle is set. */
-  ESP_ERROR_CHECK(esp_mesh_set_ap_assoc_expire(60));
-  /* better to increase the announce interval to avoid too much management traffic, if a small duty cycle is set. */
-  ESP_ERROR_CHECK(esp_mesh_set_announce_interval(600, 3300));
+    /* Enable mesh PS function */
+    ESP_ERROR_CHECK(esp_mesh_enable_ps());
+    /* better to increase the associate expired time, if a small duty cycle is
+     * set. */
+    ESP_ERROR_CHECK(esp_mesh_set_ap_assoc_expire(60));
+    /* better to increase the announce interval to avoid too much management
+     * traffic, if a small duty cycle is set. */
+    ESP_ERROR_CHECK(esp_mesh_set_announce_interval(600, 3300));
 #else
-  /* Disable mesh PS function */
-  ESP_ERROR_CHECK(esp_mesh_disable_ps());
-  ESP_ERROR_CHECK(esp_mesh_set_ap_assoc_expire(10));
+    /* Disable mesh PS function */
+    ESP_ERROR_CHECK(esp_mesh_disable_ps());
+    ESP_ERROR_CHECK(esp_mesh_set_ap_assoc_expire(10));
 #endif
-  mesh_cfg_t cfg = MESH_INIT_CONFIG_DEFAULT();
-  /* mesh ID */
-  memcpy((uint8_t *) &cfg.mesh_id, MESH_ID, 6);
-  /* router */
-  cfg.channel = CONFIG_MESH_CHANNEL;
-  cfg.router.ssid_len = strlen(CONFIG_MESH_ROUTER_SSID);
-  memcpy((uint8_t *) &cfg.router.ssid, CONFIG_MESH_ROUTER_SSID, cfg.router.ssid_len);
-  memcpy((uint8_t *) &cfg.router.password, CONFIG_MESH_ROUTER_PASSWD,
-         strlen(CONFIG_MESH_ROUTER_PASSWD));
-  /* mesh softAP */
-  ESP_ERROR_CHECK(esp_mesh_set_ap_authmode(CONFIG_MESH_AP_AUTHMODE));
-  cfg.mesh_ap.max_connection = CONFIG_MESH_AP_CONNECTIONS;
-  memcpy((uint8_t *) &cfg.mesh_ap.password, CONFIG_MESH_AP_PASSWD,
-         strlen(CONFIG_MESH_AP_PASSWD));
-  ESP_ERROR_CHECK(esp_mesh_set_config(&cfg));
-  /* mesh start */
-  ESP_ERROR_CHECK(esp_mesh_start());
+    mesh_cfg_t cfg = MESH_INIT_CONFIG_DEFAULT();
+    /* mesh ID */
+    memcpy((uint8_t *)&cfg.mesh_id, MESH_ID, 6);
+    /* router */
+    cfg.channel = CONFIG_MESH_CHANNEL;
+    cfg.router.ssid_len = strlen(CONFIG_MESH_ROUTER_SSID);
+    memcpy((uint8_t *)&cfg.router.ssid, CONFIG_MESH_ROUTER_SSID,
+           cfg.router.ssid_len);
+    memcpy((uint8_t *)&cfg.router.password, CONFIG_MESH_ROUTER_PASSWD,
+           strlen(CONFIG_MESH_ROUTER_PASSWD));
+    /* mesh softAP */
+    ESP_ERROR_CHECK(esp_mesh_set_ap_authmode(CONFIG_MESH_AP_AUTHMODE));
+    cfg.mesh_ap.max_connection = CONFIG_MESH_AP_CONNECTIONS;
+    memcpy((uint8_t *)&cfg.mesh_ap.password, CONFIG_MESH_AP_PASSWD,
+           strlen(CONFIG_MESH_AP_PASSWD));
+    ESP_ERROR_CHECK(esp_mesh_set_config(&cfg));
+    /* mesh start */
+    ESP_ERROR_CHECK(esp_mesh_start());
 #ifdef CONFIG_MESH_ENABLE_PS
-  /* set the device active duty cycle. (default:12, MESH_PS_DEVICE_DUTY_REQUEST) */
-  ESP_ERROR_CHECK(esp_mesh_set_active_duty_cycle(CONFIG_MESH_PS_DEV_DUTY, CONFIG_MESH_PS_DEV_DUTY_TYPE));
-  /* set the network active duty cycle. (default:12, -1, MESH_PS_NETWORK_DUTY_APPLIED_ENTIRE) */
-  ESP_ERROR_CHECK(esp_mesh_set_network_duty_cycle(CONFIG_MESH_PS_NWK_DUTY, CONFIG_MESH_PS_NWK_DUTY_DURATION, CONFIG_MESH_PS_NWK_DUTY_RULE));
+    /* set the device active duty cycle. (default:12,
+     * MESH_PS_DEVICE_DUTY_REQUEST) */
+    ESP_ERROR_CHECK(esp_mesh_set_active_duty_cycle(
+        CONFIG_MESH_PS_DEV_DUTY, CONFIG_MESH_PS_DEV_DUTY_TYPE));
+    /* set the network active duty cycle. (default:12, -1,
+     * MESH_PS_NETWORK_DUTY_APPLIED_ENTIRE) */
+    ESP_ERROR_CHECK(esp_mesh_set_network_duty_cycle(
+        CONFIG_MESH_PS_NWK_DUTY, CONFIG_MESH_PS_NWK_DUTY_DURATION,
+        CONFIG_MESH_PS_NWK_DUTY_RULE));
 #endif
-  ESP_LOGI(MESH_TAG, "mesh starts successfully, heap:%d, %s<%d>%s, ps:%d\n",  esp_get_minimum_free_heap_size(),
-           esp_mesh_is_root_fixed() ? "root fixed" : "root not fixed",
-           esp_mesh_get_topology(), esp_mesh_get_topology() ? "(chain)":"(tree)", esp_mesh_is_ps_enabled());
+    ESP_LOGI(MESH_TAG, "mesh starts successfully, heap:%d, %s<%d>%s, ps:%d\n",
+             esp_get_minimum_free_heap_size(),
+             esp_mesh_is_root_fixed() ? "root fixed" : "root not fixed",
+             esp_mesh_get_topology(),
+             esp_mesh_get_topology() ? "(chain)" : "(tree)",
+             esp_mesh_is_ps_enabled());
 
-  vTaskDelete(NULL);
+    vTaskDelete(NULL);
 }
 
-void app_main(void)
-{
+void app_main(void) {
+    gpio_reset_pin(BLINK_GPIO);
+    gpio_set_direction(BLINK_GPIO, GPIO_MODE_OUTPUT);
 
-  //xTaskCreate(bt_setup, "setup bluetooth", 10000, NULL, 1, NULL);
-  bt_setup();
-  //xTaskCreate(setup_mesh_network, "setup network", 10000, NULL, 1, NULL);
-  setup_mesh_network();
-
-
+    // xTaskCreate(bt_setup, "setup bluetooth", 10000, NULL, 1, NULL);
+    bt_setup();
+    // xTaskCreate(setup_mesh_network, "setup network", 10000, NULL, 1, NULL);
+    setup_mesh_network();
 }
