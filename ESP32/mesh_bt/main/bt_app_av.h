@@ -4,7 +4,7 @@
    Unless required by applicable law or agreed to in writing, this
    software is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
    CONDITIONS OF ANY KIND, either express or implied.
-*/
+ */
 
 #ifndef __BT_APP_AV_H__
 #define __BT_APP_AV_H__
@@ -31,13 +31,11 @@ void bt_app_a2d_data_cb(const uint8_t *data, uint32_t len);
 /**
  * @brief     callback function for AVRCP controller
  */
-void bt_app_rc_ct_cb(esp_avrc_ct_cb_event_t event,
-                     esp_avrc_ct_cb_param_t *param);
+void bt_app_rc_ct_cb(esp_avrc_ct_cb_event_t event, esp_avrc_ct_cb_param_t *param);
 
 /**
  * @brief     callback function for AVRCP target
  */
-void bt_app_rc_tg_cb(esp_avrc_tg_cb_event_t event,
-                     esp_avrc_tg_cb_param_t *param);
+void bt_app_rc_tg_cb(esp_avrc_tg_cb_event_t event, esp_avrc_tg_cb_param_t *param);
 
 #endif /* __BT_APP_AV_H__*/
