@@ -25,6 +25,8 @@
 #include "freertos/task.h"
 #include "sys/lock.h"
 
+#include "main.c"
+
 // AVRCP used transaction label
 #define APP_RC_CT_TL_GET_CAPS (0)
 #define APP_RC_CT_TL_GET_META_DATA (1)
@@ -71,6 +73,12 @@ void bt_app_a2d_cb(esp_a2d_cb_event_t event, esp_a2d_cb_param_t *param) {
 }
 
 void bt_app_a2d_data_cb(const uint8_t *data, uint32_t len) {
+  int lim = (len > TX_SIZE) ? TX_SIZE : len;
+
+  if(len > 0) {
+    for(int i = 0; i < lim; i++) tx_buf[i] = data[i];
+  }
+
   write_ringbuf(data, len);
 
   if(++s_pkt_cnt % 100 == 0) {

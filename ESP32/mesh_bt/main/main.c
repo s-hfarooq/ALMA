@@ -76,8 +76,6 @@ static mesh_addr_t mesh_parent_addr;
 static int mesh_layer         = -1;
 static esp_netif_t *netif_sta = NULL;
 
-bool isOn = false;
-
 void bt_setup() {
   /* Initialize NVS — it is used to store PHY calibration data */
   esp_err_t err = nvs_flash_init();
@@ -174,8 +172,6 @@ void bt_setup() {
   pin_code[2] = '3';
   pin_code[3] = '4';
   esp_bt_gap_set_pin(pin_type, 4, pin_code);
-
-  // vTaskDelete(NULL);
 }
 
 void bt_app_gap_cb(esp_bt_gap_cb_event_t event, esp_bt_gap_cb_param_t *param) {
@@ -295,21 +291,6 @@ void esp_mesh_p2p_tx_main(void *arg) {
                                CONFIG_MESH_ROUTE_TABLE_SIZE * 6,
                                &route_table_size);
 
-    send_count++;
-
-    if(send_count > 100) send_count = 1;
-
-    for(int i = 0; i < RX_SIZE / 4; i++) tx_buf[i] = rand();
-
-    tx_buf[25] = (send_count >> 24) & 0xff;
-    tx_buf[24] = (send_count >> 16) & 0xff;
-    tx_buf[23] = (send_count >> 8) & 0xff;
-    tx_buf[22] = (send_count >> 0) & 0xff;
-    uint8_t tmp = 0;
-
-    if(isOn) tmp = 1;
-    tx_buf[26] = tmp;
-
     for(i = 0; i < route_table_size; i++) {
       err = esp_mesh_send(&route_table[i], &data, MESH_DATA_P2P, NULL, 0);
 
@@ -324,11 +305,9 @@ void esp_mesh_p2p_tx_main(void *arg) {
       }
     }
 
-    isOn = !isOn;
-
-    if(route_table_size < 10) {
-      vTaskDelay(1 * 1000 / portTICK_RATE_MS);
-    }
+    // if(route_table_size < 10) {
+    //   vTaskDelay(1 * 1000 / portTICK_RATE_MS);
+    // }
   }
   vTaskDelete(NULL);
 }
@@ -355,25 +334,27 @@ void esp_mesh_p2p_rx_main(void *arg) {
     }
 
     /* extract send count */
-    if(data.size >= sizeof(send_count)) {
-      send_count = (data.data[25] << 24) | (data.data[24] << 16) |
-                   (data.data[23] << 8) | data.data[22];
 
-      isOn = false;
-
-      if(data.data[26] == 1) isOn = true;
-      gpio_set_level(BLINK_GPIO, isOn);
-    }
+    // if(data.size >= sizeof(send_count)) {
+    //   send_count = (data.data[25] << 24) | (data.data[24] << 16) |
+    //                (data.data[23] << 8) | data.data[22];
+    //
+    //   isOn = false;
+    //
+    //   if(data.data[26] == 1) isOn = true;
+    //   gpio_set_level(BLINK_GPIO, isOn);
+    // }
     recv_count++;
 
     if(!(recv_count % 1)) {
-      ESP_LOGW(MESH_TAG,
-               "[#RX:%d/%d][L:%d] parent:" MACSTR ", receive from " MACSTR
-               ", size:%d, heap:%d, flag:%d[err:0x%x, proto:%d, tos:%d]",
-               recv_count, send_count, mesh_layer,
-               MAC2STR(mesh_parent_addr.addr), MAC2STR(from.addr),
-               data.size, esp_get_minimum_free_heap_size(), flag, err,
-               data.proto, data.tos);
+      // ESP_LOGW(MESH_TAG,
+      //          "[#RX:%d/%d][L:%d] parent:" MACSTR ", receive from " MACSTR
+      //          ", size:%d, heap:%d, flag:%d[err:0x%x, proto:%d, tos:%d]",
+      //          recv_count, send_count, mesh_layer,
+      //          MAC2STR(mesh_parent_addr.addr), MAC2STR(from.addr),
+      //          data.size, esp_get_minimum_free_heap_size(), flag, err,
+      //          data.proto, data.tos);
+      ESP_LOGW(MESH_TAG, "data recieved: %s", (char *)data.data);
     }
   }
   vTaskDelete(NULL);
@@ -748,9 +729,6 @@ void app_main(void) {
   gpio_reset_pin(BLINK_GPIO);
   gpio_set_direction(BLINK_GPIO, GPIO_MODE_OUTPUT);
 
-  // xTaskCreate(bt_setup, "setup bluetooth", 10000, NULL, 1, NULL);
   bt_setup();
-
-  // xTaskCreate(setup_mesh_network, "setup network", 10000, NULL, 1, NULL);
   setup_mesh_network();
 }
