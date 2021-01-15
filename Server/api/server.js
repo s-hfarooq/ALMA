@@ -8,8 +8,8 @@ var net = require('net');
 var lastSentTimeCeiling = new Date();
 var lastSentTimeCouch = new Date();
 
-var ceilingIP = '192.168.1.126';
-var couchIP = '192.168.1.126';
+var ceilingIP = '192.168.1.102';
+var couchIP = '192.168.1.149';
 
 app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, '../my-app/build')));
@@ -49,7 +49,7 @@ app.get('/', (req,res) => {
 
 clientCeiling.on('error', function(exception) {
   console.log('SOCKET ERROR');
-  client.destroy();
+  clientCeiling.destroy();
 });
 
 clientCeiling.on('close', function(exception) {
@@ -57,8 +57,8 @@ clientCeiling.on('close', function(exception) {
 });
 
 app.post('/connectChangerCouch', (req, res) => {
-  clientCeiling.connect(10000, couchIP, function() {
-  	console.log('Connected');
+  clientCouch.connect(10000, couchIP, function() {
+  	console.log('Connected couch');
   });
 
   res.json({connection: "Connected"})
@@ -66,7 +66,7 @@ app.post('/connectChangerCouch', (req, res) => {
 
 app.post('/endConnectionCouch', (req, res) => {
   clientCouch.destroy();
-  console.log('Destroyed');
+  console.log('Destroyed couch');
   res.json({connection: "Ended"})
 });
 
@@ -74,7 +74,7 @@ app.post('/changeColorCouch', (req, res) => {
   let currTime = new Date();
   if(currTime - lastSentTimeCouch > 20) {
     lastSentTimeCouch = currTime;
-    console.log(req.body.color);
+    console.log(req.body.color + " couch");
     clientCouch.write(req.body.color);
     res.json({ connection: "Changed col" })
   } else {
@@ -84,7 +84,7 @@ app.post('/changeColorCouch', (req, res) => {
 
 clientCouch.on('error', function(exception) {
   console.log('SOCKET ERROR');
-  client.destroy();
+  clientCouch.destroy();
 });
 
 clientCouch.on('close', function(exception) {
