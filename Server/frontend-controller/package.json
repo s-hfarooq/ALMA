@@ -2,6 +2,7 @@
   "name": "light-controller",
   "version": "0.1.0",
   "private": true,
+  "homepage": ".",
   "dependencies": {
     "@emotion/core": "^10.0.9",
     "@testing-library/jest-dom": "^5.11.4",

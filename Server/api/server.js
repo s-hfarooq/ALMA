@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 const express = require('express');
 const path = require('path');
 const app = express(),
@@ -12,7 +14,7 @@ var ceilingIP = '192.168.1.102';
 var couchIP = '192.168.1.149';
 
 app.use(bodyParser.json());
-app.use(express.static(path.join(__dirname, '../my-app/build')));
+app.use(express.static(path.join(__dirname, '../frontend-controller/build')));
 
 var clientCeiling = new net.Socket();
 var clientCouch = new net.Socket();
@@ -44,7 +46,7 @@ app.post('/changeColorCeiling', (req, res) => {
 });
 
 app.get('/', (req,res) => {
-  res.sendFile(path.join(__dirname, '../my-app/build/index.html'));
+  res.sendFile(path.join(__dirname, '../frontend-controller/build/index.html'));
 });
 
 clientCeiling.on('error', function(exception) {

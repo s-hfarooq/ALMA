@@ -23,7 +23,7 @@
     * Flash code by pressing the upload button. If an error pops up about not being able to open the port, ensure the correct port is selected in `Tools -> Port` and that read/write access is allowed (run `sudo chmod a+rw /dev/ttyUSB0`, replacing `/dev/ttyUSB0` with the correct port)
     * Programs will run automatically when device powered on
   * bt_mesh
-    * Work in progress to get a mesh BT speaker network working. Install with idf.py (must be using the MDF version). 
+    * Work in progress to get a mesh BT speaker network working. Install with idf.py (must be using the MDF version).
   * espBTSpeaker
     * Ensure you have this repo (https://github.com/pschatzmann/ESP32-A2DP) added as a ZIP library in the Arduino IDE
   * espLightController
@@ -31,6 +31,7 @@
     * SCK - GND, DIN - 22, BCK - 26, LCK - 25
 
 ## Server folder
+  * When running on the Pi, you should be able to go into the frontend folder, build the frontend (`npm run build`), the go into the api folder and run `./server.js`. The site should then be running at `localhost:3080`. 
   * api
     * Backend server stuff to connect to other pi via tcp and send commands
   * frontend-controller
