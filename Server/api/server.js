@@ -58,7 +58,7 @@ clientCeiling.on('close', function(exception) {
 
 app.post('/connectChangerCouch', (req, res) => {
   clientCouch.connect(10000, couchIP, function() {
-  	console.log('Connected couch');
+  	console.log('Connected');
   });
 
   res.json({connection: "Connected"})
@@ -66,7 +66,7 @@ app.post('/connectChangerCouch', (req, res) => {
 
 app.post('/endConnectionCouch', (req, res) => {
   clientCouch.destroy();
-  console.log('Destroyed couch');
+  console.log('Destroyed');
   res.json({connection: "Ended"})
 });
 
@@ -74,7 +74,7 @@ app.post('/changeColorCouch', (req, res) => {
   let currTime = new Date();
   if(currTime - lastSentTimeCouch > 20) {
     lastSentTimeCouch = currTime;
-    console.log(req.body.color + " couch");
+    console.log(req.body.color);
     clientCouch.write(req.body.color);
     res.json({ connection: "Changed col" })
   } else {

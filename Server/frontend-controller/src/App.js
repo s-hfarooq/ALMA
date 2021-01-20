@@ -1,5 +1,4 @@
-import React, { Component, Fragment } from 'react';
-import 'bootstrap/dist/css/bootstrap.min.css';
+import React from 'react';
 import { connectChangerCeiling, endConnectionCeiling, changeColorCeiling, connectChangerCouch, endConnectionCouch, changeColorCouch, lightOptions } from './services/additionalFunctions'
 import { ChromePicker } from 'react-color';
 import Select from 'react-select';
@@ -18,6 +17,7 @@ class App extends React.Component {
     let option = this.state.selectedOption.value;
     let newColStr = ""
 
+    // Create string to send data
     if(option === "1colceiling" || option === "1colcouch")
       newColStr = color.rgb.r + " " + color.rgb.g + " " + color.rgb.b + " 1col";
     else if(option === "2colceiling" || option === "2colcouch")
@@ -122,25 +122,25 @@ class App extends React.Component {
     return (
       <div>
         <ChromePicker
-          color={ this.state.background }
-          onChangeComplete={ this.handleChangeComplete }
-          onChange={ this.handleChange }
+          color = { this.state.background }
+          onChangeComplete = { this.handleChangeComplete }
+          onChange = { this.handleChange }
         />
 
         <br/>
 
         <Select
-            className="basic-single"
-            classNamePrefix="select"
-            defaultValue={lightOptions[0]}
-            isDisabled={false}
-            isLoading={false}
-            isClearable={false}
-            isRtl={false}
-            isSearchable={false}
-            name="color"
-            options={lightOptions}
-            onChange={this.handleSelectChange}
+            className = "basic-single"
+            classNamePrefix = "select"
+            defaultValue = {lightOptions[0]}
+            isDisabled = {false}
+            isLoading = {false}
+            isClearable = {false}
+            isRtl = {false}
+            isSearchable = {false}
+            name = "color"
+            options = {lightOptions}
+            onChange = {this.handleSelectChange}
         />
       </div>
     );
