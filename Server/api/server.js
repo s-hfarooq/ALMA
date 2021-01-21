@@ -10,8 +10,8 @@ var net = require('net');
 var lastSentTimeCeiling = new Date();
 var lastSentTimeCouch = new Date();
 
-var ceilingIP = '192.168.1.102';
-var couchIP = '192.168.1.149';
+var ceilingIP = '192.168.0.114';
+var couchIP = '192.168.0.160';
 
 app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, '../frontend-controller/build')));
