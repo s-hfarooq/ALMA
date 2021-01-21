@@ -6,9 +6,9 @@
 #define LED_PIN_R_1 32
 #define LED_PIN_G_1 33
 #define LED_PIN_B_1 25
-#define LED_PIN_R_2 5
-#define LED_PIN_G_2 17
-#define LED_PIN_B_2 18
+#define LED_PIN_R_2 18
+#define LED_PIN_G_2 5
+#define LED_PIN_B_2 17
 #define PORT 10000
 
 const char* ssid = "ssid";
