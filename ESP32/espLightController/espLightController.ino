@@ -14,6 +14,8 @@
 const char* ssid = "ssid";
 const char* password = "password";
 
+int oR, oG, oB;
+
 WiFiServer server(PORT);
 
 void setup() {
@@ -51,6 +53,11 @@ void setup() {
   esp_bt_controller_disable();
   adc_power_off();
 
+  oR = 0;
+  oG = 0;
+  oB = 0;
+
+  Serial.println("Starting server...");
   server.begin();
 }
 
@@ -86,6 +93,45 @@ void getValues(String currentLine, int * rCol, int * gCol, int * bCol) {
   return;
 }
 
+void fadeToNewCol(int newR, int newG, int newB, int duration, int type) {
+  int rDiff = newR - oR;
+  int gDiff = newG - oG;
+  int bDiff = newB - oB;
+  int delayAmnt = 20;
+  int steps = duration / delayAmnt;
+  int rV, gV, bV;
+
+  for(int i = 0; i < steps - 1; i++) {
+    rV = oR + (rDiff * i / steps);
+    gV = oG + (gDiff * i / steps);
+    bV = oB + (bDiff * i / steps);
+
+    displayCol(rV, gV, bV, type);
+
+    delay(delayAmnt);
+  }
+
+  displayCol(newR, newG, newB, type);
+  return;
+}
+
+
+void displayCol(int r, int g, int b, int type) {
+  if(type == 0 || type == 1) {
+    analogWrite(LED_PIN_R_1, r);
+    analogWrite(LED_PIN_G_1, g);
+    analogWrite(LED_PIN_B_1, b);
+  }
+
+  if(type == 0 || type == 2) {
+    analogWrite(LED_PIN_R_2, r);
+    analogWrite(LED_PIN_G_2, g);
+    analogWrite(LED_PIN_B_2, b);
+  }
+
+  return;
+}
+
 void loop() {
   // Listen for clients
   WiFiClient client = server.available();
@@ -109,30 +155,45 @@ void loop() {
           int rCol = 0, gCol = 0, bCol = 0;
           getValues(currentLine, &rCol, &gCol, &bCol);
 
-          analogWrite(LED_PIN_R_1, rCol);
-          analogWrite(LED_PIN_G_1, gCol);
-          analogWrite(LED_PIN_B_1, bCol);
+          if(currentLine.indexOf("FIN") != -1)
+            displayCol(rCol, gCol, bCol, 1);
+          else
+            fadeToNewCol(rCol, gCol, bCol, 150, 1);
+
+          oR = rCol;
+          oG = gCol;
+          oB = bCol;
+
           client.write("Set new 1col");
           currentLine = "";
         } else if(currentLine.endsWith("2COL")) {
           int rCol = 0, gCol = 0, bCol = 0;
           getValues(currentLine, &rCol, &gCol, &bCol);
 
-          analogWrite(LED_PIN_R_2, rCol);
-          analogWrite(LED_PIN_G_2, gCol);
-          analogWrite(LED_PIN_B_2, bCol);
+          if(currentLine.indexOf("FIN") != -1)
+            displayCol(rCol, gCol, bCol, 2);
+          else
+            fadeToNewCol(rCol, gCol, bCol, 150, 2);
+           
+          oR = rCol;
+          oG = gCol;
+          oB = bCol;
+          
           client.write("Set new 2col");
           currentLine = "";
         } else if(currentLine.endsWith("BOTH")) {
           int rCol = 0, gCol = 0, bCol = 0;
           getValues(currentLine, &rCol, &gCol, &bCol);
 
-          analogWrite(LED_PIN_R_1, rCol);
-          analogWrite(LED_PIN_G_1, gCol);
-          analogWrite(LED_PIN_B_1, bCol);
-          analogWrite(LED_PIN_R_2, rCol);
-          analogWrite(LED_PIN_G_2, gCol);
-          analogWrite(LED_PIN_B_2, bCol);
+          if(currentLine.indexOf("FIN") != -1)
+            displayCol(rCol, gCol, bCol, 0);
+          else
+            fadeToNewCol(rCol, gCol, bCol, 150, 0);
+           
+          oR = rCol;
+          oG = gCol;
+          oB = bCol;
+          
           client.write("Set both col");
           currentLine = "";
         }
