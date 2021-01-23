@@ -6,7 +6,7 @@ import Select from 'react-select';
 class App extends React.Component {
   state = {
     background: '#fff',
-    selectedOption: "1colceiling",
+    selectedOption: { value: "1colceiling" },
     isConnectedCeiling: false,
     isConnectedCouch: false,
   }
