@@ -80,7 +80,11 @@ class App extends React.Component {
       }
 
       if(this.state.isConnectedCeiling) {
-        changeColorCeiling(newColStr);
+        // Ensure color is set - just send same command 5 times
+        // Bad way to do it - need to figure out better method later
+        for(let i = 0; i < 5; i++)
+          changeColorCeiling(newColStr);
+
         endConnectionCeiling();
         this.setState({ isConnectedCeiling: false });
       }
@@ -95,7 +99,11 @@ class App extends React.Component {
       }
 
       if(this.state.isConnectedCouch) {
-        changeColorCouch(newColStr);
+        // Ensure color is set - just send same command 5 times
+        // Bad way to do it - need to figure out better method later
+        for(let i = 0; i < 5; i++)
+          changeColorCouch(newColStr);
+
         endConnectionCouch();
         this.setState({ isConnectedCouch: false });
       }
