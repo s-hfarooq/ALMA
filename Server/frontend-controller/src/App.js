@@ -30,14 +30,14 @@ class App extends React.Component {
     if(option.includes("ceiling") || option === "all") {
       if(!this.state.isConnectedCeiling) {
         console.log("Starting ceiling connection")
-        connectChangerCeiling();
+        await connectChangerCeiling();
         console.log("Ceiling connected");
         this.setState({ isConnectedCeiling: true });
       }
 
       if(newColStr.length > 1) {
         console.log('Sending new color')
-        changeColorCeiling(newColStr);
+        await changeColorCeiling(newColStr);
         console.log('Sent new color')
       }
     }
@@ -45,14 +45,14 @@ class App extends React.Component {
     if(option.includes("couch") || option === "all") {
       if(!this.state.isConnectedCouch) {
         console.log("Starting couch connection")
-        connectChangerCouch();
+        await connectChangerCouch();
         console.log("Couch connected");
         this.setState({ isConnectedCouch: true });
       }
 
       if(newColStr.length > 1) {
         console.log('Sending new color')
-        changeColorCouch(newColStr);
+        await changeColorCouch(newColStr);
         console.log('Sent new color')
       }
     }
@@ -83,9 +83,9 @@ class App extends React.Component {
         // Ensure color is set - just send same command 5 times
         // Bad way to do it - need to figure out better method later
         for(let i = 0; i < 5; i++)
-          changeColorCeiling(newColStr);
+          await changeColorCeiling(newColStr);
 
-        endConnectionCeiling();
+        await endConnectionCeiling();
         this.setState({ isConnectedCeiling: false });
       }
     }
@@ -102,9 +102,9 @@ class App extends React.Component {
         // Ensure color is set - just send same command 5 times
         // Bad way to do it - need to figure out better method later
         for(let i = 0; i < 5; i++)
-          changeColorCouch(newColStr);
+          await changeColorCouch(newColStr);
 
-        endConnectionCouch();
+        await endConnectionCouch();
         this.setState({ isConnectedCouch: false });
       }
     }
