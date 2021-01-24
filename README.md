@@ -1,20 +1,5 @@
 # ALMA
 
-## Client folder
-  * DataClient.py
-    * connects to pi, can send commands via terminal
-  * test.js
-    * test script to connect to pi via tcp
-
-## PI folder
-  * Shouldn't really be used anymore - all devices apart from server should no longer be a RPi
-  * DataServer.py
-    * Server side tcp script to set light strips. First run `sudo pigpiod`, then run `python3 DataServer.py`. Run even after closing terminal using `nohup python3 DataServer.py &`
-  * fading.py / fading2.py
-    * Fading scripts - two of them because of different pins and I didn't want to edit the file much
-  * test.py
-    * currently unused
-
 ## ESP32
   * General info
     * Install the Arduino IDE - from within it, go to `Tools -> Board -> Board Manager` and install packages for the ESP32
@@ -31,18 +16,33 @@
     * SCK - GND, DIN - 22, BCK - 26, LCK - 25
 
 ## Server folder
-  * When running on the Pi, you should be able to go into the frontend folder, build the frontend (`npm run build`), the go into the api folder and run `./server.js`. The site should then be running at `localhost:3080`. 
+  * When running on the Pi, you should be able to go into the frontend folder, build the frontend (`npm run build`), the go into the api folder and run `./server.js`. The site should then be running at `localhost:3080`.
   * api
     * Backend server stuff to connect to other pi via tcp and send commands
   * frontend-controller
     * Frontend website to control lights
-  * Run - `npm run dev` in the api folder and `npm start` in the frontend-controller folder. To run forever- `forever start -c "npm run dev" ./` and `forever start -c "npm start" ./`
+
+
+## Old folder
+#### Client folder
+  * DataClient.py
+    * connects to pi, can send commands via terminal
+  * test.js
+    * test script to connect to pi via tcp
+
+#### PI folder
+  * Shouldn't really be used anymore - all devices apart from server should no longer be a RPi
+  * DataServer.py
+    * Server side tcp script to set light strips. First run `sudo pigpiod`, then run `python3 DataServer.py`. Run even after closing terminal using `nohup python3 DataServer.py &`
+  * fading.py / fading2.py
+    * Fading scripts - two of them because of different pins and I didn't want to edit the file much
+  * test.py
+    * currently unused
 
 ## Other info
-#### Pi IP's
-  * light strip: 192.168.0.237
-  * webserver: 192.168.0.241 (website at port 3000)
-  * both have default passwords (`raspberry`)
+#### Pi Server IP's
+  * 192.168.0.204
+  * has default password (`raspberry`)
 
 #### Future
 * Create mesh network with esp32, no central device. Instead connect to any unit via bluetooth/app to control any device
