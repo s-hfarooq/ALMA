@@ -50,11 +50,8 @@ app.get('/', (req,res) => {
 });
 
 clientCeiling.on('error', function(exception) {
-  console.log('SOCKET ERROR');
+  console.log('CEILING SOCKET ERROR, ' + exception.message);
   clientCeiling.destroy();
-  clientCeiling.connect(10000, ceilingIP, function() {
-    console.log('Connected');
-  });
 });
 
 clientCeiling.on('close', function(exception) {
@@ -88,11 +85,8 @@ app.post('/changeColorCouch', (req, res) => {
 });
 
 clientCouch.on('error', function(exception) {
-  console.log('SOCKET ERROR');
+  console.log('COUCH SOCKET ERROR, ' + exception.message);
   clientCouch.destroy();
-  clientCouch.connect(10000, couchIP, function() {
-    console.log('Connected');
-  });
 });
 
 clientCouch.on('close', function(exception) {
