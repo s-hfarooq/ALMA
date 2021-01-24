@@ -155,7 +155,7 @@ void loop() {
           int rCol = 0, gCol = 0, bCol = 0;
           getValues(currentLine, &rCol, &gCol, &bCol);
 
-          if(currentLine.indexOf("FIN") != -1)
+          if(currentLine.indexOf("FIN") == -1)
             displayCol(rCol, gCol, bCol, 1);
           else
             fadeToNewCol(rCol, gCol, bCol, 150, 1);
@@ -170,7 +170,7 @@ void loop() {
           int rCol = 0, gCol = 0, bCol = 0;
           getValues(currentLine, &rCol, &gCol, &bCol);
 
-          if(currentLine.indexOf("FIN") != -1)
+          if(currentLine.indexOf("FIN") == -1)
             displayCol(rCol, gCol, bCol, 2);
           else
             fadeToNewCol(rCol, gCol, bCol, 150, 2);
@@ -185,7 +185,7 @@ void loop() {
           int rCol = 0, gCol = 0, bCol = 0;
           getValues(currentLine, &rCol, &gCol, &bCol);
 
-          if(currentLine.indexOf("FIN") != -1)
+          if(currentLine.indexOf("FIN") == -1)
             displayCol(rCol, gCol, bCol, 0);
           else
             fadeToNewCol(rCol, gCol, bCol, 150, 0);

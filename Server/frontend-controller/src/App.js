@@ -64,11 +64,11 @@ class App extends React.Component {
     let newColStr = ""
 
     if(option === "1colceiling" || option === "1colcouch")
-      newColStr = color.rgb.r + " " + color.rgb.g + " " + color.rgb.b + "fin 1col";
+      newColStr = color.rgb.r + " " + color.rgb.g + " " + color.rgb.b + " fin 1col";
     else if(option === "2colceiling" || option === "2colcouch")
-      newColStr = color.rgb.r + " " + color.rgb.g + " " + color.rgb.b + "fin 2col";
+      newColStr = color.rgb.r + " " + color.rgb.g + " " + color.rgb.b + " fin 2col";
     else
-      newColStr = color.rgb.r + " " + color.rgb.g + " " + color.rgb.b + "fin both";
+      newColStr = color.rgb.r + " " + color.rgb.g + " " + color.rgb.b + " fin both";
 
 
     if(option.includes("ceiling") || option === "all") {
