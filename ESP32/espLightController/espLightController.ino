@@ -94,6 +94,7 @@ void getValues(String currentLine, int * rCol, int * gCol, int * bCol) {
 }
 
 void fadeToNewCol(int newR, int newG, int newB, int duration, int type) {
+  Serial.println("Fading...");
   int rDiff = newR - oR;
   int gDiff = newG - oG;
   int bDiff = newB - oB;
@@ -112,6 +113,7 @@ void fadeToNewCol(int newR, int newG, int newB, int duration, int type) {
   }
 
   displayCol(newR, newG, newB, type);
+  Serial.println("Fade complete");
   return;
 }
 

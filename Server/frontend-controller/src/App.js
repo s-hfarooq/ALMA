@@ -14,48 +14,48 @@ class App extends React.Component {
   // Runs everytime a color changes
   handleChange = async (color, event) => {
     this.setState({ background: color.hex });
-    let option = this.state.selectedOption.value;
-    let newColStr = ""
-
-    // Create string to send data
-    if(option === "1colceiling" || option === "1colcouch")
-      newColStr = color.rgb.r + " " + color.rgb.g + " " + color.rgb.b + " 1col";
-    else if(option === "2colceiling" || option === "2colcouch")
-      newColStr = color.rgb.r + " " + color.rgb.g + " " + color.rgb.b + " 2col";
-    else
-      newColStr = color.rgb.r + " " + color.rgb.g + " " + color.rgb.b + " both";
-
-    console.log(newColStr);
-
-    if(option.includes("ceiling") || option === "all") {
-      if(!this.state.isConnectedCeiling) {
-        console.log("Starting ceiling connection")
-        await connectChangerCeiling();
-        console.log("Ceiling connected");
-        this.setState({ isConnectedCeiling: true });
-      }
-
-      if(newColStr.length > 1) {
-        console.log('Sending new color')
-        await changeColorCeiling(newColStr);
-        console.log('Sent new color')
-      }
-    }
-
-    if(option.includes("couch") || option === "all") {
-      if(!this.state.isConnectedCouch) {
-        console.log("Starting couch connection")
-        await connectChangerCouch();
-        console.log("Couch connected");
-        this.setState({ isConnectedCouch: true });
-      }
-
-      if(newColStr.length > 1) {
-        console.log('Sending new color')
-        await changeColorCouch(newColStr);
-        console.log('Sent new color')
-      }
-    }
+    // let option = this.state.selectedOption.value;
+    // let newColStr = ""
+    //
+    // // Create string to send data
+    // if(option === "1colceiling" || option === "1colcouch")
+    //   newColStr = color.rgb.r + " " + color.rgb.g + " " + color.rgb.b + " 1col";
+    // else if(option === "2colceiling" || option === "2colcouch")
+    //   newColStr = color.rgb.r + " " + color.rgb.g + " " + color.rgb.b + " 2col";
+    // else
+    //   newColStr = color.rgb.r + " " + color.rgb.g + " " + color.rgb.b + " both";
+    //
+    // console.log(newColStr);
+    //
+    // if(option.includes("ceiling") || option === "all") {
+    //   if(!this.state.isConnectedCeiling) {
+    //     console.log("Starting ceiling connection")
+    //     await connectChangerCeiling();
+    //     console.log("Ceiling connected");
+    //     this.setState({ isConnectedCeiling: true });
+    //   }
+    //
+    //   if(newColStr.length > 1) {
+    //     console.log('Sending new color')
+    //     changeColorCeiling(newColStr);
+    //     console.log('Sent new color')
+    //   }
+    // }
+    //
+    // if(option.includes("couch") || option === "all") {
+    //   if(!this.state.isConnectedCouch) {
+    //     console.log("Starting couch connection")
+    //     await connectChangerCouch();
+    //     console.log("Couch connected");
+    //     this.setState({ isConnectedCouch: true });
+    //   }
+    //
+    //   if(newColStr.length > 1) {
+    //     console.log('Sending new color')
+    //     changeColorCouch(newColStr);
+    //     console.log('Sent new color')
+    //   }
+    // }
   }
 
   // Kill connection when colors aren't being changed
@@ -85,7 +85,7 @@ class App extends React.Component {
         for(let i = 0; i < 5; i++)
           await changeColorCeiling(newColStr);
 
-        await endConnectionCeiling();
+        endConnectionCeiling();
         this.setState({ isConnectedCeiling: false });
       }
     }
@@ -104,7 +104,7 @@ class App extends React.Component {
         for(let i = 0; i < 5; i++)
           await changeColorCouch(newColStr);
 
-        await endConnectionCouch();
+        endConnectionCouch();
         this.setState({ isConnectedCouch: false });
       }
     }
