@@ -70,8 +70,7 @@ class App extends React.Component {
     else
       newColStr = color.rgb.r + " " + color.rgb.g + " " + color.rgb.b + " 0";
 
-
-    if(option.includes("ceiling") || option === "all") {
+    if(option.includes("ceiling")) {
       if(!this.state.isConnectedCeiling) {
         console.log("Starting ceiling connection")
         await connectChangerCeiling();
@@ -88,9 +87,7 @@ class App extends React.Component {
         endConnectionCeiling();
         this.setState({ isConnectedCeiling: false });
       }
-    }
-
-    if(option.includes("couch") || option === "all") {
+    } else if(option.includes("couch")) {
       if(!this.state.isConnectedCouch) {
         console.log("Starting couch connection")
         await connectChangerCouch();
@@ -107,6 +104,34 @@ class App extends React.Component {
         endConnectionCouch();
         this.setState({ isConnectedCouch: false });
       }
+    } else if(option === "all") {
+      if(!this.state.isConnectedCeiling) {
+        console.log("Starting ceiling connection")
+        await connectChangerCeiling();
+        console.log("Ceiling connected");
+        this.setState({ isConnectedCeiling: true });
+      }
+
+      if(!this.state.isConnectedCouch) {
+        console.log("Starting couch connection")
+        await connectChangerCouch();
+        console.log("Couch connected");
+        this.setState({ isConnectedCouch: true });
+      }
+
+      if(this.state.isConnectedCouch && this.state.isConnectedCeiling) {
+        for(let i = 0; i < 5; i++) {
+          await changeColorCeiling(newColStr);
+          await changeColorCouch(newColStr);
+        }
+
+        endConnectionCouch();
+        this.setState({ isConnectedCouch: false });
+
+        endConnectionCeiling();
+        this.setState({ isConnectedCeiling: false });
+      }
+
     }
   }
 

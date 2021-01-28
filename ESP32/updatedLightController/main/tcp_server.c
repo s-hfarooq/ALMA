@@ -58,8 +58,8 @@ ledc_timer_config_t ledc_timer = {
     .duty_resolution = LEDC_TIMER_13_BIT, // resolution of PWM duty
     .freq_hz = 5000,                      // frequency of PWM signal
     .speed_mode = LEDC_LS_MODE,           // timer mode
-    .timer_num = LEDC_LS_TIMER,            // timer index
-    .clk_cfg = LEDC_AUTO_CLK,              // Auto select the source clock
+    .timer_num = LEDC_LS_TIMER,           // timer index
+    .clk_cfg = LEDC_AUTO_CLK,             // Auto select the source clock
 };
 
 ledc_channel_config_t ledc_channel[LEDC_TEST_CH_NUM] = {
@@ -184,6 +184,10 @@ void fadeToNewCol(int newR, int newG, int newB, int duration, int type) {
   return;
 }
 
+void loopFade() {
+
+}
+
 static void do_retransmit(const int sock)
 {
     int len;
@@ -208,23 +212,27 @@ static void do_retransmit(const int sock)
             getValues(rx_buffer, len, &rCol, &gCol, &bCol, &type);
             ESP_LOGI(TAG, "Values: %d %d %d %d", rCol, gCol, bCol, type);
 
-            if(type == 1 || type == 0) {
-              // Strip 1
-              fadeToNewCol(rCol, gCol, bCol, 150, 1);
-            }
+            if(type == 3) {
+              xTaskCreate(loopFade, "tcp_server", 4096, NULL, 2, NULL);
+            } else {
+              if(type == 1 || type == 0) {
+                // Strip 1
+                fadeToNewCol(rCol, gCol, bCol, 150, 1);
+              }
 
-            if(type == 2 || type == 0) {
-              // Strip 2
-              fadeToNewCol(rCol, gCol, bCol, 150, 2);
-            }
+              if(type == 2 || type == 0) {
+                // Strip 2
+                fadeToNewCol(rCol, gCol, bCol, 150, 2);
+              }
 
-            oR = rCol;
-            oG = gCol;
-            oB = bCol;
+              oR = rCol;
+              oG = gCol;
+              oB = bCol;
+            }
 
             // send() can return less bytes than supplied length.
             // Walk-around for robust implementation.
-            int to_write = len;
+            // int to_write = len;
             // while (to_write > 0) {
             //     int written = send(sock, rx_buffer + (len - to_write), to_write, 0);
             //     if (written < 0) {
@@ -329,20 +337,6 @@ void app_main(void)
      * examples/protocols/README.md for more information about this function.
      */
     ESP_ERROR_CHECK(example_connect());
-
-    // Set MOSFET pins as outputs
-    // gpio_pad_select_gpio(LED_PIN_R_1);
-    // gpio_set_direction(LED_PIN_R_1, GPIO_MODE_OUTPUT);
-    // gpio_pad_select_gpio(LED_PIN_G_1);
-    // gpio_set_direction(LED_PIN_G_1, GPIO_MODE_OUTPUT);
-    // gpio_pad_select_gpio(LED_PIN_B_1);
-    // gpio_set_direction(LED_PIN_B_1, GPIO_MODE_OUTPUT);
-    // gpio_pad_select_gpio(LED_PIN_R_2);
-    // gpio_set_direction(LED_PIN_R_2, GPIO_MODE_OUTPUT);
-    // gpio_pad_select_gpio(LED_PIN_G_2);
-    // gpio_set_direction(LED_PIN_G_2, GPIO_MODE_OUTPUT);
-    // gpio_pad_select_gpio(LED_PIN_B_2);
-    // gpio_set_direction(LED_PIN_B_2, GPIO_MODE_OUTPUT);
 
     ledc_timer_config(&ledc_timer);
     // Prepare and set configuration of timer1 for low speed channels
