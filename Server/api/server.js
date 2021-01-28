@@ -12,6 +12,7 @@ var lastSentTimeCouch = new Date();
 
 var ceilingIP = '192.168.0.114';
 var couchIP = '192.168.0.160';
+var connectionPort = 3333;
 
 app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, '../frontend-controller/build')));
@@ -20,7 +21,7 @@ var clientCeiling = new net.Socket();
 var clientCouch = new net.Socket();
 
 app.post('/connectChangerCeiling', (req, res) => {
-  clientCeiling.connect(10000, ceilingIP, function() {
+  clientCeiling.connect(connectionPort, ceilingIP, function() {
   	console.log('Connected');
   });
 
@@ -59,7 +60,7 @@ clientCeiling.on('close', function(exception) {
 });
 
 app.post('/connectChangerCouch', (req, res) => {
-  clientCouch.connect(10000, couchIP, function() {
+  clientCouch.connect(connectionPort, couchIP, function() {
   	console.log('Connected');
   });
 

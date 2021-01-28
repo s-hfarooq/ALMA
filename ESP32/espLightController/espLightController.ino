@@ -117,7 +117,6 @@ void fadeToNewCol(int newR, int newG, int newB, int duration, int type) {
   return;
 }
 
-
 void displayCol(int r, int g, int b, int type) {
   if(type == 0 || type == 1) {
     analogWrite(LED_PIN_R_1, r);
@@ -176,11 +175,11 @@ void loop() {
             displayCol(rCol, gCol, bCol, 2);
           else
             fadeToNewCol(rCol, gCol, bCol, 150, 2);
-           
+
           oR = rCol;
           oG = gCol;
           oB = bCol;
-          
+
           client.write("Set new 2col");
           currentLine = "";
         } else if(currentLine.endsWith("BOTH")) {
@@ -191,11 +190,11 @@ void loop() {
             displayCol(rCol, gCol, bCol, 0);
           else
             fadeToNewCol(rCol, gCol, bCol, 150, 0);
-           
+
           oR = rCol;
           oG = gCol;
           oB = bCol;
-          
+
           client.write("Set both col");
           currentLine = "";
         }
