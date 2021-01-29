@@ -259,6 +259,7 @@ static void do_retransmit(const int sock)
             }
 
             if(type == 3) {
+              fadeToNewCol(255, 0, 0, 150, 0);
               xTaskCreate(loopFade, "fadeScript", 4096, NULL, 2, &fadeHandle);
             } else {
               if(type == 1 || type == 0)
