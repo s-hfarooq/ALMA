@@ -52,7 +52,7 @@
 
 static const char *TAG = "example";
 
-int oR, oG, oB;
+int oR1, oG1, oB1, oR2, oG2, oB2;
 
 ledc_timer_config_t ledc_timer = {
     .duty_resolution = LEDC_TIMER_13_BIT, // resolution of PWM duty
@@ -151,8 +151,9 @@ void getValues(char rx_buf[128], int len, int * rCol, int * gCol, int * bCol, in
       temp[i] %= 255;
   }
 
-  if(temp[3] < 0 || temp[3] > 2)
-    temp[3] = 0;
+  temp[3] = temp[3] < 0 ? 0 : temp[3];
+  while(temp[3] > 10)
+    temp[3] /= 10;
 
   *rCol = temp[0];
   *gCol = temp[1];
@@ -162,6 +163,17 @@ void getValues(char rx_buf[128], int len, int * rCol, int * gCol, int * bCol, in
 
 void fadeToNewCol(int newR, int newG, int newB, int duration, int type) {
   // Fade from current color to new value
+  int oR, oG, oB;
+  if(type == 1) {
+    oR = oR1;
+    oG = oG1;
+    oB = oB1;
+  } else {
+    oR = oR2;
+    oG = oG2;
+    oB = oB2;
+  }
+  
   int rDiff = newR - oR;
   int gDiff = newG - oG;
   int bDiff = newB - oB;
@@ -203,10 +215,6 @@ static void do_retransmit(const int sock)
             rx_buffer[len] = 0; // Null-terminate whatever is received and treat it like a string
             ESP_LOGI(TAG, "Received %d bytes: %s", len, rx_buffer);
 
-            //
-            // TEST SIGNAL HERE
-            //
-
             int rCol = 0, gCol = 0, bCol = 0, type = -1;
 
             getValues(rx_buffer, len, &rCol, &gCol, &bCol, &type);
@@ -218,16 +226,18 @@ static void do_retransmit(const int sock)
               if(type == 1 || type == 0) {
                 // Strip 1
                 fadeToNewCol(rCol, gCol, bCol, 150, 1);
+                oR1 = rCol;
+                oG1 = gCol;
+                oB1 = bCol;
               }
 
               if(type == 2 || type == 0) {
                 // Strip 2
                 fadeToNewCol(rCol, gCol, bCol, 150, 2);
+                oR2 = rCol;
+                oG2 = gCol;
+                oB2 = bCol;
               }
-
-              oR = rCol;
-              oG = gCol;
-              oB = bCol;
             }
 
             // send() can return less bytes than supplied length.
@@ -347,6 +357,13 @@ void app_main(void)
     for(int ch = 0; ch < LEDC_TEST_CH_NUM; ch++) {
       ledc_channel_config(&ledc_channel[ch]);
     }
+
+    oR1 = 0;
+    oG1 = 0;
+    oB1 = 0;
+    oR2 = 0;
+    oG2 = 0;
+    oB2 = 0;
 
 #ifdef CONFIG_EXAMPLE_IPV4
     xTaskCreate(tcp_server_task, "tcp_server", 4096, (void*)AF_INET, 5, NULL);
