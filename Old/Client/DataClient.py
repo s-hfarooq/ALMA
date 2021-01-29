@@ -20,8 +20,8 @@ try:
         print('sending {!r}'.format(message))
         sock.sendall(message)
 
-        data = sock.recv(1024)
-        print('received {!r}'.format(data))
+        #data = sock.recv(1024)
+        #print('received {!r}'.format(data))
 
 finally:
     print('closing socket')

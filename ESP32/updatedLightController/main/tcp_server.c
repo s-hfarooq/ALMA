@@ -52,6 +52,8 @@
 
 static const char *TAG = "example";
 
+TaskHandle_t fadeHandle = NULL;
+
 //int oR1, oG1, oB1, oR2, oG2, oB2;
 int oCol1[3], oCol2[3];
 
@@ -113,6 +115,19 @@ ledc_channel_config_t ledc_channel[LEDC_TEST_CH_NUM] = {
         .timer_sel  = LEDC_HS_TIMER
     },
 };
+
+const uint8_t lights[360]={
+  0, 0, 0, 0, 0, 1, 1, 2, 2, 3, 4, 5, 6, 7, 8, 9, 11, 12, 13, 15, 17, 18, 20, 22, 24, 26, 28, 30, 32, 35, 37, 39,
+ 42, 44, 47, 49, 52, 55, 58, 60, 63, 66, 69, 72, 75, 78, 81, 85, 88, 91, 94, 97, 101, 104, 107, 111, 114, 117, 121, 124, 127, 131, 134, 137,
+141, 144, 147, 150, 154, 157, 160, 163, 167, 170, 173, 176, 179, 182, 185, 188, 191, 194, 197, 200, 202, 205, 208, 210, 213, 215, 217, 220, 222, 224, 226, 229,
+231, 232, 234, 236, 238, 239, 241, 242, 244, 245, 246, 248, 249, 250, 251, 251, 252, 253, 253, 254, 254, 255, 255, 255, 255, 255, 255, 255, 254, 254, 253, 253,
+252, 251, 251, 250, 249, 248, 246, 245, 244, 242, 241, 239, 238, 236, 234, 232, 231, 229, 226, 224, 222, 220, 217, 215, 213, 210, 208, 205, 202, 200, 197, 194,
+191, 188, 185, 182, 179, 176, 173, 170, 167, 163, 160, 157, 154, 150, 147, 144, 141, 137, 134, 131, 127, 124, 121, 117, 114, 111, 107, 104, 101, 97, 94, 91,
+ 88, 85, 81, 78, 75, 72, 69, 66, 63, 60, 58, 55, 52, 49, 47, 44, 42, 39, 37, 35, 32, 30, 28, 26, 24, 22, 20, 18, 17, 15, 13, 12,
+ 11, 9, 8, 7, 6, 5, 4, 3, 2, 2, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
 void displayCol(int r, int g, int b, int type) {
   int dutyAmnt[3] = {r * 4000 / 255, g * 4000 / 255, b * 4000 / 255};
@@ -198,7 +213,17 @@ void fadeToNewCol(int newR, int newG, int newB, int duration, int type) {
 }
 
 void loopFade() {
+  // Loop through all colors
+  int loopDelay = 5000, displayLen = 50;
 
+  while(true) {
+    for(int i = 0; i < 360; i++) {
+      displayCol(lights[(i + 120) % 360], lights[i], lights[(i + 240) % 360], 0);
+      vTaskDelay(displayLen / portTICK_PERIOD_MS);
+    }
+
+    vTaskDelay(loopDelay / portTICK_PERIOD_MS);
+  }
 }
 
 static void do_retransmit(const int sock)
@@ -221,8 +246,13 @@ static void do_retransmit(const int sock)
             getValues(rx_buffer, len, &rCol, &gCol, &bCol, &type);
             ESP_LOGI(TAG, "Values: %d %d %d %d", rCol, gCol, bCol, type);
 
+            if(fadeHandle != NULL) {
+              vTaskDelete(fadeHandle);
+              fadeHandle = NULL;
+            }
+
             if(type == 3) {
-              xTaskCreate(loopFade, "tcp_server", 4096, NULL, 2, NULL);
+              xTaskCreate(loopFade, "fadeScript", 4096, NULL, 2, &fadeHandle);
             } else {
               if(type == 1 || type == 0) {
                 // Strip 1

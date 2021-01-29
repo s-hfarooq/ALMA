@@ -2,6 +2,7 @@ import React from 'react';
 import { connectChangerCeiling, endConnectionCeiling, changeColorCeiling, connectChangerCouch, endConnectionCouch, changeColorCouch, lightOptions } from './services/additionalFunctions'
 import { ChromePicker } from 'react-color';
 import Select from 'react-select';
+import Button from 'react-bootstrap/Button';
 
 class App extends React.Component {
   state = {
@@ -167,6 +168,39 @@ class App extends React.Component {
             options = {lightOptions}
             onChange = {this.handleSelectChange}
         />
+
+        <br/>
+
+
+        <center><Button variant="outline-dark" onClick={async () => {
+          if(!this.state.isConnectedCeiling) {
+            console.log("Starting ceiling connection")
+            await connectChangerCeiling();
+            console.log("Ceiling connected");
+            this.setState({ isConnectedCeiling: true });
+          }
+
+          if(!this.state.isConnectedCouch) {
+            console.log("Starting couch connection")
+            await connectChangerCouch();
+            console.log("Couch connected");
+            this.setState({ isConnectedCouch: true });
+          }
+
+          if(this.state.isConnectedCouch && this.state.isConnectedCeiling) {
+            let newColStr = "0 0 0 3";
+            for(let i = 0; i < 5; i++) {
+              await changeColorCeiling(newColStr);
+              await changeColorCouch(newColStr);
+            }
+
+            await endConnectionCouch();
+            this.setState({ isConnectedCouch: false });
+
+            await endConnectionCeiling();
+            this.setState({ isConnectedCeiling: false });
+          }
+        }}>Start Fade</Button></center>
       </div>
     );
   }
