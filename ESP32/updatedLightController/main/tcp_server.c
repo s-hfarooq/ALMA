@@ -154,15 +154,15 @@ void displayCol(int r, int g, int b, int type) {
   }
 }
 
-void getValues(char rx_buf[128], int len, int * rCol, int * gCol, int * bCol, int * type) {
-  char * split = strtok(rx_buf, " "), * curr;
-  int temp[4], i = 0;
+void getValues(char rx_buf[128], int len, int * rCol, int * gCol, int * bCol, int * type, int * speed) {
+  char * split = strtok(rx_buf, "-"), * curr;
+  int temp[5], i = 0;
 
   // Convert char array into int values
-  while(split != NULL && i < 4) {
+  while(split != NULL && i < 5) {
     curr = split;
     temp[i] = atoi(curr);
-    split = strtok(NULL, " ");
+    split = strtok(NULL, "-");
     i++;
   }
 
@@ -178,10 +178,13 @@ void getValues(char rx_buf[128], int len, int * rCol, int * gCol, int * bCol, in
   while(temp[3] > 10)
     temp[3] /= 10;
 
+  temp[4] = temp[4] < 10 ? 10 : temp[4];
+
   *rCol = temp[0];
   *gCol = temp[1];
   *bCol = temp[2];
   *type = temp[3];
+  *speed = temp[4];
 }
 
 void fadeToNewCol(int newR, int newG, int newB, int duration, int type) {
@@ -219,17 +222,15 @@ void fadeToNewCol(int newR, int newG, int newB, int duration, int type) {
   return;
 }
 
-void loopFade() {
+void loopFade(int delay) {
   // Loop through all colors
-  int loopDelay = 5000, displayLen = 50;
-
   while(true) {
     for(int i = 0; i < 360; i++) {
       displayCol(lights[(i + 120) % 360], lights[i], lights[(i + 240) % 360], 0);
-      vTaskDelay(displayLen / portTICK_PERIOD_MS);
+      vTaskDelay(delay / portTICK_PERIOD_MS);
     }
 
-    vTaskDelay(loopDelay / portTICK_PERIOD_MS);
+    vTaskDelay(delay / portTICK_PERIOD_MS);
   }
 }
 
@@ -248,10 +249,10 @@ static void do_retransmit(const int sock)
             rx_buffer[len] = 0; // Null-terminate whatever is received and treat it like a string
             ESP_LOGI(TAG, "Received %d bytes: %s", len, rx_buffer);
 
-            int rCol = 0, gCol = 0, bCol = 0, type = -1;
+            int rCol = 0, gCol = 0, bCol = 0, type = -1, speed = 50;
 
-            getValues(rx_buffer, len, &rCol, &gCol, &bCol, &type);
-            ESP_LOGI(TAG, "Values: %d %d %d %d", rCol, gCol, bCol, type);
+            getValues(rx_buffer, len, &rCol, &gCol, &bCol, &type, &speed);
+            ESP_LOGI(TAG, "Values: %d %d %d %d %d", rCol, gCol, bCol, type, speed);
 
             if(fadeHandle != NULL) {
               vTaskDelete(fadeHandle);
@@ -260,7 +261,7 @@ static void do_retransmit(const int sock)
 
             if(type == 3) {
               fadeToNewCol(255, 0, 0, 150, 0);
-              xTaskCreate(loopFade, "fadeScript", 4096, NULL, 2, &fadeHandle);
+              xTaskCreate(loopFade, "fadeScript", 4096, speed, 2, &fadeHandle);
             } else {
               if(type == 1 || type == 0)
                 fadeToNewCol(rCol, gCol, bCol, 150, 1);
