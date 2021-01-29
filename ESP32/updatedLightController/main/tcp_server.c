@@ -54,7 +54,6 @@ static const char *TAG = "example";
 
 TaskHandle_t fadeHandle = NULL;
 
-//int oR1, oG1, oB1, oR2, oG2, oB2;
 int oCol1[3], oCol2[3];
 
 ledc_timer_config_t ledc_timer = {
@@ -137,6 +136,10 @@ void displayCol(int r, int g, int b, int type) {
       ledc_set_duty(ledc_channel[ch].speed_mode, ledc_channel[ch].channel, dutyAmnt[ch]);
       ledc_update_duty(ledc_channel[ch].speed_mode, ledc_channel[ch].channel);
     }
+
+    oCol1[0] = r;
+    oCol1[1] = g;
+    oCol1[2] = b;
   }
 
   if(type == 0 || type == 2) {
@@ -144,6 +147,10 @@ void displayCol(int r, int g, int b, int type) {
       ledc_set_duty(ledc_channel[ch].speed_mode, ledc_channel[ch].channel, dutyAmnt[ch - 3]);
       ledc_update_duty(ledc_channel[ch].speed_mode, ledc_channel[ch].channel);
     }
+
+    oCol2[0] = r;
+    oCol2[1] = g;
+    oCol2[2] = b;
   }
 }
 
@@ -254,21 +261,10 @@ static void do_retransmit(const int sock)
             if(type == 3) {
               xTaskCreate(loopFade, "fadeScript", 4096, NULL, 2, &fadeHandle);
             } else {
-              if(type == 1 || type == 0) {
-                // Strip 1
+              if(type == 1 || type == 0)
                 fadeToNewCol(rCol, gCol, bCol, 150, 1);
-                oCol1[0] = rCol;
-                oCol1[1] = gCol;
-                oCol1[2] = bCol;
-              }
-
-              if(type == 2 || type == 0) {
-                // Strip 2
+              if(type == 2 || type == 0)
                 fadeToNewCol(rCol, gCol, bCol, 150, 2);
-                oCol2[0] = rCol;
-                oCol2[1] = gCol;
-                oCol2[2] = bCol;
-              }
             }
 
             // send() can return less bytes than supplied length.
