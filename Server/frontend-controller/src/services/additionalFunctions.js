@@ -56,6 +56,6 @@ export const lightOptions = [
   { value: '1colceiling', label: 'Ceiling Strip 1', color: '#0052CC' },
   { value: '2colceiling', label: 'Ceiling Strip 2', color: '#5243AA' },
   { value: 'bothceiling', label: 'Ceiling - Both', color: '#00B8D9' },
-  { value: '1colcouch', label: 'Couch', color: '#5243AA' },
+  { value: '2colcouch', label: 'Couch', color: '#5243AA' },
   { value: 'all', label: 'All', color: '#00B8D9' },
 ];
