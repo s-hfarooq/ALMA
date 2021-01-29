@@ -52,7 +52,8 @@
 
 static const char *TAG = "example";
 
-int oR1, oG1, oB1, oR2, oG2, oB2;
+//int oR1, oG1, oB1, oR2, oG2, oB2;
+int oCol1[3], oCol2[3];
 
 ledc_timer_config_t ledc_timer = {
     .duty_resolution = LEDC_TIMER_13_BIT, // resolution of PWM duty
@@ -165,15 +166,15 @@ void fadeToNewCol(int newR, int newG, int newB, int duration, int type) {
   // Fade from current color to new value
   int oR, oG, oB;
   if(type == 1) {
-    oR = oR1;
-    oG = oG1;
-    oB = oB1;
+    oR = oCol1[0];
+    oG = oCol1[1];
+    oB = oCol1[2];
   } else {
-    oR = oR2;
-    oG = oG2;
-    oB = oB2;
+    oR = oCol2[0];
+    oG = oCol2[1];
+    oB = oCol2[2];
   }
-  
+
   int rDiff = newR - oR;
   int gDiff = newG - oG;
   int bDiff = newB - oB;
@@ -226,17 +227,17 @@ static void do_retransmit(const int sock)
               if(type == 1 || type == 0) {
                 // Strip 1
                 fadeToNewCol(rCol, gCol, bCol, 150, 1);
-                oR1 = rCol;
-                oG1 = gCol;
-                oB1 = bCol;
+                oCol1[0] = rCol;
+                oCol1[1] = gCol;
+                oCol1[2] = bCol;
               }
 
               if(type == 2 || type == 0) {
                 // Strip 2
                 fadeToNewCol(rCol, gCol, bCol, 150, 2);
-                oR2 = rCol;
-                oG2 = gCol;
-                oB2 = bCol;
+                oCol2[0] = rCol;
+                oCol2[1] = gCol;
+                oCol2[2] = bCol;
               }
             }
 
@@ -358,12 +359,10 @@ void app_main(void)
       ledc_channel_config(&ledc_channel[ch]);
     }
 
-    oR1 = 0;
-    oG1 = 0;
-    oB1 = 0;
-    oR2 = 0;
-    oG2 = 0;
-    oB2 = 0;
+    for(int i = 0; i < 3; i++) {
+      oCol1[i] = 0;
+      oCol2[i] = 0;
+    }
 
 #ifdef CONFIG_EXAMPLE_IPV4
     xTaskCreate(tcp_server_task, "tcp_server", 4096, (void*)AF_INET, 5, NULL);
