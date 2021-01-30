@@ -20,6 +20,10 @@ app.use(express.static(path.join(__dirname, '../frontend-controller/build')));
 var clientCeiling = new net.Socket();
 var clientCouch = new net.Socket();
 
+app.get('/', (req,res) => {
+  res.sendFile(path.join(__dirname, '../frontend-controller/build/index.html'));
+});
+
 app.post('/connectChangerCeiling', (req, res) => {
   clientCeiling.connect(connectionPort, ceilingIP, function() {
   	console.log('Connected');
@@ -44,10 +48,6 @@ app.post('/changeColorCeiling', (req, res) => {
   } else {
     res.json({ conection: "Not enough time between commands" })
   }
-});
-
-app.get('/', (req,res) => {
-  res.sendFile(path.join(__dirname, '../frontend-controller/build/index.html'));
 });
 
 clientCeiling.on('error', function(exception) {
