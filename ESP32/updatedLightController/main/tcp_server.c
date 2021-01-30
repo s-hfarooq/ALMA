@@ -226,11 +226,9 @@ void loopFade(int delay) {
   // Loop through all colors
   while(true) {
     for(int i = 0; i < 360; i++) {
-      displayCol(lights[(i + 120) % 360], lights[i], lights[(i + 240) % 360], 0);
+      fadeToNewCol(lights[(i + 120) % 360], lights[i], lights[(i + 240) % 360], 5, 0);
       vTaskDelay(delay / portTICK_PERIOD_MS);
     }
-
-    vTaskDelay(delay / portTICK_PERIOD_MS);
   }
 }
 

@@ -214,7 +214,7 @@ class App extends React.Component {
                 await endConnectionCeiling();
                 this.setState({ isConnectedCeiling: false });
               }
-          }}>Start Fade (speed above)</Button>
+          }}>Start Fade (delay above)</Button>
         </center>
       </div>
     );
