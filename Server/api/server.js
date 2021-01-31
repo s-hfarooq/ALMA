@@ -94,6 +94,11 @@ clientCouch.on('close', function(exception) {
   console.log('SOCKET CLOSED');
 });
 
+app.post('/userDetection', (req, res) => {
+  console.log("recieved ID: " + req.body.userid);
+  res.json({user: "received"});
+});
+
 app.listen(port, () => {
   console.log(`Server listening on the port::${port}`);
 });
