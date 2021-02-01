@@ -12,6 +12,7 @@ var lastSentTimeCouch = new Date();
 
 var ceilingIP = '192.168.0.114';
 var couchIP = '192.168.0.160';
+var speakerIP = '192.168.0.236';
 var connectionPort = 3333;
 
 app.use(bodyParser.json());
@@ -94,9 +95,48 @@ clientCouch.on('close', function(exception) {
   console.log('SOCKET CLOSED');
 });
 
-app.post('/userDetection', (req, res) => {
-  console.log("recieved ID: " + req.body.userid);
-  res.json({user: "received"});
+app.post('/userDetection', async function (req, res) {
+  try {
+    console.log("recieved ID: " + req.body.userid);
+
+    var clientSpeaker = new net.Socket();
+    clientSpeaker.connect(10000, speakerIP, function() {
+      console.log('Connected to speaker');
+
+      if(req.body.userid == 0) {
+        clientSpeaker.write("hassan");
+      } else {
+        clientSpeaker.write("nouser");
+      }
+
+    });
+
+    clientCeiling.connect(connectionPort, ceilingIP, function() {
+      console.log('Connected');
+      if(req.body.userid == 0) {
+        clientCeiling.write("0-0-0-3-10-");
+      } else {
+        clientCeiling.write("255-0-0-0-0-");
+      }
+
+    });
+
+    clientCouch.connect(connectionPort, couchIP, function() {
+      console.log('Connected');
+      if(req.body.userid == 0) {
+        clientCouch.write("0-0-0-3-10-");
+      } else {
+        clientCouch.write("255-0-0-0-0-");
+      }
+    });
+
+
+
+    res.json({user: "received"});
+  } catch(e) {
+    res.end(e.message || e.toString());
+  }
+
 });
 
 app.listen(port, () => {

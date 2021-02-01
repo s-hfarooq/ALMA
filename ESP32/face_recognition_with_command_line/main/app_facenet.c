@@ -245,6 +245,7 @@ void task_process(void *arg)
                         sendReqToServer(matched_id);
                     } else {
                         ESP_LOGI(TAG, "No Matched Face ID");
+                        sendReqToServer(-1);
                     }
 
                     ESP_LOGI(TAG, "Recognition time consumption: %lldms\n",

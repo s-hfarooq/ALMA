@@ -1,8 +1,8 @@
 import socket
 import sys
 
-IP_ADDRESS = "192.168.0.114"
-IP_PORT = 3333
+IP_ADDRESS = "192.168.0.236"
+IP_PORT = 10000
 
 # Create a TCP/IP socket
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
