@@ -1,23 +1,25 @@
 /* ESPRESSIF MIT License
- * 
+ *
  * Copyright (c) 2018 <ESPRESSIF SYSTEMS (SHANGHAI) PTE LTD>
- * 
- * Permission is hereby granted for use on all ESPRESSIF SYSTEMS products, in which case,
- * it is free of charge, to any person obtaining a copy of this software and associated
- * documentation files (the "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense,
- * and/or sell copies of the Software, and to permit persons to whom the Software is furnished
- * to do so, subject to the following conditions:
- * 
- * The above copyright notice and this permission notice shall be included in all copies or
- * substantial portions of the Software.
- * 
+ *
+ * Permission is hereby granted for use on all ESPRESSIF SYSTEMS products, in
+ * which case, it is free of charge, to any person obtaining a copy of this
+ * software and associated documentation files (the "Software"), to deal in the
+ * Software without restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+ * the Software, and to permit persons to whom the Software is furnished to do
+ * so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
- * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
- * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
- * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  */
 #include "app_camera.h"
 
@@ -26,8 +28,7 @@ static const char *TAG = "app_camera";
 QueueHandle_t gpst_input_queue = NULL;
 TaskHandle_t gpst_input_task = NULL;
 
-void app_camera_init()
-{
+void app_camera_init() {
 #if CONFIG_CAMERA_MODEL_ESP_EYE
     /* IO13, IO14 is designed for JTAG by default,
      * to use it as generalized input,
@@ -60,7 +61,7 @@ void app_camera_init()
     config.pin_sscb_sda = SIOD_GPIO_NUM;
     config.pin_sscb_scl = SIOC_GPIO_NUM;
     config.pin_pwdn = PWDN_GPIO_NUM;
-    config.pin_reset = -1;//RESET_GPIO_NUM;
+    config.pin_reset = -1;  // RESET_GPIO_NUM;
     config.xclk_freq_hz = XCLK_FREQ;
     config.pixel_format = CAMERA_PIXEL_FORMAT;
     config.frame_size = CAMERA_FRAME_SIZE;
@@ -69,16 +70,16 @@ void app_camera_init()
 
     // camera init
     esp_err_t err = esp_camera_init(&config);
-    if (err != ESP_OK) {
+    if(err != ESP_OK) {
         ESP_LOGE(TAG, "Camera init failed with error 0x%x", err);
         return;
     }
 
-    sensor_t * s = esp_camera_sensor_get();
-    s->set_vflip(s, 1);//flip it back
-    //initial sensors are flipped vertically and colors are a bit saturated
-    if (s->id.PID == OV3660_PID) {
-        s->set_brightness(s, 1);//up the blightness just a bit
-        s->set_saturation(s, -2);//lower the saturation
+    sensor_t *s = esp_camera_sensor_get();
+    s->set_vflip(s, 1);  // flip it back
+    // initial sensors are flipped vertically and colors are a bit saturated
+    if(s->id.PID == OV3660_PID) {
+        s->set_brightness(s, 1);   // up the blightness just a bit
+        s->set_saturation(s, -2);  // lower the saturation
     }
 }
