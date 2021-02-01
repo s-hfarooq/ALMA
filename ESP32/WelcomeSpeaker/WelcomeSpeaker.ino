@@ -31,10 +31,10 @@ unsigned const char* TheData;
 uint32_t DataIdx =
     0;  // index offset into "TheData" for current  data t send to I2S
 
-#define PORT 10000
+#define PORT 3333
 
-const char* ssid = "ssid";
-const char* password = "password";
+const char* ssid = "Kudeki Fanclub";
+const char* password = "4RfVgY7UjM";
 
 WiFiServer server(PORT);
 
@@ -134,7 +134,8 @@ void loop() {
                 currentLine += c;
 
                 // Check if request is a valid option
-                if(currentLine.endsWith("HASSAN")) {
+                if(currentLine == "H") {
+                    client.write("recieved");
                     Serial.println("playing hassan audio...");
                     const unsigned char* WavFile = welcomeHassan;
                     memcpy(&WavHeader, WavFile,
@@ -155,7 +156,8 @@ void loop() {
                     }
 
                     playAudio();
-                } else if(currentLine.endsWith("NOUSER")) {
+                } else if(currentLine == "N") {
+                    client.write("recieved");
                     Serial.println("playing nouser audio...");
                     const unsigned char* WavFile = notRecognized;
                     memcpy(&WavHeader, WavFile,

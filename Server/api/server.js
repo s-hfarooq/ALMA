@@ -96,47 +96,42 @@ clientCouch.on('close', function(exception) {
 });
 
 app.post('/userDetection', async function (req, res) {
-  try {
-    console.log("recieved ID: " + req.body.userid);
+  console.log("recieved ID: " + req.body.userid);
 
-    var clientSpeaker = new net.Socket();
-    clientSpeaker.connect(10000, speakerIP, function() {
-      console.log('Connected to speaker');
+  var clientSpeaker = new net.Socket();
+  clientSpeaker.connect(connectionPort, speakerIP, async function() {
+    console.log('Connected to speaker');
 
-      if(req.body.userid == 0) {
-        clientSpeaker.write("hassan");
-      } else {
-        clientSpeaker.write("nouser");
-      }
+    // H == Hassan, N = not recognized
+    if(req.body.userid == 0)
+      await clientSpeaker.write("H");
+    else
+      await clientSpeaker.write("N");
 
-    });
+      clientSpeaker.destroy();
+  });
 
-    clientCeiling.connect(connectionPort, ceilingIP, function() {
-      console.log('Connected');
-      if(req.body.userid == 0) {
-        clientCeiling.write("0-0-0-3-10-");
-      } else {
-        clientCeiling.write("255-0-0-0-0-");
-      }
+  clientCeiling.connect(connectionPort, ceilingIP, async function() {
+    console.log('Connected');
+    if(req.body.userid == 0)
+      await clientCeiling.write("0-0-0-3-10-");
+    else
+      await clientCeiling.write("255-0-0-0-0-");
 
-    });
+    clientCeiling.destroy();
+  });
 
-    clientCouch.connect(connectionPort, couchIP, function() {
-      console.log('Connected');
-      if(req.body.userid == 0) {
-        clientCouch.write("0-0-0-3-10-");
-      } else {
-        clientCouch.write("255-0-0-0-0-");
-      }
-    });
+  clientCouch.connect(connectionPort, couchIP, async function() {
+    console.log('Connected');
+    if(req.body.userid == 0)
+      await clientCouch.write("0-0-0-3-10-");
+    else
+      await clientCouch.write("255-0-0-0-0-");
 
+    clientCouch.destroy();
+  });
 
-
-    res.json({user: "received"});
-  } catch(e) {
-    res.end(e.message || e.toString());
-  }
-
+  res.json({user: "received"});
 });
 
 app.listen(port, () => {
