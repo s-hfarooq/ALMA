@@ -1,27 +1,28 @@
 # ALMA
 
 ## ESP32
-  * General info
-    * Install the Arduino IDE - from within it, go to `Tools -> Board -> Board Manager` and install packages for the ESP32
+  * face_recognition_with_command_line
+    * Face recognition program - sends signal to RPi based on which user was identified
+  * updatedLightController
+    * Light controller code using IDF instead of Arduino
+  * WelcomeSpeaker
+    * Arduino code. Used for the welcome message after face recognition identifies a user
+  * If using the Arduino IDE
+    * Go to `Tools -> Board -> Board Manager` and install packages for the ESP32
     * Switch board in `Tools -> Board` to `ESP32 Dev Module`
     * Set CPU frequency to 80MHz in `Tools -> CPU Frequency` to reduce power consumption
     * Flash code by pressing the upload button. If an error pops up about not being able to open the port, ensure the correct port is selected in `Tools -> Port` and that read/write access is allowed (run `sudo chmod a+rw /dev/ttyUSB0`, replacing `/dev/ttyUSB0` with the correct port)
     * Programs will run automatically when device powered on
-  * bt_mesh
-    * Work in progress to get a mesh BT speaker network working. Install with idf.py (must be using the MDF version).
-  * espBTSpeaker
-    * Ensure you have this repo (https://github.com/pschatzmann/ESP32-A2DP) added as a ZIP library in the Arduino IDE
-  * espLightController
-    * Make sure to set the ssid/password variables to correct values
-    * SCK - GND, DIN - 22, BCK - 26, LCK - 25
+    * Only needed for a few of the programs, mostly temporary until I can figure out how to implement the same thing using IDF
+    * espBTSpeaker
+      * Ensure you have this repo (https://github.com/pschatzmann/ESP32-A2DP) added as a ZIP library in the Arduino IDE
 
 ## Server folder
-  * When running on the Pi, you should be able to go into the frontend folder, build the frontend (`npm run build`), the go into the api folder and run `./server.js`. The site should then be running at `localhost:3080`.
+  * When running on the Pi, you should be able to go into the frontend folder, build the frontend (`npm run build`), the go into the api folder and run `./server.js`. The site should then be running at `localhost:3080`. Run forever using `nohup ./server.js &`. You may need to kill the previous instance using `ps -ef` to find the PID of server.js, then running `kill PID`, replacing PID with the actual value.
   * api
     * Backend server stuff to connect to other pi via tcp and send commands
   * frontend-controller
     * Frontend website to control lights
-
 
 ## Old folder
 #### Client folder
