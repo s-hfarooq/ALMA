@@ -66,6 +66,7 @@ class App extends React.Component {
     let option = this.state.selectedOption.value;
     let newColStr = ""
 
+    // sample line: 255-0-0-0-0- > sets red to high others to low on both strips
     if(option === "1colceiling" || option === "1colcouch")
       newColStr = color.rgb.r + "-" + color.rgb.g + "-" + color.rgb.b + "-1-0-";
     else if(option === "2colceiling" || option === "2colcouch")

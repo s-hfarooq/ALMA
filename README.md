@@ -47,3 +47,4 @@
 
 #### Future
 * Create mesh network with esp32, no central device. Instead connect to any unit via bluetooth/app to control any device
+* LIDAR: http://en.benewake.com/res/wuliu/docs/15978309543104585SJ-GU-TF-Luna%20A05%20Datasheet.pdf, https://www.amazon.com/Benewake-TF-Luna-Single-Point-Ranging-Interface/dp/B086MJQSLR
