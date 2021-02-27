@@ -41,7 +41,7 @@ app.post('/sendCommand', (req, res) => {
   //"python3 test.py " + req.body.color;
   console.log("COMMAND: " + req.body.color);
   const spawn = require("child_process").spawn;
-  const pythonProcess = spawn('python3',["test.py", req.body.color]);
+  const pythonProcess = spawn('python3',["i2cpi.py", req.body.color]);
 
   res.json({connection: "Sent"})
 });
