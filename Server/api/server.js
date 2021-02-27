@@ -33,6 +33,19 @@ app.post('/connectChangerCeiling', (req, res) => {
   res.json({connection: "Connected"})
 });
 
+app.post('/sendCommand', (req, res) => {
+  // clientCeiling.connect(connectionPort, ceilingIP, function() {
+  // 	console.log('Connected');
+  // });
+
+  //"python3 test.py " + req.body.color;
+  console.log("COMMAND: " + req.body.color);
+  const spawn = require("child_process").spawn;
+  const pythonProcess = spawn('python3',["test.py", req.body.color]);
+
+  res.json({connection: "Sent"})
+});
+
 app.post('/endConnectionCeiling', (req, res) => {
   clientCeiling.destroy();
   console.log('Destroyed');

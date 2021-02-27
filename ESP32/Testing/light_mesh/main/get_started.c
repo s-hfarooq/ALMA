@@ -256,6 +256,7 @@ static void root_task(void *arg)
     mwifi_data_type_t data_type      = {0};
 
     MDF_LOGI("Root is running");
+    srand(time(NULL));
 
     for (int i = 0;; ++i) {
         if (!mwifi_is_started()) {
@@ -263,24 +264,24 @@ static void root_task(void *arg)
             continue;
         }
 
-        size = MWIFI_PAYLOAD_LEN;
-        memset(data, 0, MWIFI_PAYLOAD_LEN);
-        ret = mwifi_root_read(src_addr, &data_type, data, &size, portMAX_DELAY);
-        MDF_ERROR_CONTINUE(ret != MDF_OK, "<%s> mwifi_root_read", mdf_err_to_name(ret));
-        MDF_LOGI("Root receive, addr: " MACSTR ", size: %d, data: %s", MAC2STR(src_addr), size, data);
+        int colR = rand()%((255+1));
+        int colG = rand()%((255+1));
+        int colB = rand()%((255+1));
 
-        if(i % 3 == 0) {
-          size = sprintf(data, "(%d) 15-25-255-0-0-", i);
-        } else if(i % 2 == 0) {
-          size = sprintf(data, "(%d) 141-255-11-0-0-", i);
-        } else {
-          size = sprintf(data, "(%d) 255-0-0-0-0-", i);
+        for(int j = 0; j < 2; j++) {
+          size = MWIFI_PAYLOAD_LEN;
+          memset(data, 0, MWIFI_PAYLOAD_LEN);
+          ret = mwifi_root_read(src_addr, &data_type, data, &size, portMAX_DELAY);
+          MDF_ERROR_CONTINUE(ret != MDF_OK, "<%s> mwifi_root_read", mdf_err_to_name(ret));
+          MDF_LOGI("Root receive, addr: " MACSTR ", size: %d, data: %s", MAC2STR(src_addr), size, data);
+
+          size = sprintf(data, "%d-%d-%d-0-0-", colR, colG, colB);
+
+          //size = sprintf(data, "(%d) Hello node!", i);
+          ret = mwifi_root_write(src_addr, 1, &data_type, data, size, true);
+          MDF_ERROR_CONTINUE(ret != MDF_OK, "mwifi_root_recv, ret: %x", ret);
+          MDF_LOGI("Root send, addr: " MACSTR ", size: %d, data: %s", MAC2STR(src_addr), size, data);
         }
-
-        //size = sprintf(data, "(%d) Hello node!", i);
-        ret = mwifi_root_write(src_addr, 1, &data_type, data, size, true);
-        MDF_ERROR_CONTINUE(ret != MDF_OK, "mwifi_root_recv, ret: %x", ret);
-        MDF_LOGI("Root send, addr: " MACSTR ", size: %d, data: %s", MAC2STR(src_addr), size, data);
 
         // set pins
         int rCol = 0, gCol = 0, bCol = 0, type = -1, speed = 50;
@@ -288,6 +289,8 @@ static void root_task(void *arg)
 
         fadeToNewCol(rCol, gCol, bCol, 150, 1);
         fadeToNewCol(rCol, gCol, bCol, 150, 2);
+
+        vTaskDelay(2000 / portTICK_RATE_MS);
     }
 
     MDF_LOGW("Root is exit");

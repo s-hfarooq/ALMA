@@ -1,5 +1,5 @@
 import React from 'react';
-import { connectChangerCeiling, endConnectionCeiling, changeColorCeiling, connectChangerCouch, endConnectionCouch, changeColorCouch, lightOptions } from './services/additionalFunctions'
+import { sendCommand, connectChangerCeiling, endConnectionCeiling, changeColorCeiling, connectChangerCouch, endConnectionCouch, changeColorCouch, lightOptions } from './services/additionalFunctions'
 import { ChromePicker } from 'react-color';
 import Select from 'react-select';
 import Button from 'react-bootstrap/Button';
@@ -74,69 +74,71 @@ class App extends React.Component {
     else
       newColStr = color.rgb.r + "-" + color.rgb.g + "-" + color.rgb.b + "-0-0-";
 
-    if(option.includes("ceiling")) {
-      if(!this.state.isConnectedCeiling) {
-        console.log("Starting ceiling connection")
-        await connectChangerCeiling();
-        console.log("Ceiling connected");
-        this.setState({ isConnectedCeiling: true });
-      }
+    await sendCommand(newColStr);
 
-      if(this.state.isConnectedCeiling) {
-        // Ensure color is set - just send same command 5 times
-        // Bad way to do it - need to figure out better method later
-        for(let i = 0; i < 5; i++)
-          await changeColorCeiling(newColStr);
-
-        endConnectionCeiling();
-        this.setState({ isConnectedCeiling: false });
-      }
-    } else if(option.includes("couch")) {
-      if(!this.state.isConnectedCouch) {
-        console.log("Starting couch connection")
-        await connectChangerCouch();
-        console.log("Couch connected");
-        this.setState({ isConnectedCouch: true });
-      }
-
-      if(this.state.isConnectedCouch) {
-        // Ensure color is set - just send same command 5 times
-        // Bad way to do it - need to figure out better method later
-        for(let i = 0; i < 5; i++)
-          await changeColorCouch(newColStr);
-
-        endConnectionCouch();
-        this.setState({ isConnectedCouch: false });
-      }
-    } else if(option === "all") {
-      if(!this.state.isConnectedCeiling) {
-        console.log("Starting ceiling connection")
-        await connectChangerCeiling();
-        console.log("Ceiling connected");
-        this.setState({ isConnectedCeiling: true });
-      }
-
-      if(!this.state.isConnectedCouch) {
-        console.log("Starting couch connection")
-        await connectChangerCouch();
-        console.log("Couch connected");
-        this.setState({ isConnectedCouch: true });
-      }
-
-      if(this.state.isConnectedCouch && this.state.isConnectedCeiling) {
-        for(let i = 0; i < 5; i++) {
-          await changeColorCeiling(newColStr);
-          await changeColorCouch(newColStr);
-        }
-
-        endConnectionCouch();
-        this.setState({ isConnectedCouch: false });
-
-        endConnectionCeiling();
-        this.setState({ isConnectedCeiling: false });
-      }
-
-    }
+    // if(option.includes("ceiling")) {
+    //   if(!this.state.isConnectedCeiling) {
+    //     console.log("Starting ceiling connection")
+    //     await connectChangerCeiling();
+    //     console.log("Ceiling connected");
+    //     this.setState({ isConnectedCeiling: true });
+    //   }
+    //
+    //   if(this.state.isConnectedCeiling) {
+    //     // Ensure color is set - just send same command 5 times
+    //     // Bad way to do it - need to figure out better method later
+    //     for(let i = 0; i < 5; i++)
+    //       await changeColorCeiling(newColStr);
+    //
+    //     endConnectionCeiling();
+    //     this.setState({ isConnectedCeiling: false });
+    //   }
+    // } else if(option.includes("couch")) {
+    //   if(!this.state.isConnectedCouch) {
+    //     console.log("Starting couch connection")
+    //     await connectChangerCouch();
+    //     console.log("Couch connected");
+    //     this.setState({ isConnectedCouch: true });
+    //   }
+    //
+    //   if(this.state.isConnectedCouch) {
+    //     // Ensure color is set - just send same command 5 times
+    //     // Bad way to do it - need to figure out better method later
+    //     for(let i = 0; i < 5; i++)
+    //       await changeColorCouch(newColStr);
+    //
+    //     endConnectionCouch();
+    //     this.setState({ isConnectedCouch: false });
+    //   }
+    // } else if(option === "all") {
+    //   if(!this.state.isConnectedCeiling) {
+    //     console.log("Starting ceiling connection")
+    //     await connectChangerCeiling();
+    //     console.log("Ceiling connected");
+    //     this.setState({ isConnectedCeiling: true });
+    //   }
+    //
+    //   if(!this.state.isConnectedCouch) {
+    //     console.log("Starting couch connection")
+    //     await connectChangerCouch();
+    //     console.log("Couch connected");
+    //     this.setState({ isConnectedCouch: true });
+    //   }
+    //
+    //   if(this.state.isConnectedCouch && this.state.isConnectedCeiling) {
+    //     for(let i = 0; i < 5; i++) {
+    //       await changeColorCeiling(newColStr);
+    //       await changeColorCouch(newColStr);
+    //     }
+    //
+    //     endConnectionCouch();
+    //     this.setState({ isConnectedCouch: false });
+    //
+    //     endConnectionCeiling();
+    //     this.setState({ isConnectedCeiling: false });
+    //   }
+    //
+    // }
   }
 
   // Handle strip selection dropdown menu
