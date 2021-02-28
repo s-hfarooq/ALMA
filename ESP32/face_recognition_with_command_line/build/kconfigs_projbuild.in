@@ -1,6 +1,0 @@
-source "/home/hassanf/esp/esp-mdf/esp-idf/components/app_update/Kconfig.projbuild"
-source "/home/hassanf/esp/esp-mdf/esp-idf/components/bootloader/Kconfig.projbuild"
-source "/home/hassanf/esp/esp-mdf/esp-idf/components/esptool_py/Kconfig.projbuild"
-source "/home/hassanf/esp/esp-mdf/esp-idf/components/partition_table/Kconfig.projbuild"
-source "/home/hassanf/Desktop/ALMA/ALMA/ESP32/face_recognition_with_command_line/main/Kconfig.projbuild"
-source "/home/hassanf/esp/esp-mdf/esp-idf/examples/common_components/protocol_examples_common/Kconfig.projbuild"

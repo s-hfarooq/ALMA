@@ -1,5 +1,0 @@
-source "/home/hassanf/esp/esp-mdf/esp-idf/components/app_update/Kconfig.projbuild"
-source "/home/hassanf/esp/esp-mdf/esp-idf/components/bootloader/Kconfig.projbuild"
-source "/home/hassanf/esp/esp-mdf/esp-idf/components/esptool_py/Kconfig.projbuild"
-source "/home/hassanf/esp/esp-mdf/esp-idf/components/partition_table/Kconfig.projbuild"
-source "/home/hassanf/Desktop/ALMA/ALMA/ESP32/Testing/light_mesh/main/Kconfig.projbuild"
