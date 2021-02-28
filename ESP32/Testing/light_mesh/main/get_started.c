@@ -35,7 +35,7 @@
 #include "sdkconfig.h"
 
 // 1 = ceiling, 2 = couch, 0 = both
-#define DEVICEID 1
+#define DEVICEID 2
 
 #define LEDC_HS_TIMER LEDC_TIMER_0
 #define LEDC_HS_MODE LEDC_HIGH_SPEED_MODE
@@ -206,7 +206,7 @@ void getValues(char rx_buf[128], int *rCol, int *gCol, int *bCol,
     int temp[6], i = 0;
 
     // Convert char array into int values
-    while(split != NULL && i < 5) {
+    while(split != NULL && i < 7) {
         curr = split;
         temp[i] = atoi(curr);
         split = strtok(NULL, "-");
@@ -223,7 +223,7 @@ void getValues(char rx_buf[128], int *rCol, int *gCol, int *bCol,
     temp[3] = temp[3] < 0 ? 0 : temp[3];
     while(temp[3] > 10) temp[3] /= 10;
 
-    temp[4] = temp[4] < 10 ? 10 : temp[4];
+    temp[5] = temp[5] < 10 ? 10 : temp[5];
 
     *rCol = temp[0];
     *gCol = temp[1];
@@ -306,7 +306,7 @@ static void root_task(void *arg)
           size = sprintf(data, "%s", inBuff);
 
           if(needsToSend[j]) {
-            ret = mwifi_root_write(src_addr, 1, &data_type, data, size, true);
+            ret = mwifi_root_write(src_addr, 1, &data_type, data, size, false);
             MDF_ERROR_CONTINUE(ret != MDF_OK, "mwifi_root_recv, ret: %x", ret);
             MDF_LOGI("Root send, addr: " MACSTR ", size: %d, data: %s", MAC2STR(src_addr), size, data);
             needsToSend[j] = false;
@@ -348,6 +348,11 @@ static void node_read_task(void *arg)
         // set pins
         int rCol = 0, gCol = 0, bCol = 0, type = -1, controller = 0, speed = 50;
         getValues(data, &rCol, &gCol, &bCol, &type, &controller, &speed);
+
+        //ESP_LOGI(TAG, "VALUES: r: %d g: %d b: %d type: %d con: %d sp: %d", rCol, gCol bCol, type, controller, speed);
+        ESP_LOGI(TAG, "vals: r: %d g: %d b: %d", rCol, gCol, bCol);
+        ESP_LOGI(TAG, "vals: type: %d contr: %d speed: %d", type, controller, speed);
+
 
         if(controller == 0 || controller == DEVICEID) {
           if(fadeHandle != NULL) {
@@ -394,7 +399,7 @@ void node_write_task(void *arg)
         ret = mwifi_write(NULL, &data_type, data, size, true);
         MDF_ERROR_CONTINUE(ret != MDF_OK, "mwifi_write, ret: %x", ret);
 
-        vTaskDelay(1000 / portTICK_RATE_MS);
+        vTaskDelay(20 / portTICK_RATE_MS);
     }
 
     MDF_LOGW("Node write task is exit");
