@@ -12,14 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "mdf_common.h"
-#include "mwifi.h"
-
 #include <lwip/netdb.h>
+#include <stdio.h>
 #include <string.h>
 #include <sys/param.h>
 
 #include "driver/gpio.h"
+#include "driver/i2c.h"
 #include "driver/ledc.h"
 #include "esp_event.h"
 #include "esp_log.h"
@@ -29,13 +28,12 @@
 #include "freertos/task.h"
 #include "lwip/err.h"
 #include "lwip/sys.h"
-
-#include <stdio.h>
-#include "driver/i2c.h"
+#include "mdf_common.h"
+#include "mwifi.h"
 #include "sdkconfig.h"
 
 // 1 = ceiling, 2 = couch, 0 = both
-#define DEVICE_ID (2)
+#define DEVICE_ID (-1)
 
 #define LEDC_HS_TIMER LEDC_TIMER_0
 #define LEDC_HS_MODE LEDC_HIGH_SPEED_MODE
@@ -58,7 +56,6 @@
 #define LEDC_TEST_CH_NUM (6)
 #define LEDC_TEST_DUTY (4000)
 #define LEDC_TEST_FADE_TIME (150)
-
 #define I2C_SLAVE_SDA_IO GPIO_NUM_21
 #define I2C_SLAVE_SCL_IO GPIO_NUM_22
 #define I2C_SLAVE_NUM I2C_NUM_0
@@ -151,8 +148,7 @@ const uint8_t lights[360] = {
     0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
     0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
     0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
-    0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0
-};
+    0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0};
 
 void displayCol(int r, int g, int b, int type) {
     int dutyAmnt[3] = {r * 4000 / 255, g * 4000 / 255, b * 4000 / 255};
@@ -184,8 +180,8 @@ void displayCol(int r, int g, int b, int type) {
     }
 }
 
-void getValues(char rx_buf[128], int *rCol, int *gCol, int *bCol,
-               int *type, int *controller, int *speed) {
+void getValues(char rx_buf[128], int *rCol, int *gCol, int *bCol, int *type,
+               int *controller, int *speed) {
     char *split = strtok(rx_buf, "-"), *curr;
     int temp[6], i = 0;
 
@@ -261,41 +257,45 @@ void loopFade(int delay) {
     }
 }
 
-static void root_task(void *arg)
-{
-    mdf_err_t ret                    = MDF_OK;
-    char *data                       = MDF_MALLOC(MWIFI_PAYLOAD_LEN);
-    size_t size                      = MWIFI_PAYLOAD_LEN;
+static void root_task(void *arg) {
+    mdf_err_t ret = MDF_OK;
+    char *data = MDF_MALLOC(MWIFI_PAYLOAD_LEN);
+    size_t size = MWIFI_PAYLOAD_LEN;
     uint8_t src_addr[MWIFI_ADDR_LEN] = {0x0};
-    mwifi_data_type_t data_type      = {0};
+    mwifi_data_type_t data_type = {0};
 
     MDF_LOGI("Root is running");
     srand(time(NULL));
 
-    for (int i = 0;; ++i) {
-        if (!mwifi_is_started()) {
+    for(int i = 0;; ++i) {
+        if(!mwifi_is_started()) {
             vTaskDelay(500 / portTICK_RATE_MS);
             continue;
         }
 
         for(int j = 0; j < 2; j++) {
-          size = MWIFI_PAYLOAD_LEN;
-          memset(data, 0, MWIFI_PAYLOAD_LEN);
-          ret = mwifi_root_read(src_addr, &data_type, data, &size, portMAX_DELAY);
-          MDF_ERROR_CONTINUE(ret != MDF_OK, "<%s> mwifi_root_read", mdf_err_to_name(ret));
-          MDF_LOGI("Root receive, addr: " MACSTR ", size: %d, data: %s", MAC2STR(src_addr), size, data);
+            size = MWIFI_PAYLOAD_LEN;
+            memset(data, 0, MWIFI_PAYLOAD_LEN);
+            ret = mwifi_root_read(src_addr, &data_type, data, &size,
+                                  portMAX_DELAY);
+            // MDF_ERROR_CONTINUE(ret != MDF_OK, "<%s> mwifi_root_read",
+            //                    mdf_err_to_name(ret));
+            // MDF_LOGI("Root receive, addr: " MACSTR ", size: %d, data: %s",
+            //          MAC2STR(src_addr), size, data);
 
-          size = sprintf(data, "%s", inBuff);
+            size = sprintf(data, "%s", inBuff);
 
-          if(needsToSend[j]) {
-            ret = mwifi_root_write(src_addr, 1, &data_type, data, size, false);
-            MDF_ERROR_CONTINUE(ret != MDF_OK, "mwifi_root_recv, ret: %x", ret);
-            MDF_LOGI("Root send, addr: " MACSTR ", size: %d, data: %s", MAC2STR(src_addr), size, data);
-            needsToSend[j] = false;
-          }
+            if(needsToSend[j]) {
+                ret = mwifi_root_write(src_addr, 1, &data_type, data, size,
+                                       false);
+                // MDF_ERROR_CONTINUE(ret != MDF_OK, "mwifi_root_recv, ret: %x",
+                //                    ret);
+                // MDF_LOGI("Root send, addr: " MACSTR ", size: %d, data: %s",
+                //          MAC2STR(src_addr), size, data);
+                needsToSend[j] = false;
+            }
         }
     }
-
 
     MDF_LOGW("Root is exit");
 
@@ -303,18 +303,17 @@ static void root_task(void *arg)
     vTaskDelete(NULL);
 }
 
-static void node_read_task(void *arg)
-{
+static void node_read_task(void *arg) {
     mdf_err_t ret = MDF_OK;
-    char *data    = MDF_MALLOC(MWIFI_PAYLOAD_LEN);
-    size_t size   = MWIFI_PAYLOAD_LEN;
-    mwifi_data_type_t data_type      = {0x0};
+    char *data = MDF_MALLOC(MWIFI_PAYLOAD_LEN);
+    size_t size = MWIFI_PAYLOAD_LEN;
+    mwifi_data_type_t data_type = {0x0};
     uint8_t src_addr[MWIFI_ADDR_LEN] = {0x0};
 
     MDF_LOGI("Note read task is running");
 
-    for (;;) {
-        if (!mwifi_is_connected()) {
+    for(;;) {
+        if(!mwifi_is_connected()) {
             vTaskDelay(500 / portTICK_RATE_MS);
             continue;
         }
@@ -322,34 +321,34 @@ static void node_read_task(void *arg)
         size = MWIFI_PAYLOAD_LEN;
         memset(data, 0, MWIFI_PAYLOAD_LEN);
         ret = mwifi_read(src_addr, &data_type, data, &size, portMAX_DELAY);
-        MDF_ERROR_CONTINUE(ret != MDF_OK, "mwifi_read, ret: %x", ret);
-        MDF_LOGI("Node receive, addr: " MACSTR ", size: %d, data: %s", MAC2STR(src_addr), size, data);
+        // MDF_ERROR_CONTINUE(ret != MDF_OK, "mwifi_read, ret: %x", ret);
+        // MDF_LOGI("Node receive, addr: " MACSTR ", size: %d, data: %s",
+        //          MAC2STR(src_addr), size, data);
 
         // set pins
         int rCol = 0, gCol = 0, bCol = 0, type = -1, controller = 0, speed = 50;
         getValues(data, &rCol, &gCol, &bCol, &type, &controller, &speed);
 
-        //ESP_LOGI(TAG, "VALUES: r: %d g: %d b: %d type: %d con: %d sp: %d", rCol, gCol bCol, type, controller, speed);
-        ESP_LOGI(TAG, "vals: r: %d g: %d b: %d", rCol, gCol, bCol);
-        ESP_LOGI(TAG, "vals: type: %d contr: %d speed: %d", type, controller, speed);
-
+        // ESP_LOGI(TAG, "vals: r: %d g: %d b: %d", rCol, gCol, bCol);
+        // ESP_LOGI(TAG, "vals: type: %d contr: %d speed: %d", type, controller,
+        //          speed);
 
         if(controller == 0 || controller == DEVICE_ID) {
-          if(fadeHandle != NULL) {
-              vTaskDelete(fadeHandle);
-              fadeHandle = NULL;
-          }
+            if(fadeHandle != NULL) {
+                vTaskDelete(fadeHandle);
+                fadeHandle = NULL;
+            }
 
-          if(type == 3) {
-              fadeToNewCol(255, 0, 0, 150, 0);
-              xTaskCreate(loopFade, "fadeScript", 4096, speed, 2,
-                          &fadeHandle);
-          } else {
-              if(type == 1 || type == 0)
-                  fadeToNewCol(rCol, gCol, bCol, 150, 1);
-              if(type == 2 || type == 0)
-                  fadeToNewCol(rCol, gCol, bCol, 150, 2);
-          }
+            if(type == 3) {
+                fadeToNewCol(255, 0, 0, 150, 0);
+                xTaskCreate(loopFade, "fadeScript", 4096, speed, 2,
+                            &fadeHandle);
+            } else {
+                if(type == 1 || type == 0)
+                    fadeToNewCol(rCol, gCol, bCol, 150, 1);
+                if(type == 2 || type == 0)
+                    fadeToNewCol(rCol, gCol, bCol, 150, 2);
+            }
         }
     }
 
@@ -359,18 +358,17 @@ static void node_read_task(void *arg)
     vTaskDelete(NULL);
 }
 
-void node_write_task(void *arg)
-{
+void node_write_task(void *arg) {
     mdf_err_t ret = MDF_OK;
-    int count     = 0;
-    size_t size   = 0;
-    char *data    = MDF_MALLOC(MWIFI_PAYLOAD_LEN);
+    int count = 0;
+    size_t size = 0;
+    char *data = MDF_MALLOC(MWIFI_PAYLOAD_LEN);
     mwifi_data_type_t data_type = {0x0};
 
     MDF_LOGI("Node write task is running");
 
-    for (;;) {
-        if (!mwifi_is_connected()) {
+    for(;;) {
+        if(!mwifi_is_connected()) {
             vTaskDelay(500 / portTICK_RATE_MS);
             continue;
         }
@@ -379,7 +377,7 @@ void node_write_task(void *arg)
         ret = mwifi_write(NULL, &data_type, data, size, true);
         MDF_ERROR_CONTINUE(ret != MDF_OK, "mwifi_write, ret: %x", ret);
 
-        vTaskDelay(20 / portTICK_RATE_MS);
+        vTaskDelay(400 / portTICK_RATE_MS);
     }
 
     MDF_LOGW("Node write task is exit");
@@ -391,31 +389,32 @@ void node_write_task(void *arg)
 /**
  * @brief Timed printing system information
  */
-static void print_system_info_timercb(void *timer)
-{
-    uint8_t primary                 = 0;
-    wifi_second_chan_t second       = 0;
-    mesh_addr_t parent_bssid        = {0};
+static void print_system_info_timercb(void *timer) {
+    uint8_t primary = 0;
+    wifi_second_chan_t second = 0;
+    mesh_addr_t parent_bssid = {0};
     uint8_t sta_mac[MWIFI_ADDR_LEN] = {0};
-    wifi_sta_list_t wifi_sta_list   = {0x0};
+    wifi_sta_list_t wifi_sta_list = {0x0};
 
     esp_wifi_get_mac(ESP_IF_WIFI_STA, sta_mac);
     esp_wifi_ap_get_sta_list(&wifi_sta_list);
     esp_wifi_get_channel(&primary, &second);
     esp_mesh_get_parent_bssid(&parent_bssid);
 
-    MDF_LOGI("System information, channel: %d, layer: %d, self mac: " MACSTR ", parent bssid: " MACSTR
-             ", parent rssi: %d, node num: %d, free heap: %u", primary,
-             esp_mesh_get_layer(), MAC2STR(sta_mac), MAC2STR(parent_bssid.addr),
-             mwifi_get_parent_rssi(), esp_mesh_get_total_node_num(), esp_get_free_heap_size());
+    MDF_LOGI("System information, channel: %d, layer: %d, self mac: " MACSTR
+             ", parent bssid: " MACSTR
+             ", parent rssi: %d, node num: %d, free heap: %u",
+             primary, esp_mesh_get_layer(), MAC2STR(sta_mac),
+             MAC2STR(parent_bssid.addr), mwifi_get_parent_rssi(),
+             esp_mesh_get_total_node_num(), esp_get_free_heap_size());
 
-    for (int i = 0; i < wifi_sta_list.num; i++) {
+    for(int i = 0; i < wifi_sta_list.num; i++) {
         MDF_LOGI("Child mac: " MACSTR, MAC2STR(wifi_sta_list.sta[i].mac));
     }
 
 #ifdef MEMORY_DEBUG
 
-    if (!heap_caps_check_integrity_all(true)) {
+    if(!heap_caps_check_integrity_all(true)) {
         MDF_LOGE("At least one heap is corrupt");
     }
 
@@ -425,12 +424,12 @@ static void print_system_info_timercb(void *timer)
 #endif /**< MEMORY_DEBUG */
 }
 
-static mdf_err_t wifi_init()
-{
-    mdf_err_t ret          = nvs_flash_init();
+static mdf_err_t wifi_init() {
+    mdf_err_t ret = nvs_flash_init();
     wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
 
-    if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
+    if(ret == ESP_ERR_NVS_NO_FREE_PAGES ||
+       ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
         MDF_ERROR_ASSERT(nvs_flash_erase());
         ret = nvs_flash_init();
     }
@@ -457,11 +456,10 @@ static mdf_err_t wifi_init()
  *     2. Do not consume a lot of memory in the callback function.
  *        The task memory of the callback function is only 4KB.
  */
-static mdf_err_t event_loop_cb(mdf_event_loop_t event, void *ctx)
-{
+static mdf_err_t event_loop_cb(mdf_event_loop_t event, void *ctx) {
     MDF_LOGI("event_loop_cb, event: %d", event);
 
-    switch (event) {
+    switch(event) {
         case MDF_EVENT_MWIFI_STARTED:
             MDF_LOGI("MESH is started");
             break;
@@ -482,89 +480,87 @@ static mdf_err_t event_loop_cb(mdf_event_loop_t event, void *ctx)
 }
 
 static esp_err_t i2c_slave_init() {
-  i2c_port_t i2c_slave_port = I2C_SLAVE_NUM;
-  i2c_config_t conf_slave;
-  conf_slave.sda_io_num = I2C_SLAVE_SDA_IO;
-  conf_slave.sda_pullup_en = GPIO_PULLUP_ENABLE;
-  conf_slave.scl_io_num = I2C_SLAVE_SCL_IO;
-  conf_slave.scl_pullup_en = GPIO_PULLUP_ENABLE;
-  conf_slave.mode = I2C_MODE_SLAVE;
-  conf_slave.slave.addr_10bit_en = 0;
-  conf_slave.slave.slave_addr = ESP_SLAVE_ADDR;
-  i2c_param_config(i2c_slave_port, &conf_slave);
-  return i2c_driver_install(i2c_slave_port, conf_slave.mode,
-                            I2C_SLAVE_RX_BUF_LEN, I2C_SLAVE_TX_BUF_LEN, 0);
+    i2c_port_t i2c_slave_port = I2C_SLAVE_NUM;
+    i2c_config_t conf_slave;
+    conf_slave.sda_io_num = I2C_SLAVE_SDA_IO;
+    conf_slave.sda_pullup_en = GPIO_PULLUP_ENABLE;
+    conf_slave.scl_io_num = I2C_SLAVE_SCL_IO;
+    conf_slave.scl_pullup_en = GPIO_PULLUP_ENABLE;
+    conf_slave.mode = I2C_MODE_SLAVE;
+    conf_slave.slave.addr_10bit_en = 0;
+    conf_slave.slave.slave_addr = ESP_SLAVE_ADDR;
+    i2c_param_config(i2c_slave_port, &conf_slave);
+    return i2c_driver_install(i2c_slave_port, conf_slave.mode,
+                              I2C_SLAVE_RX_BUF_LEN, I2C_SLAVE_TX_BUF_LEN, 0);
 }
 
 bool check_for_data() {
-  uint32_t startMs = esp_timer_get_time() / 1000;
-  size_t size =
-      i2c_slave_read_buffer(I2C_SLAVE_NUM, inBuff, 1, 1000 / portTICK_RATE_MS);
-  uint32_t stopMs = esp_timer_get_time() / 1000;
-  // ESP_LOGI(TAG, "len: %d", size);
-  if (size == 1) {
-    if (inBuff[0] == 0x01) {
-      uint8_t replBuff[2];
-      replBuff[0] = (uint8_t)(outBuffLen >> 0);
-      replBuff[1] = (uint8_t)(outBuffLen >> 8);
-      int ret = i2c_reset_tx_fifo(I2C_SLAVE_NUM);
-      if (ret != ESP_OK) {
-        ESP_LOGE(TAG, "failed to reset fifo");
-      }
-      i2c_slave_write_buffer(I2C_SLAVE_NUM, replBuff, 2,
-                             1000 / portTICK_RATE_MS);
-      ESP_LOGI(TAG, "got len request, put(%d), waited: %d ms", outBuffLen,
-               stopMs - startMs);
-      vTaskDelay(pdMS_TO_TICKS(SLAVE_REQUEST_WAIT_MS));
-      // ESP_LOG_BUFFER_HEX(TAG, replBuff, 2);
-      return false;
+    uint32_t startMs = esp_timer_get_time() / 1000;
+    size_t size = i2c_slave_read_buffer(I2C_SLAVE_NUM, inBuff, 1,
+                                        1000 / portTICK_RATE_MS);
+    uint32_t stopMs = esp_timer_get_time() / 1000;
+    // ESP_LOGI(TAG, "len: %d", size);
+    if(size == 1) {
+        if(inBuff[0] == 0x01) {
+            uint8_t replBuff[2];
+            replBuff[0] = (uint8_t)(outBuffLen >> 0);
+            replBuff[1] = (uint8_t)(outBuffLen >> 8);
+            int ret = i2c_reset_tx_fifo(I2C_SLAVE_NUM);
+            if(ret != ESP_OK) {
+                ESP_LOGE(TAG, "failed to reset fifo");
+            }
+            i2c_slave_write_buffer(I2C_SLAVE_NUM, replBuff, 2,
+                                   1000 / portTICK_RATE_MS);
+            ESP_LOGI(TAG, "got len request, put(%d), waited: %d ms", outBuffLen,
+                     stopMs - startMs);
+            vTaskDelay(pdMS_TO_TICKS(SLAVE_REQUEST_WAIT_MS));
+            // ESP_LOG_BUFFER_HEX(TAG, replBuff, 2);
+            return false;
+        }
+        if(inBuff[0] == 0x02) {
+            int ret = i2c_reset_tx_fifo(I2C_SLAVE_NUM);
+            if(ret != ESP_OK) {
+                ESP_LOGE(TAG, "failed to reset fifo");
+            }
+            i2c_slave_write_buffer(I2C_SLAVE_NUM, outBuff, outBuffLen,
+                                   1000 / portTICK_RATE_MS);
+            outBuffLen = 0;
+            ESP_LOGI(TAG, "got write request, waited: %d ms", stopMs - startMs);
+            vTaskDelay(pdMS_TO_TICKS(SLAVE_REQUEST_WAIT_MS));
+            return false;
+        }
+        if(inBuff[0] > 0x02) {
+            vTaskDelay(pdMS_TO_TICKS(10));
+            size_t size_pl = i2c_slave_read_buffer(
+                I2C_SLAVE_NUM, inBuff, inBuff[0], 20 / portTICK_RATE_MS);
+            inBuffLen = size_pl;
+            ESP_LOGI(TAG, "reading %d bytes, waited: %d ms", inBuff[0],
+                     stopMs - startMs);
+            return true;
+        }
     }
-    if (inBuff[0] == 0x02) {
-      int ret = i2c_reset_tx_fifo(I2C_SLAVE_NUM);
-      if (ret != ESP_OK) {
-        ESP_LOGE(TAG, "failed to reset fifo");
-      }
-      i2c_slave_write_buffer(I2C_SLAVE_NUM, outBuff, outBuffLen,
-                             1000 / portTICK_RATE_MS);
-      outBuffLen = 0;
-      ESP_LOGI(TAG, "got write request, waited: %d ms", stopMs - startMs);
-      vTaskDelay(pdMS_TO_TICKS(SLAVE_REQUEST_WAIT_MS));
-      return false;
+    if(size > 1) {
+        ESP_LOGE(TAG, "weird, waited: %d ms", stopMs - startMs);
+        inBuffLen = size;
+        return true;
     }
-    if (inBuff[0] > 0x02) {
-      vTaskDelay(pdMS_TO_TICKS(10));
-      size_t size_pl = i2c_slave_read_buffer(I2C_SLAVE_NUM, inBuff, inBuff[0],
-                                             20 / portTICK_RATE_MS);
-      inBuffLen = size_pl;
-      ESP_LOGI(TAG, "reading %d bytes, waited: %d ms", inBuff[0],
-               stopMs - startMs);
-      return true;
-    }
-  }
-  if (size > 1) {
-    ESP_LOGE(TAG, "weird, waited: %d ms", stopMs - startMs);
-    inBuffLen = size;
-    return true;
-  }
-  ESP_LOGI(TAG, "nothing, len: %d, waited: %d ms", size, stopMs - startMs);
-  return false;
+    ESP_LOGI(TAG, "nothing, len: %d, waited: %d ms", size, stopMs - startMs);
+    return false;
 }
 
 static void i2cs_test_task(void *arg) {
-  while (1) {
-    if (check_for_data()) {
-      needsToSend[0] = true;
-      needsToSend[1] = true;
-      ESP_LOGI(TAG, "got %d bytes:%s", inBuffLen, inBuff);
-      ESP_LOG_BUFFER_HEX(TAG, inBuff, inBuffLen);
-      inBuffLen = 0;
+    while(1) {
+        if(check_for_data()) {
+            needsToSend[0] = true;
+            needsToSend[1] = true;
+            inBuffLen = 0;
+        }
     }
-  }
-  vTaskDelete(NULL);
+    
+    vTaskDelete(NULL);
 }
 
-void app_main()
-{
+void app_main() {
     ledc_timer_config(&ledc_timer);
     // Prepare and set configuration of timer1 for low speed channels
     ledc_timer.speed_mode = LEDC_HS_MODE;
@@ -580,11 +576,10 @@ void app_main()
         oCol2[i] = 0;
     }
 
-
     mwifi_init_config_t cfg = MWIFI_INIT_CONFIG_DEFAULT();
-    mwifi_config_t config   = {
-        .channel   = CONFIG_MESH_CHANNEL,
-        .mesh_id   = CONFIG_MESH_ID,
+    mwifi_config_t config = {
+        .channel = CONFIG_MESH_CHANNEL,
+        .mesh_id = CONFIG_MESH_ID,
         .mesh_type = CONFIG_DEVICE_TYPE,
     };
 
@@ -609,18 +604,19 @@ void app_main()
      * @brief Data transfer between wifi mesh devices
      */
 
-    if (config.mesh_type == MESH_ROOT) {
-        xTaskCreate(root_task, "root_task", 4 * 1024,
-                    NULL, CONFIG_MDF_TASK_DEFAULT_PRIOTY, NULL);
+    if(config.mesh_type == MESH_ROOT) {
+        xTaskCreate(root_task, "root_task", 4 * 1024, NULL,
+                    CONFIG_MDF_TASK_DEFAULT_PRIOTY, NULL);
         xTaskCreate(i2cs_test_task, "slave", 1024 * 2, (void *)1, 10, NULL);
     } else {
-        xTaskCreate(node_write_task, "node_write_task", 4 * 1024,
-                    NULL, CONFIG_MDF_TASK_DEFAULT_PRIOTY, NULL);
-        xTaskCreate(node_read_task, "node_read_task", 4 * 1024,
-                    NULL, CONFIG_MDF_TASK_DEFAULT_PRIOTY, NULL);
+        xTaskCreate(node_write_task, "node_write_task", 4 * 1024, NULL,
+                    CONFIG_MDF_TASK_DEFAULT_PRIOTY, NULL);
+        xTaskCreate(node_read_task, "node_read_task", 4 * 1024, NULL,
+                    CONFIG_MDF_TASK_DEFAULT_PRIOTY, NULL);
     }
 
-    TimerHandle_t timer = xTimerCreate("print_system_info", 10000 / portTICK_RATE_MS,
-                                       true, NULL, print_system_info_timercb);
+    TimerHandle_t timer =
+        xTimerCreate("print_system_info", 10000 / portTICK_RATE_MS, true, NULL,
+                     print_system_info_timercb);
     xTimerStart(timer, 0);
 }

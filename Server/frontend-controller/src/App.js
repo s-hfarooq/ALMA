@@ -1,5 +1,5 @@
 import React from 'react';
-import { sendCommand, connectChangerCeiling, endConnectionCeiling, changeColorCeiling, connectChangerCouch, endConnectionCouch, changeColorCouch, lightOptions } from './services/additionalFunctions'
+import { sendCommand, lightOptions } from './services/additionalFunctions'
 import { ChromePicker } from 'react-color';
 import Select from 'react-select';
 import Button from 'react-bootstrap/Button';
@@ -24,15 +24,6 @@ class App extends React.Component {
     let option = this.state.selectedOption.value;
     let newColStr = ""
 
-    // sample line: 255-0-0-0-0- > sets red to high others to low on both strips
-    // if(option === "1colceiling" || option === "1colcouch")
-    //   newColStr = color.rgb.r + "-" + color.rgb.g + "-" + color.rgb.b + "-1-0-";
-    // else if(option === "2colceiling" || option === "2colcouch")
-    //   newColStr = color.rgb.r + "-" + color.rgb.g + "-" + color.rgb.b + "-2-0-";
-    // else
-    //   newColStr = color.rgb.r + "-" + color.rgb.g + "-" + color.rgb.b + "-0-0-";
-
-
     switch(option) {
       case "1colceiling":
         newColStr = color.rgb.r + "-" + color.rgb.g + "-" + color.rgb.b + "-1-1-0-";
@@ -45,6 +36,12 @@ class App extends React.Component {
         break;
       case "2colcouch":
         newColStr = color.rgb.r + "-" + color.rgb.g + "-" + color.rgb.b + "-2-2-0-";
+        break;
+      case "bothcouch":
+        newColStr = color.rgb.r + "-" + color.rgb.g + "-" + color.rgb.b + "-0-1-0-";
+        break;
+      case "bothceiling":
+        newColStr = color.rgb.r + "-" + color.rgb.g + "-" + color.rgb.b + "-0-2-0-";
         break;
       default:
         newColStr = color.rgb.r + "-" + color.rgb.g + "-" + color.rgb.b + "-0-0-0-";
@@ -102,36 +99,7 @@ class App extends React.Component {
           />
 
          <Button variant="outline-dark" onClick={async () => {
-              // if(!this.state.isConnectedCeiling) {
-              //   console.log("Starting ceiling connection")
-              //   await connectChangerCeiling();
-              //   console.log("Ceiling connected");
-              //   this.setState({ isConnectedCeiling: true });
-              // }
-              //
-              // if(!this.state.isConnectedCouch) {
-              //   console.log("Starting couch connection")
-              //   await connectChangerCouch();
-              //   console.log("Couch connected");
-              //   this.setState({ isConnectedCouch: true });
-              // }
-              //
-              // if(this.state.isConnectedCouch && this.state.isConnectedCeiling) {
-              //   let newColStr = "0-0-0-3-" + this.state.fadeSpeed + "-";
-              //   for(let i = 0; i < 5; i++) {
-              //     await changeColorCeiling(newColStr);
-              //     await changeColorCouch(newColStr);
-              //   }
-              //
-              //   await endConnectionCouch();
-              //   this.setState({ isConnectedCouch: false });
-              //
-              //   await endConnectionCeiling();
-              //   this.setState({ isConnectedCeiling: false });
-              // }
-
-              let newColStr = "0-0-0-3-0-" + this.state.fadeSpeed + "-";
-              await sendCommand(newColStr);
+              await sendCommand("0-0-0-3-0-" + this.state.fadeSpeed + "-");
           }}>Start Fade (delay above)</Button>
         </center>
       </div>
