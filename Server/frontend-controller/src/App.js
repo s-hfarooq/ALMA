@@ -9,8 +9,6 @@ class App extends React.Component {
   state = {
     background: '#fff',
     selectedOption: { value: "all" },
-    isConnectedCeiling: false,
-    isConnectedCouch: false,
     fadeSpeed: 50,
   }
 
@@ -22,29 +20,30 @@ class App extends React.Component {
   // Kill connection when colors aren't being changed
   handleChangeComplete = async (color, event) => {
     let option = this.state.selectedOption.value;
-    let newColStr = ""
+    let newColStr = color.rgb.r + "-" + color.rgb.g + "-" + color.rgb.b;
 
+    // Figure out what output string ending needs to be
     switch(option) {
       case "1colceiling":
-        newColStr = color.rgb.r + "-" + color.rgb.g + "-" + color.rgb.b + "-1-1-0-";
+        newColStr += "-1-1-0-";
         break;
       case "1colcouch":
-        newColStr = color.rgb.r + "-" + color.rgb.g + "-" + color.rgb.b + "-1-2-0-";
+        newColStr += "-1-2-0-";
         break;
       case "2colceiling":
-        newColStr = color.rgb.r + "-" + color.rgb.g + "-" + color.rgb.b + "-2-1-0-";
+        newColStr += "-2-1-0-";
         break;
       case "2colcouch":
-        newColStr = color.rgb.r + "-" + color.rgb.g + "-" + color.rgb.b + "-2-2-0-";
+        newColStr += "-2-2-0-";
         break;
       case "bothceiling":
-        newColStr = color.rgb.r + "-" + color.rgb.g + "-" + color.rgb.b + "-0-1-0-";
+        newColStr += "-0-1-0-";
         break;
       case "bothcouch":
-        newColStr = color.rgb.r + "-" + color.rgb.g + "-" + color.rgb.b + "-0-2-0-";
+        newColStr += "-0-2-0-";
         break;
       default:
-        newColStr = color.rgb.r + "-" + color.rgb.g + "-" + color.rgb.b + "-0-0-0-";
+        newColStr += "-0-0-0-";
     }
 
     await sendCommand(newColStr);
