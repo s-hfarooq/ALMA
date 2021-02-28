@@ -31,21 +31,21 @@
 #include "lwip/sys.h"
 
 #include <stdio.h>
-//#include <cstring>
 #include "driver/i2c.h"
 #include "sdkconfig.h"
 
-// #define MEMORY_DEBUG
-// HS CH0, HS CH1, LS CH2
+// 1 = ceiling, 2 = couch, 0 = both
+#define DEVICEID 2
+
 #define LEDC_HS_TIMER LEDC_TIMER_0
 #define LEDC_HS_MODE LEDC_HIGH_SPEED_MODE
-#define LEDC_HS_CH0_GPIO (4)
+#define LEDC_HS_CH0_GPIO (18)
 #define LEDC_HS_CH0_CHANNEL LEDC_CHANNEL_0
-#define LEDC_HS_CH1_GPIO (16)
+#define LEDC_HS_CH1_GPIO (5)
 #define LEDC_HS_CH1_CHANNEL LEDC_CHANNEL_1
 #define LEDC_LS_TIMER LEDC_TIMER_1
 #define LEDC_LS_MODE LEDC_LOW_SPEED_MODE
-#define LEDC_LS_CH2_GPIO (5)
+#define LEDC_LS_CH2_GPIO (17)
 #define LEDC_LS_CH2_CHANNEL LEDC_CHANNEL_2
 #define LEDC_LS_CH3_GPIO (32)
 #define LEDC_LS_CH3_CHANNEL LEDC_CHANNEL_3
@@ -96,9 +96,6 @@ uint16_t outBuffLen = 0;
 uint8_t inBuff[256];
 uint16_t inBuffLen = 0;
 bool needsToSend[2] = {false, false};
-
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 ledc_timer_config_t ledc_timer = {
     .duty_resolution = LEDC_TIMER_13_BIT,  // resolution of PWM duty
@@ -204,9 +201,9 @@ void displayCol(int r, int g, int b, int type) {
 }
 
 void getValues(char rx_buf[128], int *rCol, int *gCol, int *bCol,
-               int *type, int *speed) {
+               int *type, int *controller, int *speed) {
     char *split = strtok(rx_buf, "-"), *curr;
-    int temp[5], i = 0;
+    int temp[6], i = 0;
 
     // Convert char array into int values
     while(split != NULL && i < 5) {
@@ -232,7 +229,8 @@ void getValues(char rx_buf[128], int *rCol, int *gCol, int *bCol,
     *gCol = temp[1];
     *bCol = temp[2];
     *type = temp[3];
-    *speed = temp[4];
+    *controller = temp[4];
+    *speed = temp[5];
 }
 
 void fadeToNewCol(int newR, int newG, int newB, int duration, int type) {
@@ -280,9 +278,6 @@ void loopFade(int delay) {
         }
     }
 }
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
 
 static void root_task(void *arg)
 {
@@ -301,8 +296,6 @@ static void root_task(void *arg)
             continue;
         }
 
-        //needsToSend = false;
-
         for(int j = 0; j < 2; j++) {
           size = MWIFI_PAYLOAD_LEN;
           memset(data, 0, MWIFI_PAYLOAD_LEN);
@@ -310,7 +303,6 @@ static void root_task(void *arg)
           MDF_ERROR_CONTINUE(ret != MDF_OK, "<%s> mwifi_root_read", mdf_err_to_name(ret));
           MDF_LOGI("Root receive, addr: " MACSTR ", size: %d, data: %s", MAC2STR(src_addr), size, data);
 
-          //size = sprintf(data, "%d-%d-%d-0-0-", colR, colG, colB);
           size = sprintf(data, "%s", inBuff);
 
           if(needsToSend[j]) {
@@ -321,7 +313,7 @@ static void root_task(void *arg)
           }
         }
 
-        vTaskDelay(20 / portTICK_RATE_MS);
+        //vTaskDelay(20 / portTICK_RATE_MS);
     }
 
 
@@ -354,11 +346,26 @@ static void node_read_task(void *arg)
         MDF_LOGI("Node receive, addr: " MACSTR ", size: %d, data: %s", MAC2STR(src_addr), size, data);
 
         // set pins
-        int rCol = 0, gCol = 0, bCol = 0, type = -1, speed = 50;
-        getValues(data, &rCol, &gCol, &bCol, &type, &speed);
+        int rCol = 0, gCol = 0, bCol = 0, type = -1, controller = 0, speed = 50;
+        getValues(data, &rCol, &gCol, &bCol, &type, &controller, &speed);
 
-        fadeToNewCol(rCol, gCol, bCol, 150, 1);
-        fadeToNewCol(rCol, gCol, bCol, 150, 2);
+        if(controller == 0 || controller == DEVICEID) {
+          if(fadeHandle != NULL) {
+              vTaskDelete(fadeHandle);
+              fadeHandle = NULL;
+          }
+
+          if(type == 3) {
+              fadeToNewCol(255, 0, 0, 150, 0);
+              xTaskCreate(loopFade, "fadeScript", 4096, speed, 2,
+                          &fadeHandle);
+          } else {
+              if(type == 1 || type == 0)
+                  fadeToNewCol(rCol, gCol, bCol, 150, 1);
+              if(type == 2 || type == 0)
+                  fadeToNewCol(rCol, gCol, bCol, 150, 2);
+          }
+        }
     }
 
     MDF_LOGW("Note read task is exit");
@@ -561,14 +568,12 @@ bool check_for_data() {
 static void i2cs_test_task(void *arg) {
   while (1) {
     if (check_for_data()) {
-      //needsToSend = {true, true};
       needsToSend[0] = true;
       needsToSend[1] = true;
       ESP_LOGI(TAG, "got %d bytes:%s", inBuffLen, inBuff);
       ESP_LOG_BUFFER_HEX(TAG, inBuff, inBuffLen);
       inBuffLen = 0;
     }
-    // vTaskDelay((DELAY_TIME_BETWEEN_ITEMS_MS) / portTICK_RATE_MS);
   }
   vTaskDelete(NULL);
 }
