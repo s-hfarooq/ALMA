@@ -8,7 +8,7 @@ import InputNumber from 'rc-input-number';
 class App extends React.Component {
   state = {
     background: '#fff',
-    selectedOption: { value: "1colceiling" },
+    selectedOption: { value: "all" },
     isConnectedCeiling: false,
     isConnectedCouch: false,
     fadeSpeed: 50,
@@ -37,10 +37,10 @@ class App extends React.Component {
       case "2colcouch":
         newColStr = color.rgb.r + "-" + color.rgb.g + "-" + color.rgb.b + "-2-2-0-";
         break;
-      case "bothcouch":
+      case "bothceiling":
         newColStr = color.rgb.r + "-" + color.rgb.g + "-" + color.rgb.b + "-0-1-0-";
         break;
-      case "bothceiling":
+      case "bothcouch":
         newColStr = color.rgb.r + "-" + color.rgb.g + "-" + color.rgb.b + "-0-2-0-";
         break;
       default:
