@@ -66,17 +66,18 @@
 
 static const char *TAG = "meshNetwork";
 
+// Global variables
 TaskHandle_t fadeHandle = NULL;
 
 int oCol1[3], oCol2[3];
 
 uint8_t outBuff[256];
 uint16_t outBuffLen = 0;
-
 uint8_t inBuff[256];
 uint16_t inBuffLen = 0;
 bool needsToSend[2] = {false, false};
 
+// Configuring PWM settings
 ledc_timer_config_t ledc_timer = {
     .duty_resolution = LEDC_TIMER_13_BIT,  // resolution of PWM duty
     .freq_hz = 5000,                       // frequency of PWM signal
@@ -85,6 +86,7 @@ ledc_timer_config_t ledc_timer = {
     .clk_cfg = LEDC_AUTO_CLK,              // Auto select the source clock
 };
 
+// Configuring PWM settings
 ledc_channel_config_t ledc_channel[LEDC_TEST_CH_NUM] = {
     {.channel = LEDC_HS_CH0_CHANNEL,
      .duty = 0,
@@ -124,6 +126,7 @@ ledc_channel_config_t ledc_channel[LEDC_TEST_CH_NUM] = {
      .timer_sel = LEDC_HS_TIMER},
 };
 
+// Array used for fading (sinusoidal instead of linear)
 const uint8_t lights[360] = {
     0,   0,   0,   0,   0,   1,   1,   2,   2,   3,   4,   5,   6,   7,   8,
     9,   11,  12,  13,  15,  17,  18,  20,  22,  24,  26,  28,  30,  32,  35,
@@ -148,38 +151,61 @@ const uint8_t lights[360] = {
     0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
     0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
     0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
-    0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0};
+    0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0
+};
 
+/*
+ * displayCol
+ *   DESCRIPTION: Helper function to display RGB values
+ *   INPUTS: r, g, b - RGB values to set (expected 0-255 inclusive),
+ *           type - 0 = both strips, 1 = strip 1, 2 = strip 2
+ *   RETURN VALUE: none
+ *   SIDE EFFECTS: none
+ */
 void displayCol(int r, int g, int b, int type) {
+    // Convert 0-255 color to 0-4000
     int dutyAmnt[3] = {r * 4000 / 255, g * 4000 / 255, b * 4000 / 255};
 
+    // Set strip 1
     if(type == 0 || type == 1) {
+        // Set the three channels
         for(int ch = 0; ch < LEDC_TEST_CH_NUM - 3; ch++) {
             ledc_set_duty(ledc_channel[ch].speed_mode, ledc_channel[ch].channel,
                           dutyAmnt[ch]);
-            ledc_update_duty(ledc_channel[ch].speed_mode,
-                             ledc_channel[ch].channel);
+            ledc_update_duty(ledc_channel[ch].speed_mode, ledc_channel[ch].channel);
         }
 
+        // Set "old" color array
         oCol1[0] = r;
         oCol1[1] = g;
         oCol1[2] = b;
     }
 
+    // Set strip 2
     if(type == 0 || type == 2) {
+        // Set the three channels
         for(int ch = 3; ch < LEDC_TEST_CH_NUM; ch++) {
             ledc_set_duty(ledc_channel[ch].speed_mode, ledc_channel[ch].channel,
                           dutyAmnt[ch - 3]);
-            ledc_update_duty(ledc_channel[ch].speed_mode,
-                             ledc_channel[ch].channel);
+            ledc_update_duty(ledc_channel[ch].speed_mode, ledc_channel[ch].channel);
         }
 
+        // Set "old" color array
         oCol2[0] = r;
         oCol2[1] = g;
         oCol2[2] = b;
     }
 }
 
+/*
+ * getValues
+ *   DESCRIPTION: Takes input char array and extracts desired values
+ *   INPUTS: rx_buf[128] - char array to analyze (all elements seperated by '-'),
+ *                         rCol, gCol, bCol, type, controller, speed all pointers
+ *                            to variable to place extracted values into
+ *   RETURN VALUE: none
+ *   SIDE EFFECTS: rCol, gCol, bCol, type, controller, speed all altered
+ */
 void getValues(char rx_buf[128], int *rCol, int *gCol, int *bCol, int *type,
                int *controller, int *speed) {
     char *split = strtok(rx_buf, "-"), *curr;
@@ -196,15 +222,15 @@ void getValues(char rx_buf[128], int *rCol, int *gCol, int *bCol, int *type,
     // Ensure values are within expected range
     for(i = 0; i < 3; i++) {
         temp[i] = temp[i] < 0 ? 0 : temp[i];
-
         while(temp[i] > 255) temp[i] %= 255;
     }
 
+    // Ensure values are within expected range
     temp[3] = temp[3] < 0 ? 0 : temp[3];
     while(temp[3] > 10) temp[3] /= 10;
-
     temp[5] = temp[5] < 10 ? 10 : temp[5];
 
+    // Place values from array into input pointer variables
     *rCol = temp[0];
     *gCol = temp[1];
     *bCol = temp[2];
@@ -213,10 +239,19 @@ void getValues(char rx_buf[128], int *rCol, int *gCol, int *bCol, int *type,
     *speed = temp[5];
 }
 
+/*
+ * fadeToNewCol
+ *   DESCRIPTION: Helper function to fade to new color
+ *   INPUTS: newR, newG, newB - new RGB values to set,
+ *           duration - duration of fade (in ms)
+ *           type - which strip to fade from (1 = strip 1, other = strip 2)
+ *   RETURN VALUE: none
+ *   SIDE EFFECTS: none
+ */
 void fadeToNewCol(int newR, int newG, int newB, int duration, int type) {
     // Fade from current color to new value
     int oR, oG, oB;
-    if(type == 1) {
+    if(type == 0 || type == 1) {
         oR = oCol1[0];
         oG = oCol1[1];
         oB = oCol1[2];
@@ -226,6 +261,7 @@ void fadeToNewCol(int newR, int newG, int newB, int duration, int type) {
         oB = oCol2[2];
     }
 
+    // Find difference values for fade
     int rDiff = newR - oR;
     int gDiff = newG - oG;
     int bDiff = newB - oB;
@@ -233,6 +269,7 @@ void fadeToNewCol(int newR, int newG, int newB, int duration, int type) {
     int steps = duration / delayAmnt;
     int rV, gV, bV;
 
+    // Loop through all steps to slowly change to new color
     for(int i = 0; i < steps - 1; i++) {
         rV = oR + (rDiff * i / steps);
         gV = oG + (gDiff * i / steps);
@@ -246,17 +283,30 @@ void fadeToNewCol(int newR, int newG, int newB, int duration, int type) {
     displayCol(newR, newG, newB, type);
 }
 
+/*
+ * loopFade
+ *   DESCRIPTION: Fade script to go through all colors
+ *   INPUTS: delay - delay between changing colors
+ *   RETURN VALUE: none
+ *   SIDE EFFECTS: none
+ */
 void loopFade(int delay) {
     // Loop through all colors
     while(true) {
         for(int i = 0; i < 360; i++) {
-            fadeToNewCol(lights[(i + 120) % 360], lights[i],
-                         lights[(i + 240) % 360], 5, 0);
+            fadeToNewCol(lights[(i + 120) % 360], lights[i], lights[(i + 240) % 360], 5, 0);
             vTaskDelay(delay / portTICK_PERIOD_MS);
         }
     }
 }
 
+/*
+ * root_task
+ *   DESCRIPTION: function run by root node (connected directly to Pi)
+ *   INPUTS: arg - arguments
+ *   RETURN VALUE: none
+ *   SIDE EFFECTS: none
+ */
 static void root_task(void *arg) {
     mdf_err_t ret = MDF_OK;
     char *data = MDF_MALLOC(MWIFI_PAYLOAD_LEN);
@@ -269,29 +319,19 @@ static void root_task(void *arg) {
 
     for(int i = 0;; ++i) {
         if(!mwifi_is_started()) {
-            vTaskDelay(500 / portTICK_RATE_MS);
+            vTaskDelay(50 / portTICK_RATE_MS);
             continue;
         }
 
         for(int j = 0; j < 2; j++) {
             size = MWIFI_PAYLOAD_LEN;
             memset(data, 0, MWIFI_PAYLOAD_LEN);
-            ret = mwifi_root_read(src_addr, &data_type, data, &size,
-                                  portMAX_DELAY);
-            // MDF_ERROR_CONTINUE(ret != MDF_OK, "<%s> mwifi_root_read",
-            //                    mdf_err_to_name(ret));
-            // MDF_LOGI("Root receive, addr: " MACSTR ", size: %d, data: %s",
-            //          MAC2STR(src_addr), size, data);
+            ret = mwifi_root_read(src_addr, &data_type, data, &size, portMAX_DELAY);
 
             size = sprintf(data, "%s", inBuff);
 
             if(needsToSend[j]) {
-                ret = mwifi_root_write(src_addr, 1, &data_type, data, size,
-                                       false);
-                // MDF_ERROR_CONTINUE(ret != MDF_OK, "mwifi_root_recv, ret: %x",
-                //                    ret);
-                // MDF_LOGI("Root send, addr: " MACSTR ", size: %d, data: %s",
-                //          MAC2STR(src_addr), size, data);
+                ret = mwifi_root_write(src_addr, 1, &data_type, data, size, false);
                 needsToSend[j] = false;
             }
         }
@@ -303,6 +343,13 @@ static void root_task(void *arg) {
     vTaskDelete(NULL);
 }
 
+/*
+ * node_read_task
+ *   DESCRIPTION: function run by child nodes to read
+ *   INPUTS: arg - arguments
+ *   RETURN VALUE: none
+ *   SIDE EFFECTS: none
+ */
 static void node_read_task(void *arg) {
     mdf_err_t ret = MDF_OK;
     char *data = MDF_MALLOC(MWIFI_PAYLOAD_LEN);
@@ -314,31 +361,27 @@ static void node_read_task(void *arg) {
 
     for(;;) {
         if(!mwifi_is_connected()) {
-            vTaskDelay(500 / portTICK_RATE_MS);
+            vTaskDelay(50 / portTICK_RATE_MS);
             continue;
         }
 
         size = MWIFI_PAYLOAD_LEN;
         memset(data, 0, MWIFI_PAYLOAD_LEN);
         ret = mwifi_read(src_addr, &data_type, data, &size, portMAX_DELAY);
-        // MDF_ERROR_CONTINUE(ret != MDF_OK, "mwifi_read, ret: %x", ret);
-        // MDF_LOGI("Node receive, addr: " MACSTR ", size: %d, data: %s",
-        //          MAC2STR(src_addr), size, data);
 
-        // set pins
+        // Get values from data char array
         int rCol = 0, gCol = 0, bCol = 0, type = -1, controller = 0, speed = 50;
         getValues(data, &rCol, &gCol, &bCol, &type, &controller, &speed);
 
-        // ESP_LOGI(TAG, "vals: r: %d g: %d b: %d", rCol, gCol, bCol);
-        // ESP_LOGI(TAG, "vals: type: %d contr: %d speed: %d", type, controller,
-        //          speed);
-
+        // Set values
         if(controller == 0 || controller == DEVICE_ID) {
+            // Stop fade if currently active
             if(fadeHandle != NULL) {
                 vTaskDelete(fadeHandle);
                 fadeHandle = NULL;
             }
 
+            // Set new color settings
             if(type == 3) {
                 fadeToNewCol(255, 0, 0, 150, 0);
                 xTaskCreate(loopFade, "fadeScript", 4096, speed, 2,
@@ -358,6 +401,13 @@ static void node_read_task(void *arg) {
     vTaskDelete(NULL);
 }
 
+/*
+ * node_write_task
+ *   DESCRIPTION: function run by child nodes to write
+ *   INPUTS: arg - arguments
+ *   RETURN VALUE: none
+ *   SIDE EFFECTS: none
+ */
 void node_write_task(void *arg) {
     mdf_err_t ret = MDF_OK;
     int count = 0;
@@ -369,15 +419,14 @@ void node_write_task(void *arg) {
 
     for(;;) {
         if(!mwifi_is_connected()) {
-            vTaskDelay(500 / portTICK_RATE_MS);
+            vTaskDelay(50 / portTICK_RATE_MS);
             continue;
         }
 
-        size = sprintf(data, "(%d) Hello root!", count++);
+        size = sprintf(data, "(%d)", count++);
         ret = mwifi_write(NULL, &data_type, data, size, true);
-        MDF_ERROR_CONTINUE(ret != MDF_OK, "mwifi_write, ret: %x", ret);
 
-        vTaskDelay(400 / portTICK_RATE_MS);
+        vTaskDelay(1000 / portTICK_RATE_MS);
     }
 
     MDF_LOGW("Node write task is exit");
@@ -386,44 +435,13 @@ void node_write_task(void *arg) {
     vTaskDelete(NULL);
 }
 
-/**
- * @brief Timed printing system information
+/*
+ * wifi_init
+ *   DESCRIPTION: initialize wifi
+ *   INPUTS: none
+ *   RETURN VALUE: error values
+ *   SIDE EFFECTS: none
  */
-static void print_system_info_timercb(void *timer) {
-    uint8_t primary = 0;
-    wifi_second_chan_t second = 0;
-    mesh_addr_t parent_bssid = {0};
-    uint8_t sta_mac[MWIFI_ADDR_LEN] = {0};
-    wifi_sta_list_t wifi_sta_list = {0x0};
-
-    esp_wifi_get_mac(ESP_IF_WIFI_STA, sta_mac);
-    esp_wifi_ap_get_sta_list(&wifi_sta_list);
-    esp_wifi_get_channel(&primary, &second);
-    esp_mesh_get_parent_bssid(&parent_bssid);
-
-    MDF_LOGI("System information, channel: %d, layer: %d, self mac: " MACSTR
-             ", parent bssid: " MACSTR
-             ", parent rssi: %d, node num: %d, free heap: %u",
-             primary, esp_mesh_get_layer(), MAC2STR(sta_mac),
-             MAC2STR(parent_bssid.addr), mwifi_get_parent_rssi(),
-             esp_mesh_get_total_node_num(), esp_get_free_heap_size());
-
-    for(int i = 0; i < wifi_sta_list.num; i++) {
-        MDF_LOGI("Child mac: " MACSTR, MAC2STR(wifi_sta_list.sta[i].mac));
-    }
-
-#ifdef MEMORY_DEBUG
-
-    if(!heap_caps_check_integrity_all(true)) {
-        MDF_LOGE("At least one heap is corrupt");
-    }
-
-    mdf_mem_print_heap();
-    mdf_mem_print_record();
-    mdf_mem_print_task();
-#endif /**< MEMORY_DEBUG */
-}
-
 static mdf_err_t wifi_init() {
     mdf_err_t ret = nvs_flash_init();
     wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
@@ -479,6 +497,13 @@ static mdf_err_t event_loop_cb(mdf_event_loop_t event, void *ctx) {
     return MDF_OK;
 }
 
+/*
+ * i2c_slave_init
+ *   DESCRIPTION: initialize i2c slave
+ *   INPUTS: none
+ *   RETURN VALUE: error values
+ *   SIDE EFFECTS: none
+ */
 static esp_err_t i2c_slave_init() {
     i2c_port_t i2c_slave_port = I2C_SLAVE_NUM;
     i2c_config_t conf_slave;
@@ -494,60 +519,70 @@ static esp_err_t i2c_slave_init() {
                               I2C_SLAVE_RX_BUF_LEN, I2C_SLAVE_TX_BUF_LEN, 0);
 }
 
+/*
+ * check_for_data
+ *   DESCRIPTION: checks i2c bus for new data
+ *   INPUTS: none
+ *   RETURN VALUE: bool (true if data changed, false otherwise)
+ *   SIDE EFFECTS: alters inBuff char array
+ */
 bool check_for_data() {
     uint32_t startMs = esp_timer_get_time() / 1000;
     size_t size = i2c_slave_read_buffer(I2C_SLAVE_NUM, inBuff, 1,
                                         1000 / portTICK_RATE_MS);
     uint32_t stopMs = esp_timer_get_time() / 1000;
-    // ESP_LOGI(TAG, "len: %d", size);
+
     if(size == 1) {
         if(inBuff[0] == 0x01) {
             uint8_t replBuff[2];
             replBuff[0] = (uint8_t)(outBuffLen >> 0);
             replBuff[1] = (uint8_t)(outBuffLen >> 8);
             int ret = i2c_reset_tx_fifo(I2C_SLAVE_NUM);
-            if(ret != ESP_OK) {
-                ESP_LOGE(TAG, "failed to reset fifo");
-            }
+
             i2c_slave_write_buffer(I2C_SLAVE_NUM, replBuff, 2,
                                    1000 / portTICK_RATE_MS);
-            ESP_LOGI(TAG, "got len request, put(%d), waited: %d ms", outBuffLen,
-                     stopMs - startMs);
+
             vTaskDelay(pdMS_TO_TICKS(SLAVE_REQUEST_WAIT_MS));
-            // ESP_LOG_BUFFER_HEX(TAG, replBuff, 2);
+
             return false;
         }
+
         if(inBuff[0] == 0x02) {
             int ret = i2c_reset_tx_fifo(I2C_SLAVE_NUM);
-            if(ret != ESP_OK) {
-                ESP_LOGE(TAG, "failed to reset fifo");
-            }
+
             i2c_slave_write_buffer(I2C_SLAVE_NUM, outBuff, outBuffLen,
                                    1000 / portTICK_RATE_MS);
             outBuffLen = 0;
-            ESP_LOGI(TAG, "got write request, waited: %d ms", stopMs - startMs);
+
             vTaskDelay(pdMS_TO_TICKS(SLAVE_REQUEST_WAIT_MS));
+
             return false;
         }
+
         if(inBuff[0] > 0x02) {
             vTaskDelay(pdMS_TO_TICKS(10));
             size_t size_pl = i2c_slave_read_buffer(
                 I2C_SLAVE_NUM, inBuff, inBuff[0], 20 / portTICK_RATE_MS);
             inBuffLen = size_pl;
-            ESP_LOGI(TAG, "reading %d bytes, waited: %d ms", inBuff[0],
-                     stopMs - startMs);
             return true;
         }
     }
+
     if(size > 1) {
-        ESP_LOGE(TAG, "weird, waited: %d ms", stopMs - startMs);
         inBuffLen = size;
         return true;
     }
-    ESP_LOGI(TAG, "nothing, len: %d, waited: %d ms", size, stopMs - startMs);
+
     return false;
 }
 
+/*
+ * i2cs_test_task
+ *   DESCRIPTION: continuously calls check_for_data function
+ *   INPUTS: arg - arguments
+ *   RETURN VALUE: none
+ *   SIDE EFFECTS: alters inBuff char array
+ */
 static void i2cs_test_task(void *arg) {
     while(1) {
         if(check_for_data()) {
@@ -556,10 +591,17 @@ static void i2cs_test_task(void *arg) {
             inBuffLen = 0;
         }
     }
-    
+
     vTaskDelete(NULL);
 }
 
+/*
+ * app_main
+ *   DESCRIPTION: main function, runs on boot
+ *   INPUTS: none
+ *   RETURN VALUE: none
+ *   SIDE EFFECTS: none
+ */
 void app_main() {
     ledc_timer_config(&ledc_timer);
     // Prepare and set configuration of timer1 for low speed channels
@@ -567,9 +609,8 @@ void app_main() {
     ledc_timer.timer_num = LEDC_HS_TIMER;
     ledc_timer_config(&ledc_timer);
 
-    for(int ch = 0; ch < LEDC_TEST_CH_NUM; ch++) {
+    for(int ch = 0; ch < LEDC_TEST_CH_NUM; ch++)
         ledc_channel_config(&ledc_channel[ch]);
-    }
 
     for(int i = 0; i < 3; i++) {
         oCol1[i] = 0;
@@ -583,27 +624,20 @@ void app_main() {
         .mesh_type = CONFIG_DEVICE_TYPE,
     };
 
-    /**
-     * @brief Set the log level for serial port printing.
-     */
+    // Set log levels
     esp_log_level_set("*", ESP_LOG_INFO);
     esp_log_level_set(TAG, ESP_LOG_DEBUG);
 
     ESP_ERROR_CHECK(i2c_slave_init());
 
-    /**
-     * @brief Initialize wifi mesh.
-     */
+    // Initialize wifi mesh
     MDF_ERROR_ASSERT(mdf_event_loop_init(event_loop_cb));
     MDF_ERROR_ASSERT(wifi_init());
     MDF_ERROR_ASSERT(mwifi_init(&cfg));
     MDF_ERROR_ASSERT(mwifi_set_config(&config));
     MDF_ERROR_ASSERT(mwifi_start());
 
-    /**
-     * @brief Data transfer between wifi mesh devices
-     */
-
+    // Start wifi mesh tasks
     if(config.mesh_type == MESH_ROOT) {
         xTaskCreate(root_task, "root_task", 4 * 1024, NULL,
                     CONFIG_MDF_TASK_DEFAULT_PRIOTY, NULL);
@@ -614,9 +648,4 @@ void app_main() {
         xTaskCreate(node_read_task, "node_read_task", 4 * 1024, NULL,
                     CONFIG_MDF_TASK_DEFAULT_PRIOTY, NULL);
     }
-
-    TimerHandle_t timer =
-        xTimerCreate("print_system_info", 10000 / portTICK_RATE_MS, true, NULL,
-                     print_system_info_timercb);
-    xTimerStart(timer, 0);
 }
