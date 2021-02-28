@@ -33,7 +33,7 @@
 #include "sdkconfig.h"
 
 // 1 = ceiling, 2 = couch, 0 = both
-#define DEVICE_ID (-1)
+#define DEVICE_ID (1)
 
 #define LEDC_HS_TIMER LEDC_TIMER_0
 #define LEDC_HS_MODE LEDC_HIGH_SPEED_MODE
@@ -314,12 +314,12 @@ static void root_task(void *arg) {
     uint8_t src_addr[MWIFI_ADDR_LEN] = {0x0};
     mwifi_data_type_t data_type = {0};
 
-    MDF_LOGI("Root is running");
+    MDF_LOGI("Root starting");
     srand(time(NULL));
 
     for(int i = 0;; ++i) {
         if(!mwifi_is_started()) {
-            vTaskDelay(50 / portTICK_RATE_MS);
+            vTaskDelay(20 / portTICK_RATE_MS);
             continue;
         }
 
@@ -337,7 +337,7 @@ static void root_task(void *arg) {
         }
     }
 
-    MDF_LOGW("Root is exit");
+    MDF_LOGW("Root quitting");
 
     MDF_FREE(data);
     vTaskDelete(NULL);
@@ -357,7 +357,7 @@ static void node_read_task(void *arg) {
     mwifi_data_type_t data_type = {0x0};
     uint8_t src_addr[MWIFI_ADDR_LEN] = {0x0};
 
-    MDF_LOGI("Note read task is running");
+    MDF_LOGI("Node read task starting");
 
     for(;;) {
         if(!mwifi_is_connected()) {
@@ -384,8 +384,7 @@ static void node_read_task(void *arg) {
             // Set new color settings
             if(type == 3) {
                 fadeToNewCol(255, 0, 0, 150, 0);
-                xTaskCreate(loopFade, "fadeScript", 4096, speed, 2,
-                            &fadeHandle);
+                xTaskCreate(loopFade, "fadeScript", 4096, speed, 2, &fadeHandle);
             } else {
                 if(type == 1 || type == 0)
                     fadeToNewCol(rCol, gCol, bCol, 150, 1);
@@ -395,7 +394,7 @@ static void node_read_task(void *arg) {
         }
     }
 
-    MDF_LOGW("Note read task is exit");
+    MDF_LOGW("Node read task quitting");
 
     MDF_FREE(data);
     vTaskDelete(NULL);
@@ -415,7 +414,7 @@ void node_write_task(void *arg) {
     char *data = MDF_MALLOC(MWIFI_PAYLOAD_LEN);
     mwifi_data_type_t data_type = {0x0};
 
-    MDF_LOGI("Node write task is running");
+    MDF_LOGI("Node write task starting");
 
     for(;;) {
         if(!mwifi_is_connected()) {
@@ -426,10 +425,10 @@ void node_write_task(void *arg) {
         size = sprintf(data, "(%d)", count++);
         ret = mwifi_write(NULL, &data_type, data, size, true);
 
-        vTaskDelay(1000 / portTICK_RATE_MS);
+        vTaskDelay(50 / portTICK_RATE_MS);
     }
 
-    MDF_LOGW("Node write task is exit");
+    MDF_LOGW("Node write quitting");
 
     MDF_FREE(data);
     vTaskDelete(NULL);
@@ -479,7 +478,7 @@ static mdf_err_t event_loop_cb(mdf_event_loop_t event, void *ctx) {
 
     switch(event) {
         case MDF_EVENT_MWIFI_STARTED:
-            MDF_LOGI("MESH is started");
+            MDF_LOGI("Mesh started");
             break;
 
         case MDF_EVENT_MWIFI_PARENT_CONNECTED:
@@ -641,7 +640,7 @@ void app_main() {
     if(config.mesh_type == MESH_ROOT) {
         xTaskCreate(root_task, "root_task", 4 * 1024, NULL,
                     CONFIG_MDF_TASK_DEFAULT_PRIOTY, NULL);
-        xTaskCreate(i2cs_test_task, "slave", 1024 * 2, (void *)1, 10, NULL);
+        xTaskCreate(i2cs_test_task, "slave", 1024 * 2, (void *)1, 4, NULL);
     } else {
         xTaskCreate(node_write_task, "node_write_task", 4 * 1024, NULL,
                     CONFIG_MDF_TASK_DEFAULT_PRIOTY, NULL);
