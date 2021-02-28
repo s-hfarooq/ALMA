@@ -35,7 +35,7 @@
 #include "sdkconfig.h"
 
 // 1 = ceiling, 2 = couch, 0 = both
-#define DEVICEID 2
+#define DEVICE_ID (2)
 
 #define LEDC_HS_TIMER LEDC_TIMER_0
 #define LEDC_HS_MODE LEDC_HIGH_SPEED_MODE
@@ -59,36 +59,19 @@
 #define LEDC_TEST_DUTY (4000)
 #define LEDC_TEST_FADE_TIME (150)
 
-#define DATA_LENGTH 512    /*!< Data buffer length of test buffer */
-#define RW_TEST_LENGTH 128 /*!< Data length for r/w test, [0,DATA_LENGTH] */
-#define DELAY_TIME_BETWEEN_ITEMS_MS \
-  20 /*!< delay time between different test items */
-
 #define I2C_SLAVE_SDA_IO GPIO_NUM_21
 #define I2C_SLAVE_SCL_IO GPIO_NUM_22
-
 #define I2C_SLAVE_NUM I2C_NUM_0
 #define I2C_SLAVE_TX_BUF_LEN 256  //(2 * DATA_LENGTH)
 #define I2C_SLAVE_RX_BUF_LEN 256  //(2 * DATA_LENGTH)
-
 #define ESP_SLAVE_ADDR 0x04
-#define WRITE_BIT I2C_MASTER_WRITE /*!< I2C master write */
-#define READ_BIT I2C_MASTER_READ   /*!< I2C master read */
-#define ACK_CHECK_EN 0x1           /*!< I2C master will check ack from slave*/
-#define ACK_CHECK_DIS 0x0 /*!< I2C master will not check ack from slave */
-#define ACK_VAL 0x0       /*!< I2C ack value */
-#define NACK_VAL 0x1      /*!< I2C nack value */
+#define SLAVE_REQUEST_WAIT_MS 25
 
-#define SLAVE_REQUEST_WAIT_MS 100
-
-static const char *TAG = "get_started";
+static const char *TAG = "meshNetwork";
 
 TaskHandle_t fadeHandle = NULL;
 
 int oCol1[3], oCol2[3];
-
-const uint8_t testCmd[15] = {0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
-                             0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E};
 
 uint8_t outBuff[256];
 uint16_t outBuffLen = 0;
@@ -168,7 +151,8 @@ const uint8_t lights[360] = {
     0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
     0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
     0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
-    0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0};
+    0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0
+};
 
 void displayCol(int r, int g, int b, int type) {
     int dutyAmnt[3] = {r * 4000 / 255, g * 4000 / 255, b * 4000 / 255};
@@ -264,8 +248,6 @@ void fadeToNewCol(int newR, int newG, int newB, int duration, int type) {
     }
 
     displayCol(newR, newG, newB, type);
-
-    return;
 }
 
 void loopFade(int delay) {
@@ -312,8 +294,6 @@ static void root_task(void *arg)
             needsToSend[j] = false;
           }
         }
-
-        //vTaskDelay(20 / portTICK_RATE_MS);
     }
 
 
@@ -354,7 +334,7 @@ static void node_read_task(void *arg)
         ESP_LOGI(TAG, "vals: type: %d contr: %d speed: %d", type, controller, speed);
 
 
-        if(controller == 0 || controller == DEVICEID) {
+        if(controller == 0 || controller == DEVICE_ID) {
           if(fadeHandle != NULL) {
               vTaskDelete(fadeHandle);
               fadeHandle = NULL;
