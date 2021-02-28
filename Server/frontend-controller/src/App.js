@@ -38,16 +38,16 @@ class App extends React.Component {
         newColStr = color.rgb.r + "-" + color.rgb.g + "-" + color.rgb.b + "-1-1-0-";
         break;
       case "1colcouch":
-        newColStr = color.rgb.r + "-" + color.rgb.g + "-" + color.rgb.b + "-2-1-0-";
+        newColStr = color.rgb.r + "-" + color.rgb.g + "-" + color.rgb.b + "-1-2-0-";
         break;
       case "2colceiling":
-        newColStr = color.rgb.r + "-" + color.rgb.g + "-" + color.rgb.b + "-1-2-0-";
+        newColStr = color.rgb.r + "-" + color.rgb.g + "-" + color.rgb.b + "-2-1-0-";
         break;
       case "2colcouch":
         newColStr = color.rgb.r + "-" + color.rgb.g + "-" + color.rgb.b + "-2-2-0-";
         break;
       default:
-        newColStr = color.rgb.r + "-" + color.rgb.g + "-" + color.rgb.b + "-0-0-";
+        newColStr = color.rgb.r + "-" + color.rgb.g + "-" + color.rgb.b + "-0-0-0-";
     }
 
     await sendCommand(newColStr);
