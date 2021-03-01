@@ -33,7 +33,7 @@
 #include "sdkconfig.h"
 
 // 1 = ceiling, 2 = couch, 0 = both
-#define DEVICE_ID (1)
+#define DEVICE_ID (-1)
 
 #define LEDC_HS_TIMER LEDC_TIMER_0
 #define LEDC_HS_MODE LEDC_HIGH_SPEED_MODE
@@ -76,6 +76,16 @@ uint16_t outBuffLen = 0;
 uint8_t inBuff[256];
 uint16_t inBuffLen = 0;
 bool needsToSend[2] = {false, false};
+
+// Struct for fadeToNewCol function parameter - needed due to xTaskCreate parameters
+typedef struct {
+  int newR;
+  int newG;
+  int newB;
+  int duration;
+  int type;
+  bool caller;
+} FadeColStruct;
 
 // Configuring PWM settings
 ledc_timer_config_t ledc_timer = {
@@ -242,16 +252,16 @@ void getValues(char rx_buf[128], int *rCol, int *gCol, int *bCol, int *type,
 /*
  * fadeToNewCol
  *   DESCRIPTION: Helper function to fade to new color
- *   INPUTS: newR, newG, newB - new RGB values to set,
- *           duration - duration of fade (in ms)
- *           type - which strip to fade from (1 = strip 1, other = strip 2)
+ *   INPUTS: *arg - pointer to FadeColStruct object
  *   RETURN VALUE: none
  *   SIDE EFFECTS: none
  */
-void fadeToNewCol(int newR, int newG, int newB, int duration, int type) {
+void fadeToNewCol(void *arg) {
     // Fade from current color to new value
+    FadeColStruct inputStruct = *(FadeColStruct*)arg;
+
     int oR, oG, oB;
-    if(type == 0 || type == 1) {
+    if(inputStruct.type == 0 || inputStruct.type == 1) {
         oR = oCol1[0];
         oG = oCol1[1];
         oB = oCol1[2];
@@ -262,11 +272,11 @@ void fadeToNewCol(int newR, int newG, int newB, int duration, int type) {
     }
 
     // Find difference values for fade
-    int rDiff = newR - oR;
-    int gDiff = newG - oG;
-    int bDiff = newB - oB;
+    int rDiff = inputStruct.newR - oR;
+    int gDiff = inputStruct.newG - oG;
+    int bDiff = inputStruct.newB - oB;
     int delayAmnt = 20;
-    int steps = duration / delayAmnt;
+    int steps = inputStruct.duration / delayAmnt;
     int rV, gV, bV;
 
     // Loop through all steps to slowly change to new color
@@ -275,12 +285,15 @@ void fadeToNewCol(int newR, int newG, int newB, int duration, int type) {
         gV = oG + (gDiff * i / steps);
         bV = oB + (bDiff * i / steps);
 
-        displayCol(rV, gV, bV, type);
+        displayCol(rV, gV, bV, inputStruct.type);
 
         vTaskDelay(delayAmnt / portTICK_PERIOD_MS);
     }
 
-    displayCol(newR, newG, newB, type);
+    displayCol(inputStruct.newR, inputStruct.newG, inputStruct.newB, inputStruct.type);
+
+    if(inputStruct.caller)
+      vTaskDelete(NULL);
 }
 
 /*
@@ -293,8 +306,18 @@ void fadeToNewCol(int newR, int newG, int newB, int duration, int type) {
 void loopFade(int delay) {
     // Loop through all colors
     while(true) {
+        // Define settings for input to fade function
+        FadeColStruct fadeSettings;
+        fadeSettings.duration = 5;
+        fadeSettings.type = 0;
+        fadeSettings.caller = false;
+
         for(int i = 0; i < 360; i++) {
-            fadeToNewCol(lights[(i + 120) % 360], lights[i], lights[(i + 240) % 360], 5, 0);
+            fadeSettings.newR = lights[(i + 120) % 360];
+            fadeSettings.newG = lights[i];
+            fadeSettings.newB = lights[(i + 240) % 360];
+            fadeToNewCol(&fadeSettings);
+
             vTaskDelay(delay / portTICK_PERIOD_MS);
         }
     }
@@ -381,15 +404,41 @@ static void node_read_task(void *arg) {
                 fadeHandle = NULL;
             }
 
+            FadeColStruct fadeOne, fadeTwo;
+            fadeOne.caller = true;
+            fadeOne.type = 1;
+            fadeOne.duration = 150;
+            fadeTwo.type = 2;
+            fadeTwo.duration = 150;
+
             // Set new color settings
             if(type == 3) {
-                fadeToNewCol(255, 0, 0, 150, 0);
+                fadeOne.newR = 255;
+                fadeOne.newG = 0;
+                fadeOne.newB = 0;
+
+                fadeTwo.newR = 255;
+                fadeTwo.newG = 0;
+                fadeTwo.newB = 0;
+                fadeTwo.caller = false;
+
+                xTaskCreate(fadeToNewCol, "fadeScript", 4096, &fadeOne, 2, NULL);
+                fadeToNewCol(&fadeTwo);
                 xTaskCreate(loopFade, "fadeScript", 4096, speed, 2, &fadeHandle);
             } else {
+                fadeOne.newR = rCol;
+                fadeOne.newG = gCol;
+                fadeOne.newB = bCol;
+
+                fadeTwo.newR = rCol;
+                fadeTwo.newG = gCol;
+                fadeTwo.newB = bCol;
+                fadeTwo.caller = true;
+
                 if(type == 1 || type == 0)
-                    fadeToNewCol(rCol, gCol, bCol, 150, 1);
+                  xTaskCreate(fadeToNewCol, "fadeScript", 4096, &fadeOne, 2, NULL);
                 if(type == 2 || type == 0)
-                    fadeToNewCol(rCol, gCol, bCol, 150, 2);
+                  xTaskCreate(fadeToNewCol, "fadeScript", 4096, &fadeTwo, 2, NULL);
             }
         }
     }
