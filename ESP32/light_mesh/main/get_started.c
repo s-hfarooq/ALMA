@@ -29,7 +29,10 @@
 #include "sdkconfig.h"
 
 // 1 = ceiling, 2 = couch, -1 = root
-#define DEVICE_ID (-1)
+#define DEVICE_ID (1)
+
+// Uncomment to enable additional logging
+//#define LOGGING true
 
 #define LEDC_HS_TIMER LEDC_TIMER_0
 #define LEDC_HS_MODE LEDC_HIGH_SPEED_MODE
@@ -55,10 +58,10 @@
 #define I2C_SLAVE_SDA_IO GPIO_NUM_21
 #define I2C_SLAVE_SCL_IO GPIO_NUM_22
 #define I2C_SLAVE_NUM I2C_NUM_0
-#define I2C_SLAVE_TX_BUF_LEN 256  //(2 * DATA_LENGTH)
-#define I2C_SLAVE_RX_BUF_LEN 256  //(2 * DATA_LENGTH)
+#define I2C_SLAVE_TX_BUF_LEN (256)
+#define I2C_SLAVE_RX_BUF_LEN (256)
 #define ESP_SLAVE_ADDR 0x04
-#define SLAVE_REQUEST_WAIT_MS 25
+#define SLAVE_REQUEST_WAIT_MS (25)
 
 static const char *TAG = "meshNetwork";
 
@@ -224,7 +227,9 @@ void getValues(char rx_buf[128], int *rCol, int *gCol, int *bCol, int *type,
         i++;
     }
 
+    #ifdef LOGGING
     MDF_LOGI("Parsed values: %d %d %d %d %d %d", temp[0], temp[1], temp[2], temp[3], temp[4], temp[5]);
+    #endif
 
     // Ensure values are within expected range
     for(i = 0; i < 3; i++) {
@@ -258,6 +263,10 @@ void fadeToNewCol(void *arg) {
     // Fade from current color to new value
     FadeColStruct inputStruct = *(FadeColStruct*)arg;
 
+    #ifdef LOGGING
+    MDF_LOGI("Fading to new col");
+    #endif
+
     int oR, oG, oB;
     if(inputStruct.type == 0 || inputStruct.type == 1) {
         oR = oCol1[0];
@@ -284,7 +293,6 @@ void fadeToNewCol(void *arg) {
         bV = oB + (bDiff * i / steps);
 
         displayCol(rV, gV, bV, inputStruct.type);
-
         vTaskDelay(delayAmnt / portTICK_PERIOD_MS);
     }
 
@@ -302,14 +310,17 @@ void fadeToNewCol(void *arg) {
 void loopFade(void *arg) {
     // Loop through all colors
     int delay = *(int*)arg;
+
+    #ifdef LOGGING
     MDF_LOGI("speed val: %d", delay);
+    #endif
+
+    // Define settings for input to fade function
+    FadeColStruct fadeSettings;
+    fadeSettings.duration = 5;
+    fadeSettings.type = 0;
 
     while(true) {
-        // Define settings for input to fade function
-        FadeColStruct fadeSettings;
-        fadeSettings.duration = 5;
-        fadeSettings.type = 0;
-
         for(int i = 0; i < 360; i++) {
             fadeSettings.newR = lights[(i + 120) % 360];
             fadeSettings.newG = lights[i];
@@ -350,10 +361,18 @@ static void root_task(void *arg) {
 
             size = sprintf(data, "%s", inBuff);
 
+            #ifdef LOGGING
+            MDF_LOGI("Writing data \"%s\" to mesh", data);
+            #endif
+
             if(needsToSend[j]) {
                 mwifi_root_write(src_addr, 1, &data_type, data, size, false);
                 needsToSend[j] = false;
             }
+
+            #ifdef LOGGING
+            MDF_LOGI("Finished sending data");
+            #endif
         }
     }
 
@@ -391,7 +410,10 @@ static void node_read_task(void *arg) {
         // Get values from data char array
         int rCol, gCol, bCol, type, controller, speed;
         getValues(data, &rCol, &gCol, &bCol, &type, &controller, &speed);
+
+        #ifdef LOGGING
         MDF_LOGI("Parsed values (read task): %d %d %d %d %d %d", rCol, gCol, bCol, type, controller, speed);
+        #endif
 
         // Set values
         if(controller == 0 || controller == DEVICE_ID) {
@@ -676,6 +698,10 @@ void app_main() {
     MDF_ERROR_ASSERT(mwifi_init(&cfg));
     MDF_ERROR_ASSERT(mwifi_set_config(&config));
     MDF_ERROR_ASSERT(mwifi_start());
+
+    #ifdef LOGGING
+    MDF_LOGI("Settings initialized, starting tasks...");
+    #endif
 
     // Start wifi mesh tasks
     if(config.mesh_type == MESH_ROOT) {
