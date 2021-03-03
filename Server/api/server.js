@@ -7,6 +7,8 @@ const app = express(),
       port = 3080;
 var net = require('net');
 
+var lastSentTime = new Date();
+
 app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, '../frontend-controller/build')));
 
@@ -16,8 +18,12 @@ app.get('/', (req,res) => {
 
 app.post('/sendCommand', (req, res) => {
   console.log("COMMAND: " + req.body.color);
-  const spawn = require("child_process").spawn;
-  const pythonProcess = spawn('python3',["i2cpi.py", req.body.color]);
+
+  let currTime = new Date();
+  if(currTime - lastSentTime > 75) {
+    const spawn = require("child_process").spawn;
+    const pythonProcess = spawn('python3',["i2cpi.py", req.body.color]);
+  }
 
   res.json({connection: "Sent"})
 });
