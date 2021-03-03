@@ -29,7 +29,7 @@
 #include "sdkconfig.h"
 
 // 1 = ceiling, 2 = couch, -1 = root
-#define DEVICE_ID (1)
+#define DEVICE_ID (-1)
 
 // Uncomment to enable additional logging
 //#define LOGGING true
