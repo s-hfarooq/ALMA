@@ -12,9 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <lwip/netdb.h>
 #include <stdio.h>
-#include <string.h>
 #include <sys/param.h>
 
 #include "driver/gpio.h"
@@ -26,13 +24,11 @@
 #include "esp_system.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
-#include "lwip/err.h"
-#include "lwip/sys.h"
 #include "mdf_common.h"
 #include "mwifi.h"
 #include "sdkconfig.h"
 
-// 1 = ceiling, 2 = couch, 0 = both
+// 1 = ceiling, 2 = couch, -1 = root
 #define DEVICE_ID (-1)
 
 #define LEDC_HS_TIMER LEDC_TIMER_0
@@ -84,7 +80,6 @@ typedef struct {
   int newB;
   int duration;
   int type;
-  bool caller;
 } FadeColStruct;
 
 // Configuring PWM settings
@@ -219,15 +214,17 @@ void displayCol(int r, int g, int b, int type) {
 void getValues(char rx_buf[128], int *rCol, int *gCol, int *bCol, int *type,
                int *controller, int *speed) {
     char *split = strtok(rx_buf, "-"), *curr;
-    int temp[6], i = 0;
+    int temp[6] = {0, 0, 0, 0, 0, 0}, i = 0;
 
     // Convert char array into int values
-    while(split != NULL && i < 7) {
+    while(split != NULL && i < 6) {
         curr = split;
         temp[i] = atoi(curr);
         split = strtok(NULL, "-");
         i++;
     }
+
+    MDF_LOGI("Parsed values: %d %d %d %d %d %d", temp[0], temp[1], temp[2], temp[3], temp[4], temp[5]);
 
     // Ensure values are within expected range
     for(i = 0; i < 3; i++) {
@@ -235,9 +232,10 @@ void getValues(char rx_buf[128], int *rCol, int *gCol, int *bCol, int *type,
         while(temp[i] > 255) temp[i] %= 255;
     }
 
-    // Ensure values are within expected range
+    // Ensure other values are within expected range
     temp[3] = temp[3] < 0 ? 0 : temp[3];
     while(temp[3] > 10) temp[3] /= 10;
+    temp[4] = temp[4] < 3 && temp[4] > -1 ? temp[4] : 0;
     temp[5] = temp[5] < 10 ? 10 : temp[5];
 
     // Place values from array into input pointer variables
@@ -291,34 +289,34 @@ void fadeToNewCol(void *arg) {
     }
 
     displayCol(inputStruct.newR, inputStruct.newG, inputStruct.newB, inputStruct.type);
-
-    if(inputStruct.caller)
-      vTaskDelete(NULL);
+    vTaskDelete(NULL);
 }
 
 /*
  * loopFade
  *   DESCRIPTION: Fade script to go through all colors
- *   INPUTS: delay - delay between changing colors
+ *   INPUTS: *arg - pointer to int value determining delay amount
  *   RETURN VALUE: none
  *   SIDE EFFECTS: none
  */
-void loopFade(int delay) {
+void loopFade(void *arg) {
     // Loop through all colors
+    int delay = *(int*)arg;
+    MDF_LOGI("speed val: %d", delay);
+
     while(true) {
         // Define settings for input to fade function
         FadeColStruct fadeSettings;
         fadeSettings.duration = 5;
         fadeSettings.type = 0;
-        fadeSettings.caller = false;
 
         for(int i = 0; i < 360; i++) {
             fadeSettings.newR = lights[(i + 120) % 360];
             fadeSettings.newG = lights[i];
             fadeSettings.newB = lights[(i + 240) % 360];
-            fadeToNewCol(&fadeSettings);
+            xTaskCreate(fadeToNewCol, "fadeScript", 4096, &fadeSettings, 2, NULL);
 
-            vTaskDelay(delay / portTICK_PERIOD_MS);
+            vTaskDelay((delay + fadeSettings.duration) / portTICK_PERIOD_MS);
         }
     }
 }
@@ -331,7 +329,6 @@ void loopFade(int delay) {
  *   SIDE EFFECTS: none
  */
 static void root_task(void *arg) {
-    mdf_err_t ret = MDF_OK;
     char *data = MDF_MALLOC(MWIFI_PAYLOAD_LEN);
     size_t size = MWIFI_PAYLOAD_LEN;
     uint8_t src_addr[MWIFI_ADDR_LEN] = {0x0};
@@ -349,12 +346,12 @@ static void root_task(void *arg) {
         for(int j = 0; j < 2; j++) {
             size = MWIFI_PAYLOAD_LEN;
             memset(data, 0, MWIFI_PAYLOAD_LEN);
-            ret = mwifi_root_read(src_addr, &data_type, data, &size, portMAX_DELAY);
+            mwifi_root_read(src_addr, &data_type, data, &size, portMAX_DELAY);
 
             size = sprintf(data, "%s", inBuff);
 
             if(needsToSend[j]) {
-                ret = mwifi_root_write(src_addr, 1, &data_type, data, size, false);
+                mwifi_root_write(src_addr, 1, &data_type, data, size, false);
                 needsToSend[j] = false;
             }
         }
@@ -374,7 +371,6 @@ static void root_task(void *arg) {
  *   SIDE EFFECTS: none
  */
 static void node_read_task(void *arg) {
-    mdf_err_t ret = MDF_OK;
     char *data = MDF_MALLOC(MWIFI_PAYLOAD_LEN);
     size_t size = MWIFI_PAYLOAD_LEN;
     mwifi_data_type_t data_type = {0x0};
@@ -382,7 +378,7 @@ static void node_read_task(void *arg) {
 
     MDF_LOGI("Node read task starting");
 
-    for(;;) {
+    while(true) {
         if(!mwifi_is_connected()) {
             vTaskDelay(50 / portTICK_RATE_MS);
             continue;
@@ -390,11 +386,12 @@ static void node_read_task(void *arg) {
 
         size = MWIFI_PAYLOAD_LEN;
         memset(data, 0, MWIFI_PAYLOAD_LEN);
-        ret = mwifi_read(src_addr, &data_type, data, &size, portMAX_DELAY);
+        mwifi_read(src_addr, &data_type, data, &size, portMAX_DELAY);
 
         // Get values from data char array
-        int rCol = 0, gCol = 0, bCol = 0, type = -1, controller = 0, speed = 50;
+        int rCol, gCol, bCol, type, controller, speed;
         getValues(data, &rCol, &gCol, &bCol, &type, &controller, &speed);
+        MDF_LOGI("Parsed values (read task): %d %d %d %d %d %d", rCol, gCol, bCol, type, controller, speed);
 
         // Set values
         if(controller == 0 || controller == DEVICE_ID) {
@@ -405,7 +402,6 @@ static void node_read_task(void *arg) {
             }
 
             FadeColStruct fadeOne, fadeTwo;
-            fadeOne.caller = true;
             fadeOne.type = 1;
             fadeOne.duration = 150;
             fadeTwo.type = 2;
@@ -420,11 +416,11 @@ static void node_read_task(void *arg) {
                 fadeTwo.newR = 255;
                 fadeTwo.newG = 0;
                 fadeTwo.newB = 0;
-                fadeTwo.caller = false;
 
                 xTaskCreate(fadeToNewCol, "fadeScript", 4096, &fadeOne, 2, NULL);
-                fadeToNewCol(&fadeTwo);
-                xTaskCreate(loopFade, "fadeScript", 4096, speed, 2, &fadeHandle);
+                xTaskCreate(fadeToNewCol, "fadeScript", 4096, &fadeTwo, 2, NULL);
+                vTaskDelay(fadeTwo.duration / portTICK_RATE_MS);
+                xTaskCreate(loopFade, "fadeScript", 4096, &speed, 2, &fadeHandle);
             } else {
                 fadeOne.newR = rCol;
                 fadeOne.newG = gCol;
@@ -433,7 +429,6 @@ static void node_read_task(void *arg) {
                 fadeTwo.newR = rCol;
                 fadeTwo.newG = gCol;
                 fadeTwo.newB = bCol;
-                fadeTwo.caller = true;
 
                 if(type == 1 || type == 0)
                   xTaskCreate(fadeToNewCol, "fadeScript", 4096, &fadeOne, 2, NULL);
@@ -457,7 +452,6 @@ static void node_read_task(void *arg) {
  *   SIDE EFFECTS: none
  */
 void node_write_task(void *arg) {
-    mdf_err_t ret = MDF_OK;
     int count = 0;
     size_t size = 0;
     char *data = MDF_MALLOC(MWIFI_PAYLOAD_LEN);
@@ -465,16 +459,16 @@ void node_write_task(void *arg) {
 
     MDF_LOGI("Node write task starting");
 
-    for(;;) {
+    while(true) {
         if(!mwifi_is_connected()) {
             vTaskDelay(50 / portTICK_RATE_MS);
             continue;
         }
 
         size = sprintf(data, "(%d)", count++);
-        ret = mwifi_write(NULL, &data_type, data, size, true);
+        mwifi_write(NULL, &data_type, data, size, true);
 
-        vTaskDelay(50 / portTICK_RATE_MS);
+        vTaskDelay(500 / portTICK_RATE_MS);
     }
 
     MDF_LOGW("Node write quitting");
@@ -575,17 +569,15 @@ static esp_err_t i2c_slave_init() {
  *   SIDE EFFECTS: alters inBuff char array
  */
 bool check_for_data() {
-    uint32_t startMs = esp_timer_get_time() / 1000;
     size_t size = i2c_slave_read_buffer(I2C_SLAVE_NUM, inBuff, 1,
                                         1000 / portTICK_RATE_MS);
-    uint32_t stopMs = esp_timer_get_time() / 1000;
 
     if(size == 1) {
         if(inBuff[0] == 0x01) {
             uint8_t replBuff[2];
             replBuff[0] = (uint8_t)(outBuffLen >> 0);
             replBuff[1] = (uint8_t)(outBuffLen >> 8);
-            int ret = i2c_reset_tx_fifo(I2C_SLAVE_NUM);
+            i2c_reset_tx_fifo(I2C_SLAVE_NUM);
 
             i2c_slave_write_buffer(I2C_SLAVE_NUM, replBuff, 2,
                                    1000 / portTICK_RATE_MS);
@@ -596,7 +588,7 @@ bool check_for_data() {
         }
 
         if(inBuff[0] == 0x02) {
-            int ret = i2c_reset_tx_fifo(I2C_SLAVE_NUM);
+            i2c_reset_tx_fifo(I2C_SLAVE_NUM);
 
             i2c_slave_write_buffer(I2C_SLAVE_NUM, outBuff, outBuffLen,
                                    1000 / portTICK_RATE_MS);
