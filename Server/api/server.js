@@ -8,13 +8,8 @@ const app = express(),
 var net = require('net');
 
 var lastSentTime = new Date();
-//
-// const spawn = require("child_process").spawn;
-// const pythonProcess = spawn('python3',["i2cpi.py"]);
 
-
-var p = require('child_process').spawn('python3', ['i2cpi.py'], { stdio: 'pipe'});
-
+const spawn = require("child_process").spawn;
 
 app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, '../frontend-controller/build')));
@@ -28,8 +23,7 @@ app.post('/sendCommand', (req, res) => {
 
   let currTime = new Date();
   if(currTime - lastSentTime > 400) {
-    p.stdin.write(req.body.color);
-    p.stdin.end();
+    const pythonProcess = spawn('python3',["i2cpi.py", req.body.color]);
     lastSentTime = currTime;
   }
 
