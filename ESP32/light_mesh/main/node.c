@@ -1,4 +1,4 @@
-// Functions used exclusively on node devices (non root devices)
+// Functions used exclusively on node/non-root devices
 
 #include <stdio.h>
 #include <sys/param.h>
