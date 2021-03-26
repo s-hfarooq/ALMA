@@ -15,9 +15,6 @@
 #include "mdf_common.h"
 #include "mwifi.h"
 #include "sdkconfig.h"
-// #include "sharedVariables.h"
-
-#include "wsLED.cpp"
 
 // Struct for fadeToNewCol function parameter - needed due to xTaskCreate parameters
 typedef struct {
@@ -216,6 +213,7 @@ static void node_read_task(void *arg) {
     while(true) {
         if(!mwifi_is_connected()) {
             vTaskDelay(50 / portTICK_RATE_MS);
+            MDF_LOGI("KILLED TASK");
             continue;
         }
 
@@ -246,7 +244,29 @@ static void node_read_task(void *arg) {
             fadeTwo.duration = 150;
 
             if(type == 4) {
-                xTaskCreatePinnedToCore(&blinkWithFx_test, "blinkLeds", 4000, NULL, 5, NULL, 0);
+                switch(bCol) {
+                    case 0:
+                        xTaskCreate(blinkWithFx_allpatterns, "blinkLeds", 4096, NULL, 2, &fadeHandle);
+                        MDF_LOGI("STARTED blinkWithFx_allpatterns");
+                        break;
+                    case 1:
+                        xTaskCreate(blinkWithFx_test, "blinkLeds", 4096, NULL, 2, &fadeHandle);
+                        MDF_LOGI("STARTED blinkWithFx_test");
+                        break;
+                    case 2:
+                        xTaskCreate(blinkLeds_interesting, "blinkLeds", 4096, NULL, 2, &fadeHandle);
+                        MDF_LOGI("STARTED blinkLeds_interesting");
+                        break;
+                    case 3:
+                        xTaskCreate(blinkLeds_simple, "blinkLeds", 4096, NULL, 2, &fadeHandle);
+                        MDF_LOGI("STARTED blinkLeds_simple");
+                        break;
+                    case 4:
+                        xTaskCreate(blinkLeds_chase, "blinkLeds", 4096, NULL, 2, &fadeHandle);
+                        MDF_LOGI("STARTED blinkLeds_chase");
+                        break;
+                }
+
                 continue;
             }
 

@@ -27,12 +27,10 @@
 #include "mdf_common.h"
 #include "mwifi.h"
 #include "sdkconfig.h"
+
+#include "wsLED.cpp"
 #include "root.c"
 #include "node.c"
-
-// #include "sharedVariables.h"
-
-// #include "wsLED.cpp"
 
 extern "C" {
   void app_main();
@@ -165,6 +163,7 @@ void app_main() {
                     CONFIG_MDF_TASK_DEFAULT_PRIOTY, NULL);
         xTaskCreate(i2cs_test_task, "slave", 1024 * 2, (void *)1, 4, NULL);
     } else {
+        wsLEDInit();
         xTaskCreate(node_write_task, "node_write_task", 4 * 1024, NULL,
                     CONFIG_MDF_TASK_DEFAULT_PRIOTY, NULL);
         xTaskCreate(node_read_task, "node_read_task", 4 * 1024, NULL,

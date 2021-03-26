@@ -27,13 +27,8 @@ extern CRGBPalette16 myRedWhiteBluePalette;
 extern const TProgmemPalette16 IRAM_ATTR myRedWhiteBluePalette_p;
 
 #include "palettes.h"
-// #include "sharedVariables.h"
-//
-// #include "node.c"
-// #include "root.c"
 
-//#define NUM_LEDS 512
-#define NUM_LEDS 159
+#define NUM_LEDS 158
 #define DATA_PIN_1 13
 #define DATA_PIN_2 14
 #define BRIGHTNESS  80
@@ -93,7 +88,6 @@ extern "C" {
 */
 
 static void blinkWithFx_allpatterns(void *pvParameters) {
-
 	uint16_t mode = FX_MODE_STATIC;
 
 	WS2812FX ws2812fx;
@@ -119,6 +113,8 @@ static void blinkWithFx_allpatterns(void *pvParameters) {
 		ws2812fx.service();
 		vTaskDelay(10 / portTICK_PERIOD_MS); /*10ms*/
 	}
+
+    vTaskDelete(NULL);
 };
 
 /* test specific patterns so we know FX is working right
@@ -135,31 +131,18 @@ typedef struct {
 
 
 static const testModes_t testModes[] = {
-  { "color wipe: all leds after each other up. Then off. Repeat. RED", FX_MODE_COLOR_WIPE, 5, 0xFF0000, 1000 },
-  { "color wipe: all leds after each other up. Then off. Repeat. RGREE", FX_MODE_COLOR_WIPE, 5, 0x00FF00, 1000 },
-  { "color wipe: all leds after each other up. Then off. Repeat. Blu", FX_MODE_COLOR_WIPE, 5, 0x0000FF, 1000 },
-  { "chase rainbow: Color running on white.", FX_MODE_CHASE_RAINBOW, 10, 0xffffff, 200 },
-  { "breath, on white.", FX_MODE_BREATH, 5, 0xffffff, 100 },
-  { "breath, on red.", FX_MODE_BREATH, 5, 0xff0000, 100 },
-  { "what is twinkefox? on red?", FX_MODE_TWINKLEFOX, 20, 0xff0000, 2000 },
+  { "color wipe: all leds after each other up. Then off. Repeat. RED", FX_MODE_COLOR_WIPE, 5, 0x00FF00, 1000 },
+  { "color wipe: all leds after each other up. Then off. Repeat. GREEN", FX_MODE_COLOR_WIPE, 5, 0xFF0000, 1000 },
+  { "color wipe: all leds after each other up. Then off. Repeat. BLUE", FX_MODE_COLOR_WIPE, 5, 0x0000FF, 1000 },
+  { "chase rainbow: Color running on white.", FX_MODE_CHASE_RAINBOW, 10, 0xFFFFFF, 200 },
+  { "breath, on white.", FX_MODE_BREATH, 5, 0xFFFFFF, 100 },
+  { "breath, on red.", FX_MODE_BREATH, 5, 0x00FF00, 100 },
+  { "what is twinkefox? on red?", FX_MODE_TWINKLEFOX, 20, 0x00FF00, 2000 },
 };
 
 #define TEST_MODES_N ( sizeof(testModes) / sizeof(testModes_t))
 
 static void blinkWithFx_test(void *pvParameters) {
-
-  printf(" entering app main, call add leds\n");
-  // the WS2811 family uses the RMT driver
-  FastLED.addLeds<LED_TYPE, DATA_PIN_1>(leds1, NUM_LEDS);
-  FastLED.addLeds<LED_TYPE, DATA_PIN_2>(leds2, NUM_LEDS);
-
-  // this is a good test because it uses the GPIO ports, these are 4 wire not 3 wire
-  //FastLED.addLeds<APA102, 13, 15>(leds, NUM_LEDS);
-
-  printf(" set max power\n");
-  // I have a 2A power supply, although it's 12v
-  FastLED.setMaxPowerInVoltsAndMilliamps(12,2000);
-
   WS2812FX ws2812fx;
   WS2812FX::Segment *segments = ws2812fx.getSegments();
 
@@ -173,9 +156,7 @@ static void blinkWithFx_test(void *pvParameters) {
   segments[0].speed = testModes[test_id].speed;
   uint64_t nextMode = esp_timer_get_time() + (testModes[test_id].secs * 1000000L );
 
-
   while (true) {
-
     uint64_t now = esp_timer_get_time();
 
     if (nextMode < now ) {
@@ -190,8 +171,9 @@ static void blinkWithFx_test(void *pvParameters) {
     ws2812fx.service();
     vTaskDelay(10 / portTICK_PERIOD_MS); /*10ms*/
   }
-};
 
+  vTaskDelete(NULL);
+};
 
 /*
 ** chase sequences are good for testing correctness, because you can see
@@ -261,9 +243,10 @@ void blinkLeds_chase2(void *pvParameters) {
     } // for all colors
   } // while true
 
+  vTaskDelete(NULL);
 }
 
-void ChangePalettePeriodically(){
+void ChangePalettePeriodically() {
 
   uint8_t secondHand = (millis() / 1000) % 60;
   static uint8_t lastSecond = 99;
@@ -282,10 +265,9 @@ void ChangePalettePeriodically(){
     if( secondHand == 50)  { currentPalette = myRedWhiteBluePalette_p; currentBlending = NOBLEND;  }
     if( secondHand == 55)  { currentPalette = myRedWhiteBluePalette_p; currentBlending = LINEARBLEND; }
   }
-
 }
 
-void blinkLeds_interesting(void *pvParameters){
+void blinkLeds_interesting(void *pvParameters) {
   while(1){
   	printf("blink leds\n");
     ChangePalettePeriodically();
@@ -303,6 +285,7 @@ void blinkLeds_interesting(void *pvParameters){
     delay(400);
   };
 
+  vTaskDelete(NULL);
 };
 
 // Going to use the ESP timer system to attempt to get a frame rate.
@@ -364,8 +347,7 @@ static void fastfade(void *pvParameters){
 
 
 
-void blinkLeds_simple(void *pvParameters){
-
+void blinkLeds_simple(void *pvParameters) {
  	while(1){
 
 		for (int j=0;j<N_COLORS;j++) {
@@ -379,6 +361,8 @@ void blinkLeds_simple(void *pvParameters){
 			delay(1000);
 		};
 	}
+
+    vTaskDelete(NULL);
 };
 
 #define N_COLORS_CHASE 7
@@ -420,28 +404,22 @@ void blinkLeds_chase(void *pvParameters) {
 	    delay(200);
 	 };
 
+     vTaskDelete(NULL);
 }
 
-// void mainFunc() {
-//   printf(" entering app main, call add leds\n");
-//   // the WS2811 family uses the RMT driver
-//   FastLED.addLeds<LED_TYPE, DATA_PIN_1>(leds1, NUM_LEDS);
-//   FastLED.addLeds<LED_TYPE, DATA_PIN_2>(leds2, NUM_LEDS);
-//
-//   // this is a good test because it uses the GPIO ports, these are 4 wire not 3 wire
-//   //FastLED.addLeds<APA102, 13, 15>(leds, NUM_LEDS);
-//
-//   printf(" set max power\n");
-//   // I have a 2A power supply, although it's 12v
-//   FastLED.setMaxPowerInVoltsAndMilliamps(12,2000);
-//
-//   // change the task below to one of the functions above to try different patterns
-//   printf("create task for led blinking\n");
-//
-//   //xTaskCreatePinnedToCore(&blinkLeds_simple, "blinkLeds", 4000, NULL, 5, NULL, 0);
-//   //xTaskCreatePinnedToCore(&fastfade, "blinkLeds", 4000, NULL, 5, NULL, 0);
-//   //xTaskCreatePinnedToCore(&blinkWithFx_allpatterns, "blinkLeds", 4000, NULL, 5, NULL, 0);
-//   xTaskCreatePinnedToCore(&blinkWithFx_test, "blinkLeds", 4000, NULL, 5, NULL, 0);
-//   //xTaskCreatePinnedToCore(&blinkLeds_chase, "blinkLeds", 4000, NULL, 5, NULL, 0);
-//   //xTaskCreatePinnedToCore(&blinkLeds_chase2, "blinkLeds", 4000, NULL, 5, NULL, 0);
-// }
+void wsLEDInit() {
+    printf(" entering wsLEDInit\n");
+    // the WS2811 family uses the RMT driver
+    FastLED.addLeds<LED_TYPE, DATA_PIN_1>(leds1, NUM_LEDS);
+    FastLED.addLeds<LED_TYPE, DATA_PIN_2>(leds2, NUM_LEDS);
+
+    // this is a good test because it uses the GPIO ports, these are 4 wire not 3 wire
+    //FastLED.addLeds<APA102, 13, 15>(leds, NUM_LEDS);
+
+    printf(" set max power\n");
+    // I have a 2A power supply, although it's 12v
+    FastLED.setMaxPowerInVoltsAndMilliamps(5,1000);
+
+    // change the task below to one of the functions above to try different patterns
+    printf(" ws2812b initialized\n");
+}
