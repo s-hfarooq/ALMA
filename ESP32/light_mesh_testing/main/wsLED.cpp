@@ -30,7 +30,6 @@ extern const TProgmemPalette16 IRAM_ATTR myRedWhiteBluePalette_p;
 
 #define NUM_LEDS 159
 #define DATA_PIN_1 13
-#define DATA_PIN_2 14
 #define BRIGHTNESS  80
 #define LED_TYPE    WS2812B
 #define COLOR_ORDER GRB
@@ -42,8 +41,7 @@ extern const TProgmemPalette16 IRAM_ATTR myRedWhiteBluePalette_p;
 #define PSUVOLTS 5
 #define PSUMILIAMPS 1000
 
-CRGB leds1[NUM_LEDS];
-CRGB leds2[NUM_LEDS];
+CRGB leds[NUM_LEDS];
 
 #define N_COLORS 17
 static const CRGB colors[N_COLORS] = {
@@ -98,7 +96,7 @@ static void blinkWithFx_allpatterns(void *pvParameters) {
 
 	WS2812FX ws2812fx;
 
-	ws2812fx.init(NUM_LEDS, leds1, false); // type was configured before
+	ws2812fx.init(NUM_LEDS, leds, false); // type was configured before
 	ws2812fx.setBrightness(255);
 	ws2812fx.setMode(0 /*segid*/, mode);
 
@@ -154,7 +152,7 @@ static void blinkWithFx_test(void *pvParameters) {
   WS2812FX ws2812fx;
   WS2812FX::Segment *segments = ws2812fx.getSegments();
 
-  ws2812fx.init(NUM_LEDS, leds1, false); // type was configured before
+  ws2812fx.init(NUM_LEDS, leds, false); // type was configured before
   ws2812fx.setBrightness(255);
 
   int test_id = 0;
@@ -204,8 +202,7 @@ void blinkLeds_chase2(void *pvParameters) {
       #endif
 
       // set strings to black first
-      fill_solid(leds1, NUM_LEDS, CRGB::Black);
-      fill_solid(leds2, NUM_LEDS, CRGB::Black);
+      fill_solid(leds, NUM_LEDS, CRGB::Black);
       FastLED.show();
 
       int prev;
@@ -218,9 +215,9 @@ void blinkLeds_chase2(void *pvParameters) {
       prev = -1;
       for (int i = 0; i < NUM_LEDS; i++) {
         if (prev >= 0) {
-          leds2[prev] = leds1[prev] = CRGB::Black;
+          leds[prev] = CRGB::Black;
         }
-        leds2[i] = leds1[i] = color;
+        leds[i] = color;
         prev = i;
 
         FastLED.show();
@@ -232,11 +229,11 @@ void blinkLeds_chase2(void *pvParameters) {
       #endif
 
       prev = -1;
-      for(int i = NUM_LEDS-1; i >= 0; i--) {
+      for(int i = NUM_LEDS - 1; i >= 0; i--) {
         if (prev >= 0) {
-          leds2[prev] = leds1[prev] = CRGB::Black;
+          leds[prev] = CRGB::Black;
         }
-        leds2[i] = leds1[i] = color;
+        leds[i] = color;
         prev = i;
 
         FastLED.show();
@@ -251,12 +248,12 @@ void blinkLeds_chase2(void *pvParameters) {
       prev = -1;
       for(int i = 0; i < NUM_LEDS; i += 2) {
         if (prev >= 0) {
-          leds2[prev] = leds1[prev] = CRGB::Black;
-          leds2[prev+1] = leds1[prev+1] = CRGB::Black;
+          leds[prev] = CRGB::Black;
+          leds[prev+1] = CRGB::Black;
         }
 
-        leds2[i] = leds1[i] = color;
-        leds2[i+1] = leds1[i+1] = color;
+        leds[i] = color;
+        leds[i+1] = color;
         prev = i;
 
         FastLED.show();
@@ -290,7 +287,7 @@ void ChangePalettePeriodically() {
 }
 
 void blinkLeds_interesting(void *pvParameters) {
-  while(1){
+  while(1) {
     #if (LOGGING)
         printf("blink leds\n");
     #endif
@@ -301,15 +298,14 @@ void blinkLeds_interesting(void *pvParameters) {
     startIndex = startIndex + 1; /* motion speed */
 
     for( int i = 0; i < NUM_LEDS; i++) {
-        leds1[i] = ColorFromPalette( currentPalette, startIndex, 64, currentBlending);
-        leds2[i] = ColorFromPalette( currentPalette, startIndex, 64, currentBlending);
+        leds[i] = ColorFromPalette( currentPalette, startIndex, 64, currentBlending);
         startIndex += 3;
     }
 
     #if (LOGGING)
         printf("show leds\n");
     #endif
-    
+
     FastLED.show();
     delay(400);
   };
@@ -318,8 +314,7 @@ void blinkLeds_interesting(void *pvParameters) {
 };
 
 void setRed(void *pvParameters) {
-    fill_solid(leds1, NUM_LEDS, CRGB::Red);
-    fill_solid(leds2, NUM_LEDS, CRGB::Red);
+    fill_solid(leds, NUM_LEDS, CRGB::Red);
     FastLED.show();
 
     // Make it not crash
@@ -349,8 +344,7 @@ static void _fastfade_cb(void *param) {
       }
   #endif
 
-  fill_solid(leds1,NUM_LEDS,ff->color);
-  fill_solid(leds2,NUM_LEDS,ff->color);
+  fill_solid(leds,NUM_LEDS,ff->color);
 
   FastLED.show();
 };
@@ -387,8 +381,7 @@ void blinkLeds_simple(void *pvParameters) {
             #endif
 
             for(int i = 0; i < NUM_LEDS; i++) {
-                leds1[i] = colors[j];
-                leds2[i] = colors[j];
+                leds[i] = colors[j];
             }
 
             FastLED.show();
@@ -419,12 +412,11 @@ void blinkLeds_chase(void *pvParameters) {
 
         // do it the dumb way - blank the leds
         for(int i = 0; i < NUM_LEDS; i++) {
-            leds1[i] = CRGB::Black;
-            leds2[i] = CRGB::Black;
+            leds[i] = CRGB::Black;
         }
 
         // set the one LED to the right color
-        leds1[pos] = leds2[pos] = colors_chase[led_color];
+        leds[pos] = colors_chase[led_color];
         pos = (pos + 1) % NUM_LEDS;
 
         // use a new color
@@ -452,8 +444,7 @@ void wsLEDInit() {
     #endif
 
     // the WS2811 family uses the RMT driver
-    FastLED.addLeds<LED_TYPE, DATA_PIN_1, COLOR_ORDER>(leds1, NUM_LEDS);
-    FastLED.addLeds<LED_TYPE, DATA_PIN_2, COLOR_ORDER>(leds2, NUM_LEDS);
+    FastLED.addLeds<LED_TYPE, DATA_PIN_1, COLOR_ORDER>(leds, NUM_LEDS);
 
     #if (LOGGING)
         printf(" set max power\n");
