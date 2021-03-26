@@ -25,6 +25,8 @@ typedef struct {
   int type;
 } FadeColStruct;
 
+static void (*wsLEDPointers[])(void *pvParameters) = {blinkWithFx_allpatterns, blinkWithFx_test, blinkLeds_interesting, blinkLeds_simple, blinkLeds_chase, setRed};
+
 /*
  * displayCol
  *   DESCRIPTION: Helper function to display RGB values
@@ -213,7 +215,11 @@ static void node_read_task(void *arg) {
     while(true) {
         if(!mwifi_is_connected()) {
             vTaskDelay(50 / portTICK_RATE_MS);
-            MDF_LOGI("KILLED TASK");
+
+            #if (LOGGING)
+                MDF_LOGI("KILLED TASK");
+            #endif
+
             continue;
         }
 
@@ -243,29 +249,16 @@ static void node_read_task(void *arg) {
             fadeTwo.type = 2;
             fadeTwo.duration = 150;
 
+            // Individually addressable LED stuff (sample input = "0-0-ledFunctionNum-4-3-0-")
             if(type == 4) {
-                switch(bCol) {
-                    case 0:
-                        xTaskCreate(blinkWithFx_allpatterns, "blinkLeds", 4096, NULL, 2, &fadeHandle);
-                        MDF_LOGI("STARTED blinkWithFx_allpatterns");
-                        break;
-                    case 1:
-                        xTaskCreate(blinkWithFx_test, "blinkLeds", 4096, NULL, 2, &fadeHandle);
-                        MDF_LOGI("STARTED blinkWithFx_test");
-                        break;
-                    case 2:
-                        xTaskCreate(blinkLeds_interesting, "blinkLeds", 4096, NULL, 2, &fadeHandle);
-                        MDF_LOGI("STARTED blinkLeds_interesting");
-                        break;
-                    case 3:
-                        xTaskCreate(blinkLeds_simple, "blinkLeds", 4096, NULL, 2, &fadeHandle);
-                        MDF_LOGI("STARTED blinkLeds_simple");
-                        break;
-                    case 4:
-                        xTaskCreate(blinkLeds_chase, "blinkLeds", 4096, NULL, 2, &fadeHandle);
-                        MDF_LOGI("STARTED blinkLeds_chase");
-                        break;
-                }
+                if(bCol < 0 || bCol > 5)
+                    continue;
+
+                xTaskCreate(wsLEDPointers[bCol], "blinkLeds", 4096, NULL, 2, &fadeHandle);
+
+                #if (LOGGING)
+                    MDF_LOGI("STARTED new pattern");
+                #endif
 
                 continue;
             }

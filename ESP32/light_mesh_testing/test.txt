@@ -1,0 +1,98 @@
+[1/8] Performing build step for 'bootloader'
+ninja: no work to do.
+[2/6] Building CXX object esp-idf/main/CMakeFiles/__idf_main.dir/lightMesh.cpp.obj
+In file included from ../main/wsLED.cpp:21,
+                 from ../main/lightMesh.cpp:31:
+../components/WS2812FX-idf/FX.h:43: warning: "MIN" redefined
+ #define MIN(a,b) ((a)<(b)?(a):(b))
+ 
+In file included from ../main/lightMesh.cpp:16:
+/home/hassanf/.espressif/tools/xtensa-esp32-elf/esp-2020r2-8.2.0/xtensa-esp32-elf/xtensa-esp32-elf/sys-include/sys/param.h:29: note: this is the location of the previous definition
+ #define MIN(a,b) ((a) < (b) ? (a) : (b))
+ 
+In file included from ../main/wsLED.cpp:21,
+                 from ../main/lightMesh.cpp:31:
+../components/WS2812FX-idf/FX.h:44: warning: "MAX" redefined
+ #define MAX(a,b) ((a)>(b)?(a):(b))
+ 
+In file included from ../main/lightMesh.cpp:16:
+/home/hassanf/.espressif/tools/xtensa-esp32-elf/esp-2020r2-8.2.0/xtensa-esp32-elf/xtensa-esp32-elf/sys-include/sys/param.h:28: note: this is the location of the previous definition
+ #define MAX(a,b) ((a) > (b) ? (a) : (b))
+ 
+In file included from ../components/FastLED-idf/FastLED.h:77,
+                 from ../main/wsLED.cpp:20,
+                 from ../main/lightMesh.cpp:31:
+../components/FastLED-idf/fastspi.h:135:23: note: #pragma message: No hardware SPI pins defined.  All SPI access will default to bitbanged output
+ #      pragma message "No hardware SPI pins defined.  All SPI access will default to bitbanged output"
+                       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+In file included from ../main/root.c:18,
+                 from ../main/lightMesh.cpp:32:
+../main/sharedVariables.h:97:1: warning: missing initializer for member 'ledc_channel_config_t::intr_type' [-Wmissing-field-initializers]
+ };
+ ^
+../main/sharedVariables.h:97:1: warning: missing initializer for member 'ledc_channel_config_t::intr_type' [-Wmissing-field-initializers]
+../main/sharedVariables.h:97:1: warning: missing initializer for member 'ledc_channel_config_t::intr_type' [-Wmissing-field-initializers]
+../main/sharedVariables.h:97:1: warning: missing initializer for member 'ledc_channel_config_t::intr_type' [-Wmissing-field-initializers]
+../main/sharedVariables.h:97:1: warning: missing initializer for member 'ledc_channel_config_t::intr_type' [-Wmissing-field-initializers]
+../main/sharedVariables.h:97:1: warning: missing initializer for member 'ledc_channel_config_t::intr_type' [-Wmissing-field-initializers]
+In file included from ../main/lightMesh.cpp:32:
+../main/root.c: In function 'void root_task(void*)':
+../main/root.c:31:37: warning: missing initializer for member 'mwifi_data_type_t::upgrade' [-Wmissing-field-initializers]
+     mwifi_data_type_t data_type = {0};
+                                     ^
+../main/root.c:31:37: warning: missing initializer for member 'mwifi_data_type_t::communicate' [-Wmissing-field-initializers]
+../main/root.c:31:37: warning: missing initializer for member 'mwifi_data_type_t::group' [-Wmissing-field-initializers]
+../main/root.c:31:37: warning: missing initializer for member 'mwifi_data_type_t::reserved' [-Wmissing-field-initializers]
+../main/root.c:31:37: warning: missing initializer for member 'mwifi_data_type_t::protocol' [-Wmissing-field-initializers]
+../main/root.c:31:37: warning: missing initializer for member 'mwifi_data_type_t::custom' [-Wmissing-field-initializers]
+In file included from ../main/lightMesh.cpp:33:
+../main/node.c: In function 'void node_read_task(void*)':
+../main/node.c:208:39: warning: missing initializer for member 'mwifi_data_type_t::upgrade' [-Wmissing-field-initializers]
+     mwifi_data_type_t data_type = {0x0};
+                                       ^
+../main/node.c:208:39: warning: missing initializer for member 'mwifi_data_type_t::communicate' [-Wmissing-field-initializers]
+../main/node.c:208:39: warning: missing initializer for member 'mwifi_data_type_t::group' [-Wmissing-field-initializers]
+../main/node.c:208:39: warning: missing initializer for member 'mwifi_data_type_t::reserved' [-Wmissing-field-initializers]
+../main/node.c:208:39: warning: missing initializer for member 'mwifi_data_type_t::protocol' [-Wmissing-field-initializers]
+../main/node.c:208:39: warning: missing initializer for member 'mwifi_data_type_t::custom' [-Wmissing-field-initializers]
+In file included from ../main/lightMesh.cpp:33:
+../main/node.c: In function 'void node_write_task(void*)':
+../main/node.c:322:39: warning: missing initializer for member 'mwifi_data_type_t::upgrade' [-Wmissing-field-initializers]
+     mwifi_data_type_t data_type = {0x0};
+                                       ^
+../main/node.c:322:39: warning: missing initializer for member 'mwifi_data_type_t::communicate' [-Wmissing-field-initializers]
+../main/node.c:322:39: warning: missing initializer for member 'mwifi_data_type_t::group' [-Wmissing-field-initializers]
+../main/node.c:322:39: warning: missing initializer for member 'mwifi_data_type_t::reserved' [-Wmissing-field-initializers]
+../main/node.c:322:39: warning: missing initializer for member 'mwifi_data_type_t::protocol' [-Wmissing-field-initializers]
+../main/node.c:322:39: warning: missing initializer for member 'mwifi_data_type_t::custom' [-Wmissing-field-initializers]
+In file included from ../main/lightMesh.cpp:31:
+../main/wsLED.cpp: At global scope:
+../main/wsLED.cpp:321:13: warning: 'void fastfade(void*)' defined but not used [-Wunused-function]
+ static void fastfade(void *pvParameters){
+             ^~~~~~~~
+In file included from ../components/FastLED-idf/controller.h:9,
+                 from ../components/FastLED-idf/FastLED.h:59,
+                 from ../main/wsLED.cpp:20,
+                 from ../main/lightMesh.cpp:31:
+../components/FastLED-idf/pixeltypes.h: In function 'void blinkLeds_chase2(void*)':
+../components/FastLED-idf/pixeltypes.h:181:11: warning: iteration 79 invokes undefined behavior [-Waggressive-loop-optimizations]
+         r = rhs.r;
+         ~~^~~~~~~
+In file included from ../main/lightMesh.cpp:31:
+../main/wsLED.cpp:230:25: note: within this loop
+       for (int i = 0; i < NUM_LEDS; i += 2) {
+                         ^
+[3/6] Linking CXX static library esp-idf/main/libmain.a
+[4/6] Generating ld/esp32.project.ld
+[5/6] Linking CXX executable get_started.elf
+[6/6] Generating binary image from built executable
+esptool.py v3.0-dev
+Generated /home/hassanf/Desktop/ALMA/ALMA/ESP32/light_mesh_testing/build/get_started.bin
+Setting IDF_PATH environment variable: /home/hassanf/esp/esp-mdf/esp-idf
+Executing action: all (aliases: build)
+Running ninja in directory /home/hassanf/Desktop/ALMA/ALMA/ESP32/light_mesh_testing/build
+Executing "ninja all"...
+
+Project build complete. To flash, run this command:
+/usr/bin/python ../../../../../esp/esp-mdf/esp-idf/components/esptool_py/esptool/esptool.py -p (PORT) -b 460800 --before default_reset --after hard_reset --chip esp32  write_flash --flash_mode dio --flash_size detect --flash_freq 40m 0x1000 build/bootloader/bootloader.bin 0x8000 build/partition_table/partition-table.bin 0xd000 build/ota_data_initial.bin 0x10000 build/get_started.bin
+or run 'idf.py -p (PORT) flash'
