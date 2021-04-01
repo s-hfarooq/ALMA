@@ -106,6 +106,7 @@ static mdf_err_t event_loop_cb(mdf_event_loop_t event, void *ctx) {
  *   SIDE EFFECTS: none
  */
 void app_main() {
+    #if (DEVICE_ID != 3)
     ledc_timer_config(&ledc_timer);
     // Prepare and set configuration of timer1 for low speed channels
     ledc_timer.speed_mode = LEDC_HS_MODE;
@@ -114,6 +115,7 @@ void app_main() {
 
     for(int ch = 0; ch < LEDC_TEST_CH_NUM; ch++)
         ledc_channel_config(&ledc_channel[ch]);
+    #endif
 
     for(int i = 0; i < 3; i++) {
         oCol1[i] = 0;

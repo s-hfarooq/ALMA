@@ -6,6 +6,19 @@
 // 0 to disable logging
 #define LOGGING (1)
 
+#define LEDC_TEST_CH_NUM (6)
+#define LEDC_TEST_DUTY (4000)
+#define LEDC_TEST_FADE_TIME (150)
+#define I2C_SLAVE_SDA_IO GPIO_NUM_21
+#define I2C_SLAVE_SCL_IO GPIO_NUM_22
+#define I2C_SLAVE_NUM I2C_NUM_0
+#define I2C_SLAVE_TX_BUF_LEN (256)
+#define I2C_SLAVE_RX_BUF_LEN (256)
+#define ESP_SLAVE_ADDR 0x04
+#define SLAVE_REQUEST_WAIT_MS (25)
+
+
+#if (DEVICE_ID != 3)
 #define LEDC_HS_TIMER LEDC_TIMER_0
 #define LEDC_HS_MODE LEDC_HIGH_SPEED_MODE
 #define LEDC_HS_CH0_GPIO (18)
@@ -24,28 +37,7 @@
 #define LEDC_HS_CH5_GPIO (25)
 #define LEDC_HS_CH5_CHANNEL LEDC_CHANNEL_5
 
-#define LEDC_TEST_CH_NUM (6)
-#define LEDC_TEST_DUTY (4000)
-#define LEDC_TEST_FADE_TIME (150)
-#define I2C_SLAVE_SDA_IO GPIO_NUM_21
-#define I2C_SLAVE_SCL_IO GPIO_NUM_22
-#define I2C_SLAVE_NUM I2C_NUM_0
-#define I2C_SLAVE_TX_BUF_LEN (256)
-#define I2C_SLAVE_RX_BUF_LEN (256)
-#define ESP_SLAVE_ADDR 0x04
-#define SLAVE_REQUEST_WAIT_MS (25)
 
-TaskHandle_t fadeHandle = NULL;
-
-int oCol1[3], oCol2[3];
-
-uint8_t outBuff[256];
-uint16_t outBuffLen = 0;
-uint8_t inBuff[256];
-uint16_t inBuffLen = 0;
-bool needsToSend[2] = {false, false};
-
-static const char *TAG = "meshNetwork";
 
 // Configuring PWM settings
 ledc_timer_config_t ledc_timer = {
@@ -95,6 +87,19 @@ ledc_channel_config_t ledc_channel[LEDC_TEST_CH_NUM] = {
      .duty = 0,
      .hpoint = 0},
 };
+#endif
+
+TaskHandle_t fadeHandle = NULL;
+
+int oCol1[3], oCol2[3];
+
+uint8_t outBuff[256];
+uint16_t outBuffLen = 0;
+uint8_t inBuff[256];
+uint16_t inBuffLen = 0;
+bool needsToSend[2] = {false, false};
+
+static const char *TAG = "meshNetwork";
 
 // Array used for fading (sinusoidal instead of linear)
 const uint8_t lights[360] = {

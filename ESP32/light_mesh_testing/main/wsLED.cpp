@@ -29,7 +29,7 @@ extern const TProgmemPalette16 IRAM_ATTR myRedWhiteBluePalette_p;
 #include "palettes.h"
 
 #define NUM_LEDS 159
-#define DATA_PIN_1 13
+#define DATA_PIN_1 5
 #define BRIGHTNESS  80
 #define LED_TYPE    WS2812B
 #define COLOR_ORDER GRB
@@ -39,7 +39,7 @@ extern const TProgmemPalette16 IRAM_ATTR myRedWhiteBluePalette_p;
 #define N_COLORS_CHASE 7
 
 #define PSUVOLTS 5
-#define PSUMILIAMPS 1000
+#define PSUMILIAMPS 18 * 1000
 
 CRGB leds[NUM_LEDS];
 
@@ -286,7 +286,7 @@ void ChangePalettePeriodically() {
   }
 }
 
-void blinkLeds_interesting(void *pvParameters) {
+void colorPalette(void *pvParameters) {
   while(1) {
     #if (LOGGING)
         printf("blink leds\n");
@@ -298,7 +298,7 @@ void blinkLeds_interesting(void *pvParameters) {
     startIndex = startIndex + 1; /* motion speed */
 
     for( int i = 0; i < NUM_LEDS; i++) {
-        leds[i] = ColorFromPalette( currentPalette, startIndex, 64, currentBlending);
+        leds[i] = ColorFromPalette( currentPalette, startIndex, 255, currentBlending);
         startIndex += 3;
     }
 
@@ -313,16 +313,17 @@ void blinkLeds_interesting(void *pvParameters) {
   vTaskDelete(NULL);
 };
 
-void setRed(void *pvParameters) {
-    fill_solid(leds, NUM_LEDS, CRGB::Red);
+void setColor(int red, int green, int blue) {
+    CRGB newCol = CRGB(red, green, blue);
+    fill_solid(leds, NUM_LEDS, newCol);
     FastLED.show();
 
     // Make it not crash
-    while(true) {
-        delay(400);
-    }
-
-    vTaskDelete(NULL);
+    // while(true) {
+    //     delay(400);
+    // }
+    //
+    // vTaskDelete(NULL);
 };
 
 // Going to use the ESP timer system to attempt to get a frame rate.
@@ -375,7 +376,7 @@ static void fastfade(void *pvParameters) {
 
 void blinkLeds_simple(void *pvParameters) {
     while(1) {
-        for(int j=0;j<N_COLORS;j++) {
+        for(int j = 0; j < N_COLORS; j++) {
             #if (LOGGING)
                 printf("blink leds\n");
             #endif
@@ -385,7 +386,7 @@ void blinkLeds_simple(void *pvParameters) {
             }
 
             FastLED.show();
-            delay(1000);
+            delay(500);
         };
     }
 
@@ -436,6 +437,474 @@ void blinkLeds_chase(void *pvParameters) {
     };
 
     vTaskDelete(NULL);
+}
+
+void fadeall() { for(int i = 0; i < NUM_LEDS; i++) { leds[i].nscale8(250); } }
+
+void cylon(void *params) {
+    while(1) {
+        static uint8_t hue = 0;
+        //Serial.print("x");
+        // First slide the led in one direction
+        for(int i = 0; i < NUM_LEDS; i++) {
+            // Set the i'th led to red
+            leds[i] = CHSV(hue++, 255, 255);
+            // Show the leds
+            FastLED.show();
+            // now that we've shown the leds, reset the i'th led to black
+            // leds[i] = CRGB::Black;
+            fadeall();
+            // Wait a little bit before we loop around and do it again
+            delay(10);
+        }
+        //Serial.print("x");
+
+        // Now go in the other direction.
+        for(int i = (NUM_LEDS)-1; i >= 0; i--) {
+            // Set the i'th led to red
+            leds[i] = CHSV(hue++, 255, 255);
+            // Show the leds
+            FastLED.show();
+            // now that we've shown the leds, reset the i'th led to black
+            // leds[i] = CRGB::Black;
+            fadeall();
+            // Wait a little bit before we loop around and do it again
+            delay(10);
+        }
+    }
+
+    vTaskDelete(NULL);
+}
+
+
+#define TEMPERATURE_1 Tungsten100W
+#define TEMPERATURE_2 OvercastSky
+// How many seconds to show each temperature before switching
+#define DISPLAYTIME 20
+// How many seconds to show black between switches
+#define BLACKTIME   3
+
+void colorTemperature(void *params) {
+    while(1) {
+        // draw a generic, no-name rainbow
+        static uint8_t starthue = 0;
+        fill_rainbow(leds, NUM_LEDS, --starthue, 20);
+
+        // Choose which 'color temperature' profile to enable.
+        uint8_t secs = (millis() / 1000) % (DISPLAYTIME * 2);
+        if( secs < DISPLAYTIME) {
+          FastLED.setTemperature( TEMPERATURE_1 ); // first temperature
+          leds[0] = TEMPERATURE_1; // show indicator pixel
+        } else {
+          FastLED.setTemperature( TEMPERATURE_2 ); // second temperature
+          leds[0] = TEMPERATURE_2; // show indicator pixel
+        }
+
+        // // Black out the LEDs for a few secnds between color changes
+        // // to let the eyes and brains adjust
+        // if( (secs % DISPLAYTIME) < BLACKTIME) {
+        //   memset8( leds, 0, NUM_LEDS * sizeof(CRGB));
+        // }
+
+        FastLED.show();
+        delay(10);
+    }
+
+    vTaskDelete(NULL);
+}
+
+void setBlack() {
+    for(int i = 0; i < NUM_LEDS; i++)
+        leds[i] = CRGB::Black;
+
+    FastLED.show();
+}
+
+
+void meteorRain(void *params) {
+    //meteorRain(0xff,0xff,0xff,10, 64, true, 30);
+    while(1) {
+        uint8_t red = 0xFF;
+        uint8_t green = 0xFF;
+        uint8_t blue = 0xFF;
+        uint8_t meteorSize = 10;
+        uint8_t meteorTrailDecay = 64;
+        int meteorRandomDecay = 1;
+        int SpeedDelay = 30;
+
+        for(int i = 0; i < NUM_LEDS; i++) {
+            leds[i].r = 0;
+            leds[i].g = 0;
+            leds[i].b = 0;
+        }
+
+        for(int i = 0; i < NUM_LEDS+NUM_LEDS; i++) {
+            // fade brightness all LEDs one step
+            for(int j=0; j<NUM_LEDS; j++) {
+                int randNum = rand()%((10+1));
+                if( (!meteorRandomDecay) || (randNum>5) ) {
+                    //fadeToBlack(j, meteorTrailDecay );
+                    leds[j].fadeToBlackBy(meteorTrailDecay);
+                }
+            }
+
+            // draw meteor
+            for(int j = 0; j < meteorSize; j++) {
+                if( ( i-j <NUM_LEDS) && (i-j>=0) ) {
+                    //setPixel(i-j, red, green, blue);
+                    leds[i-j].r = red;
+                    leds[i-j].g = green;
+                    leds[i-j].b = blue;
+                }
+            }
+
+            FastLED.show();
+            delay(SpeedDelay);
+        }
+    }
+
+    vTaskDelete(NULL);
+}
+
+
+
+uint8_t  thisfade = 8;                                        // How quickly does it fade? Lower = slower fade rate.
+int       thishue = 50;                                       // Starting hue.
+uint8_t   thisinc = 1;                                        // Incremental value for rotating hues
+uint8_t   thissat = 100;                                      // The saturation, where 255 = brilliant colours.
+uint8_t   thisbri = 255;                                      // Brightness of a sequence. Remember, max_bright is the overall limiter.
+int       huediff = 256;                                      // Range of random #'s to use for hue
+void confetti(void *params) {
+    int i = 0;
+    while(1) {
+        uint8_t secondHand = (millis() / 1000) % 15;                // IMPORTANT!!! Change '15' to a different value to change duration of the loop.
+        static uint8_t lastSecond = 99;                             // Static variable, means it's only defined once. This is our 'debounce' variable.
+        if (lastSecond != secondHand) {                             // Debounce to make sure we're not repeating an assignment.
+          lastSecond = secondHand;
+          switch(secondHand) {
+            case  0: thisinc=1; thishue=192; thissat=255; thisfade=2; huediff=256; break;  // You can change values here, one at a time , or altogether.
+            case  5: thisinc=2; thishue=128; thisfade=8; huediff=64; break;
+            case 10: thisinc=1; thishue=random16(255); thisfade=1; huediff=16; break;      // Only gets called once, and not continuously for the next several seconds. Therefore, no rainbows.
+            case 15: break;                                                                // Here's the matching 15 for the other one.
+          }
+        }
+
+        if(i > 100) {
+            fadeToBlackBy(leds, NUM_LEDS, thisfade);                    // Low values = slower fade.
+            int pos = random16(NUM_LEDS);                               // Pick an LED at random.
+            leds[pos] += CHSV((thishue + random16(huediff))/4 , thissat, thisbri);  // I use 12 bits for hue so that the hue increment isn't too quick.
+            thishue = thishue + thisinc;                                // It increments here.
+            i = 0;
+        }
+
+        i++;
+
+        #if (LOGGING)
+            printf("AT %d\n", i);
+        #endif
+
+        FastLED.show();
+        delay(NUM_LEDS / 4);
+    }
+
+    vTaskDelete(NULL);
+}
+
+void allColors(void *param) {
+    while(1) {
+        for(int red = 0; red < 256; red += 2) {
+            for(int green = 0; green < 256; green += 2) {
+                for(int blue = 0; blue < 256; blue += 2) {
+                    for(int i = 0; i < NUM_LEDS; i++) {
+                        leds[i] = CRGB(red, green, blue);
+                    }
+
+                    FastLED.show();
+                    delay(10);
+                }
+            }
+        }
+    }
+
+    vTaskDelete(NULL);
+}
+
+
+
+void setPixel(int i, int r, int g, int b) {
+    leds[i].r = r;
+    leds[i].g = g;
+    leds[i].b = b;
+}
+
+void setAll(int r, int g, int b) {
+    for(int i = 0; i < NUM_LEDS; i++)
+        setPixel(i, r, g, b);
+}
+
+void fadeInFadeOut(void *params) {
+    while(1) {
+        for(int j = 0; j < 3; j++ ) {
+          // Fade IN
+          for(int k = 0; k < 256; k++) {
+            switch(j) {
+              case 0: setAll(k,0,0); break;
+              case 1: setAll(0,k,0); break;
+              case 2: setAll(0,0,k); break;
+            }
+            FastLED.show();
+            delay(3);
+          }
+          // Fade OUT
+          for(int k = 255; k >= 0; k--) {
+            switch(j) {
+              case 0: setAll(k,0,0); break;
+              case 1: setAll(0,k,0); break;
+              case 2: setAll(0,0,k); break;
+            }
+            FastLED.show();
+            delay(5);
+          }
+        }
+    }
+
+    vTaskDelete(NULL);
+}
+
+void cylon2(void *params) {
+    int red = 0xFF;
+    int green = 0;
+    int blue = 0;
+    int EyeSize = 4;
+    int SpeedDelay = 10;
+    int ReturnDelay = 50;
+
+    while(1) {
+        for(int i = 0; i < NUM_LEDS-EyeSize-2; i++) {
+          setAll(0,0,0);
+          setPixel(i, red/10, green/10, blue/10);
+          for(int j = 1; j <= EyeSize; j++) {
+            setPixel(i+j, red, green, blue);
+          }
+          setPixel(i+EyeSize+1, red/10, green/10, blue/10);
+          FastLED.show();
+          delay(SpeedDelay);
+        }
+
+        delay(ReturnDelay);
+
+        for(int i = NUM_LEDS-EyeSize-2; i > 0; i--) {
+          setAll(0,0,0);
+          setPixel(i, red/10, green/10, blue/10);
+          for(int j = 1; j <= EyeSize; j++) {
+            setPixel(i+j, red, green, blue);
+          }
+          setPixel(i+EyeSize+1, red/10, green/10, blue/10);
+          FastLED.show();
+          delay(SpeedDelay);
+        }
+
+        delay(ReturnDelay);
+    }
+
+    vTaskDelete(NULL);
+}
+
+void sparkle(void *params) {
+    int red = 0xFF;
+    int green = 0xFF;
+    int blue = 0xFF;
+    int SpeedDelay = 0;
+
+    while(1) {
+        int Pixel = rand() % (NUM_LEDS+1);
+        setPixel(Pixel, red, green, blue);
+        FastLED.show();
+        delay(SpeedDelay);
+        setPixel(Pixel, 0, 0, 0);
+    }
+
+    vTaskDelete(NULL);
+}
+
+void snowSparkle(void *params) {
+    int red = 0x10;
+    int green = 0x10;
+    int blue = 0x10;
+    int SparkleDelay = 20;
+
+
+    while(1) {
+        int SpeedDelay = rand()%((1000+1)-100) + 100;
+        setAll(red,green,blue);
+
+        int Pixel = rand()%((NUM_LEDS+1));
+        setPixel(Pixel,0xff,0xff,0xff);
+        FastLED.show();
+        delay(SparkleDelay);
+        setPixel(Pixel,red,green,blue);
+        FastLED.show();
+        delay(SpeedDelay);
+    }
+
+    vTaskDelete(NULL);
+}
+
+void runningLights(void *params) {
+    int red = 0xFF;
+    int green = 0xFF;
+    int blue = 0x00;
+    int WaveDelay = 50;
+
+    while(1) {
+        int Position=0;
+
+        for(int j=0; j<NUM_LEDS*2; j++)
+        {
+            Position++; // = 0; //Position + Rate;
+            for(int i=0; i<NUM_LEDS; i++) {
+              // sine wave, 3 offset waves make a rainbow!
+              //float level = sin(i+Position) * 127 + 128;
+              //setPixel(i,level,0,0);
+              //float level = sin(i+Position) * 127 + 128;
+              setPixel(i,((sin(i+Position) * 127 + 128)/255)*red,
+                         ((sin(i+Position) * 127 + 128)/255)*green,
+                         ((sin(i+Position) * 127 + 128)/255)*blue);
+            }
+
+            FastLED.show();
+            delay(WaveDelay);
+        }
+    }
+
+    vTaskDelete(NULL);
+}
+
+void colorWipe(void *params) {
+    while(1) {
+        int red = 0x00;
+        int green = 0xFF;
+        int blue = 0x00;
+        int SpeedDelay = 50;
+
+        for(uint16_t i=0; i<NUM_LEDS; i++) {
+            setPixel(i, red, green, blue);
+            FastLED.show();
+            delay(SpeedDelay);
+        }
+
+        red = 0x00;
+        green = 0x00;
+        blue = 0x00;
+        SpeedDelay = 50;
+
+        for(uint16_t i=0; i<NUM_LEDS; i++) {
+            setPixel(i, red, green, blue);
+            FastLED.show();
+            delay(SpeedDelay);
+        }
+    }
+
+    vTaskDelete(NULL);
+}
+
+char* Wheel(char WheelPos) {
+  static char c[3];
+
+  if(WheelPos < 85) {
+   c[0]=WheelPos * 3;
+   c[1]=255 - WheelPos * 3;
+   c[2]=0;
+  } else if(WheelPos < 170) {
+   WheelPos -= 85;
+   c[0]=255 - WheelPos * 3;
+   c[1]=0;
+   c[2]=WheelPos * 3;
+  } else {
+   WheelPos -= 170;
+   c[0]=0;
+   c[1]=WheelPos * 3;
+   c[2]=255 - WheelPos * 3;
+  }
+
+  return c;
+}
+
+void rainbowCycle(void *params) {
+    int SpeedDelay = 20;
+
+    while(1) {
+        char *c;
+        uint16_t i, j;
+
+        for(j=0; j<256*5; j++) { // 5 cycles of all colors on wheel
+          for(i=0; i< NUM_LEDS; i++) {
+            c = Wheel(((i * 256 / NUM_LEDS) + j) & 255);
+            setPixel(i, *c, *(c+1), *(c+2));
+          }
+          FastLED.show();
+          delay(SpeedDelay);
+        }
+    }
+
+    vTaskDelete(NULL);
+}
+
+void theaterChase(void *params) {
+    int red = 0xFF;
+    int green = 0x00;
+    int blue = 0x00;
+    int SpeedDelay = 50;
+
+    while(1) {
+        for (int j=0; j<10; j++) {  //do 10 cycles of chasing
+          for (int q=0; q < 3; q++) {
+            for (int i=0; i < NUM_LEDS; i=i+3) {
+              setPixel(i+q, red, green, blue);    //turn every third pixel on
+            }
+            FastLED.show();
+
+            delay(SpeedDelay);
+
+            for (int i=0; i < NUM_LEDS; i=i+3) {
+              setPixel(i+q, 0,0,0);        //turn every third pixel off
+            }
+          }
+        }
+    }
+
+    vTaskDelete(NULL);
+}
+
+void theaterChaseRainbow(void *params) {
+    int SpeedDelay = 50;
+
+    while(1) {
+        char *c;
+
+        for (int j=0; j < 256; j++) {     // cycle all 256 colors in the wheel
+          for (int q=0; q < 3; q++) {
+              for (int i=0; i < NUM_LEDS; i=i+3) {
+                c = Wheel( (i+j) % 255);
+                setPixel(i+q, *c, *(c+1), *(c+2));    //turn every third pixel on
+              }
+
+              FastLED.show();
+
+              delay(SpeedDelay);
+
+              for (int i=0; i < NUM_LEDS; i=i+3) {
+                setPixel(i+q, 0,0,0);        //turn every third pixel off
+              }
+          }
+        }
+    }
+
+    vTaskDelete(NULL);
+}
+
+void fShow() {
+    FastLED.show();
 }
 
 void wsLEDInit() {

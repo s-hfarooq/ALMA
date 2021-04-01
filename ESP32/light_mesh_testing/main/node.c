@@ -25,7 +25,26 @@ typedef struct {
   int type;
 } FadeColStruct;
 
-static void (*wsLEDPointers[])(void *pvParameters) = {blinkWithFx_allpatterns, blinkWithFx_test, blinkLeds_interesting, blinkLeds_simple, blinkLeds_chase, setRed};
+static void (*wsLEDPointers[])(void *pvParameters) = {blinkWithFx_allpatterns,  // 0
+                                                        blinkWithFx_test,       // 1
+                                                        blinkLeds_chase2,       // 2
+                                                        colorPalette,           // 3
+                                                        blinkLeds_simple,       // 4
+                                                        blinkLeds_chase,        // 5
+                                                        cylon,                  // 6
+                                                        colorTemperature,       // 7
+                                                        meteorRain,             // 8
+                                                        confetti,               // 9
+                                                        allColors,              // 10
+                                                        fadeInFadeOut,          // 11
+                                                        cylon2,                 // 12
+                                                        sparkle,                // 13
+                                                        snowSparkle,            // 14
+                                                        runningLights,          // 15
+                                                        colorWipe,              // 16
+                                                        rainbowCycle,           // 17
+                                                        theaterChase,           // 18
+                                                        theaterChaseRainbow};   // 19
 
 /*
  * displayCol
@@ -36,6 +55,7 @@ static void (*wsLEDPointers[])(void *pvParameters) = {blinkWithFx_allpatterns, b
  *   SIDE EFFECTS: none
  */
 void displayCol(int r, int g, int b, int type) {
+    #if (DEVICE_ID != 3)
     // Convert 0-255 color to 0-4000
     int dutyAmnt[3] = {r * 4000 / 255, g * 4000 / 255, b * 4000 / 255};
 
@@ -68,6 +88,8 @@ void displayCol(int r, int g, int b, int type) {
         oCol2[1] = g;
         oCol2[2] = b;
     }
+
+    #endif
 }
 
 /*
@@ -215,11 +237,6 @@ static void node_read_task(void *arg) {
     while(true) {
         if(!mwifi_is_connected()) {
             vTaskDelay(50 / portTICK_RATE_MS);
-
-            #if (LOGGING)
-                MDF_LOGI("KILLED TASK");
-            #endif
-
             continue;
         }
 
@@ -240,7 +257,14 @@ static void node_read_task(void *arg) {
             // Stop fade if currently active
             if(fadeHandle != NULL) {
                 vTaskDelete(fadeHandle);
+                fShow();
                 fadeHandle = NULL;
+
+                #if (LOGGING)
+                    MDF_LOGI("KILLED TASK");
+                #endif
+
+                setBlack();
             }
 
             FadeColStruct fadeOne, fadeTwo;
@@ -251,14 +275,18 @@ static void node_read_task(void *arg) {
 
             // Individually addressable LED stuff (sample input = "0-0-ledFunctionNum-4-3-0-")
             if(type == 4) {
-                if(bCol < 0 || bCol > 5)
-                    continue;
+                if(rCol != 0 && gCol != 0 && bCol != 0) {
+                    setColor(rCol, gCol, bCol);
+                } else {
+                    if(bCol < 0 || bCol > 19)
+                        continue;
 
-                xTaskCreate(wsLEDPointers[bCol], "blinkLeds", 4096, NULL, 2, &fadeHandle);
+                    xTaskCreate(wsLEDPointers[bCol], "blinkLeds", 4096, NULL, 2, &fadeHandle);
 
-                #if (LOGGING)
-                    MDF_LOGI("STARTED new pattern");
-                #endif
+                    #if (LOGGING)
+                        MDF_LOGI("STARTED new pattern");
+                    #endif
+                }
 
                 continue;
             }
