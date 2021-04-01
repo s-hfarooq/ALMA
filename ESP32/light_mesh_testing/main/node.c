@@ -33,16 +33,15 @@ static void (*wsLEDPointers[])(void *pvParameters) = {blinkLeds_chase2,         
                                                         colorTemperature,       // 5
                                                         meteorRain,             // 6
                                                         confetti,               // 7
-                                                        allColors,              // 8
-                                                        fadeInFadeOut,          // 9
-                                                        cylon2,                 // 10
-                                                        sparkle,                // 11
-                                                        snowSparkle,            // 12
-                                                        runningLights,          // 13
-                                                        colorWipe,              // 14
-                                                        rainbowCycle,           // 15
-                                                        theaterChase,           // 16
-                                                        theaterChaseRainbow};   // 17
+                                                        fadeInFadeOut,          // 8
+                                                        cylon2,                 // 9
+                                                        sparkle,                // 10
+                                                        snowSparkle,            // 11
+                                                        runningLights,          // 12
+                                                        colorWipe,              // 13
+                                                        rainbowCycle,           // 14
+                                                        theaterChase,           // 15
+                                                        theaterChaseRainbow};   // 16
 
 /*
  * displayCol
@@ -262,7 +261,7 @@ static void node_read_task(void *arg) {
                     MDF_LOGI("KILLED TASK");
                 #endif
 
-                setBlack();
+                setColor(0, 0, 0);
             }
 
             FadeColStruct fadeOne, fadeTwo;
@@ -276,7 +275,7 @@ static void node_read_task(void *arg) {
                 if(rCol != 0 && gCol != 0 && bCol != 0) {
                     setColor(rCol, gCol, bCol);
                 } else {
-                    if(bCol < 0 || bCol > 17)
+                    if(bCol < 0 || bCol > 16)
                         continue;
 
                     xTaskCreate(wsLEDPointers[bCol], "blinkLeds", 4096, NULL, 2, &fadeHandle);
