@@ -25,26 +25,24 @@ typedef struct {
   int type;
 } FadeColStruct;
 
-static void (*wsLEDPointers[])(void *pvParameters) = {blinkWithFx_allpatterns,  // 0
-                                                        blinkWithFx_test,       // 1
-                                                        blinkLeds_chase2,       // 2
-                                                        colorPalette,           // 3
-                                                        blinkLeds_simple,       // 4
-                                                        blinkLeds_chase,        // 5
-                                                        cylon,                  // 6
-                                                        colorTemperature,       // 7
-                                                        meteorRain,             // 8
-                                                        confetti,               // 9
-                                                        allColors,              // 10
-                                                        fadeInFadeOut,          // 11
-                                                        cylon2,                 // 12
-                                                        sparkle,                // 13
-                                                        snowSparkle,            // 14
-                                                        runningLights,          // 15
-                                                        colorWipe,              // 16
-                                                        rainbowCycle,           // 17
-                                                        theaterChase,           // 18
-                                                        theaterChaseRainbow};   // 19
+static void (*wsLEDPointers[])(void *pvParameters) = {blinkLeds_chase2,         // 0
+                                                        colorPalette,           // 1
+                                                        blinkLeds_simple,       // 2
+                                                        blinkLeds_chase,        // 3
+                                                        cylon,                  // 4
+                                                        colorTemperature,       // 5
+                                                        meteorRain,             // 6
+                                                        confetti,               // 7
+                                                        allColors,              // 8
+                                                        fadeInFadeOut,          // 9
+                                                        cylon2,                 // 10
+                                                        sparkle,                // 11
+                                                        snowSparkle,            // 12
+                                                        runningLights,          // 13
+                                                        colorWipe,              // 14
+                                                        rainbowCycle,           // 15
+                                                        theaterChase,           // 16
+                                                        theaterChaseRainbow};   // 17
 
 /*
  * displayCol
@@ -278,7 +276,7 @@ static void node_read_task(void *arg) {
                 if(rCol != 0 && gCol != 0 && bCol != 0) {
                     setColor(rCol, gCol, bCol);
                 } else {
-                    if(bCol < 0 || bCol > 19)
+                    if(bCol < 0 || bCol > 17)
                         continue;
 
                     xTaskCreate(wsLEDPointers[bCol], "blinkLeds", 4096, NULL, 2, &fadeHandle);
