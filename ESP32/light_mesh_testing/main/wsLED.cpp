@@ -69,15 +69,6 @@ extern "C" {
     void mainFunc();
 }
 
-typedef struct {
-    const char *name;
-    int mode;
-    int secs;  // secs to test it
-    uint32_t color;
-    int speed;
-} testModes_t;
-
-
 void setPixel(int i, int r, int g, int b) {
     leds[i].r = r;
     leds[i].g = g;
