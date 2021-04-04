@@ -871,22 +871,29 @@ void advancedAlternatingRainbow(void *params)
     const int spacing = 60;
     const int speed = 60; // approx = 10*num_min it takes to repeat
                           // ie 30 takes 3 min
-
+    // 29738
     while (1)
     {
-        for (int j = 0; j <= 6375; j++)
+        for (int j = 0; j <= 29738; j++)
         { // base h
+            float warble = sin(j / 750);
             // float spinscale = 1-cos((j*3.14159265)/6375)**256; // dont ask
+
             float spinscale = min(j / 300, 1.0);
             spinscale = min(spinscale, -1.0 * (j + 6375) / 300.0);
             // linear approx of above
             // appearantly raising cos to the 256 power is 'bad' and 'slow' on an esp32 :/
+
             int spin = spinscale * int(320 * sin(j / 254.64)); // REALLY dont ask
-            int track_a_hue = .2 * j + spin;
+            int spin_amp = 131;
+            int spin_freq = 760;
+            int track_a_hue = .2 * j + warble * spinscale * spin_amp * sin(j * .2 / spin_freq) ^ 2;
             track_a_hue %= 255;
-            int track_b_hue = .3 * j + spin;
+            track_a_hue -= 700;
+            int track_b_hue = .19 * j + warble * spinscale * spin_amp * sin(j * .19 / spin_freq) ^ 2;
             track_b_hue %= 255;
-            int track_c_hue = .4 * j + spin;
+            track_b_hue += 14200;
+            int track_c_hue = .21 * j + warble * spinscale * spin_amp * sin(j * .21 / spin_freq) ^ 2;
             track_c_hue %= 255;
             for (int i = 0; i < NUM_LEDS; i += 1)
             {
