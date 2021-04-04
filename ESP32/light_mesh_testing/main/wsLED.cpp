@@ -26,7 +26,7 @@ extern const TProgmemPalette16 IRAM_ATTR myRedWhiteBluePalette_p;
 
 #include "palettes.h"
 
-#define NUM_LEDS 159
+#define NUM_LEDS (55 + (3 * 150))
 #define DATA_PIN_1 5
 #define BRIGHTNESS 80
 #define LED_TYPE WS2812B
