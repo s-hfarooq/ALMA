@@ -480,7 +480,7 @@ void confetti(void *params)
                                                      // value to change duration of the loop.
         static uint8_t lastSecond = 99;
         if (lastSecond != secondHand)
-        {   // Debounce to make sure we're not
+        { // Debounce to make sure we're not
             // repeating an assignment.
             lastSecond = secondHand;
             switch (secondHand)
@@ -824,7 +824,7 @@ void theaterChaseRainbow(void *params)
 
 void alternatingRainbow(void *params)
 {
-    const int spacing = 30;
+    const int spacing = 45;
     const int speed = 50;
 
     while (1)
@@ -836,8 +836,8 @@ void alternatingRainbow(void *params)
             {
                 // float interp = -1*abs((i%60-30)/spacing) + 1
                 if ((i / spacing) % 2)
-                {                                               // 0 when increasing lerp, 1 if decreasing
-                    float interp = ((float)(i % 60)) / spacing; // 0 to 1
+                {                                                          // 0 when increasing lerp, 1 if decreasing
+                    float interp = ((float)(i % (2 * spacing))) / spacing; // 0 to 1
                     int h = (j + (int)(128 * interp)) % 255;
                     int s = 255;
                     int v = 255;
@@ -845,12 +845,69 @@ void alternatingRainbow(void *params)
                 }
                 else
                 {
-                    float interp = -1 * ((float)(i % 60)) / spacing + 2; // 1 to 0
+                    float interp = -1 * ((float)(i % (2 * spacing))) / spacing + 2; // 1 to 0
                     int h = (j + (int)(128 * interp)) % 255;
                     int s = 255;
                     int v = 255;
                     setPixelHSV(i, h, s, v);
                 }
+            }
+            FastLED.show();
+            delay(speed);
+        }
+        // set every nth point to be sinusoid with speed pattern
+        // convert rgb to hsv
+        // lerp hsv inbetween nth points
+        // end points should mirror
+    }
+}
+
+void advancedAlternatingRainbow(void *params)
+{
+    const int spacing = 60;
+    const int speed = 30; // approx = 10*num_min it takes to repeat
+                          // ie 30 takes 3 min
+
+    while (1)
+    {
+        for (int j = 0; j <= 6375; j++)
+        { // base h
+            // float spinscale = 1-cos((j*3.14159265)/6375)**256; // dont ask
+            float spinscale = min(j / 300, 1.0);
+            spinscale = min(spinscale, -1.0(j + 6375) / 300.0);
+            // linear approx of above
+            // appearantly raising cos to the 256 power is 'bad' and 'slow' on an esp32 :/
+            int spin = spinscale * int(320 * sin(j / 254.64)); // REALLY dont ask
+            int track_a_hue = j + spin;
+            track_a_hue %= 255;
+            int track_b_hue = 1.2 * j + spin;
+            track_b_hue %= 255;
+            int track_c_hue = 1.4 * j + spin;
+            track_c_hue %= 255;
+            for (int i = 0; i < NUM_LEDS; i += 1)
+            {
+                int set = i % (spacing * 3); // 0 thru 3*spacing)
+                int group = set / spacing;   // 0 thru 2
+                float interp = float(i % spacing) / spacing;
+                int h = track_a_hue;
+                switch (group)
+                {
+                case 0:
+                    // AB
+                    h = track_a_hue * (1 - interp) + track_b_hue * interp;
+                    break;
+                case 1:
+                    // BC
+                    h = track_b_hue * (1 - interp) + track_c_hue * interp;
+                    break;
+                case 2:
+                    // CA
+                    h = track_c_hue * (1 - interp) + track_a_hue * interp;
+                    break;
+                }
+                int s = 255;
+                int v = 255;
+                setPixelHSV(i, h, s, v);
             }
             FastLED.show();
             delay(speed);

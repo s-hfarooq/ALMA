@@ -26,26 +26,27 @@ typedef struct
     int type;
 } FadeColStruct;
 
-static const int JMP_TBL_MAX_INDEX = 17;
+static const int JMP_TBL_MAX_INDEX = 18;
 static void (*wsLEDPointers[])(void *pvParameters) = {
-    blinkLeds_chase2,    // 0
-    colorPalette,        // 1
-    blinkLeds_simple,    // 2
-    blinkLeds_chase,     // 3
-    cylon,               // 4
-    colorTemperature,    // 5
-    meteorRain,          // 6
-    confetti,            // 7
-    fadeInFadeOut,       // 8
-    cylon2,              // 9
-    sparkle,             // 10
-    snowSparkle,         // 11
-    runningLights,       // 12
-    colorWipe,           // 13
-    rainbowCycle,        // 14
-    theaterChase,        // 15
-    theaterChaseRainbow, // 16
-    alternatingRainbow   // 17
+    blinkLeds_chase2,          // 0
+    colorPalette,              // 1
+    blinkLeds_simple,          // 2
+    blinkLeds_chase,           // 3
+    cylon,                     // 4
+    colorTemperature,          // 5
+    meteorRain,                // 6
+    confetti,                  // 7
+    fadeInFadeOut,             // 8
+    cylon2,                    // 9
+    sparkle,                   // 10
+    snowSparkle,               // 11
+    runningLights,             // 12
+    colorWipe,                 // 13
+    rainbowCycle,              // 14
+    theaterChase,              // 15
+    theaterChaseRainbow,       // 16
+    alternatingRainbow,        // 17
+    advancedAlternatingRainbow // 18
 };
 
 /*
