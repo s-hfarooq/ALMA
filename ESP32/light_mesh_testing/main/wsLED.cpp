@@ -863,6 +863,7 @@ void alternatingRainbow(void *params)
         // lerp hsv inbetween nth points
         // end points should mirror
     }
+    vTaskDelete(NULL);
 }
 
 void advancedAlternatingRainbow(void *params)
@@ -920,6 +921,8 @@ void advancedAlternatingRainbow(void *params)
         // lerp hsv inbetween nth points
         // end points should mirror
     }
+
+    vTaskDelete(NULL);
 }
 
 void wsLEDInit()
