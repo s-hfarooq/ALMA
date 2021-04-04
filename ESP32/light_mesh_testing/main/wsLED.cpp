@@ -771,11 +771,11 @@ void alternatingRainbow(void *params) {
 
 void advancedAlternatingRainbow(void *params) {
     const int spacing = 60;
-    const int speed = 60;  // approx = 10*num_min it takes to repeat
+    const int speed = 1;  // approx = 10*num_min it takes to repeat
                            // ie 30 takes 3 min
     // 29738
     while(1) {
-        for(int j = 0; j <= 29738; j++) {  // base h
+        for(int j = 0; j >= 0; j++) {  // base h
             float warble = sin(j / 750);
             // float spinscale = 1-cos((j*3.14159265)/6375)**256; // dont ask
 
@@ -785,34 +785,42 @@ void advancedAlternatingRainbow(void *params) {
             // appearantly raising cos to the 256 power is 'bad' and 'slow' on
             // an esp32 :/
 
-            int spin = spinscale * int(320 * sin(j / 254.64));  // REALLY dont ask
-            int spin_amp = 131;
-            int spin_freq = 760;
+            float spin = spinscale * int(320 * sin(j / 254.64));  // REALLY dont ask
+            float spin_amp = 131;
+            float spin_freq = 760;
+
             int track_a_hue = .2 * j + warble * spinscale * spin_amp * pow(sin(j * .2 / spin_freq), 2);
-            track_a_hue %= 255;
             track_a_hue -= 700;
+            track_a_hue %= 256;
+
             int track_b_hue = .19 * j + warble * spinscale * spin_amp * pow(sin(j * .19 / spin_freq), 2);
-            track_b_hue %= 255;
             track_b_hue += 14200;
+            track_b_hue %= 256;
+
             int track_c_hue = .21 * j + warble * spinscale * spin_amp * pow(sin(j * .21 / spin_freq), 2);
-            track_c_hue %= 255;
+            track_c_hue %= 256;
+
             for(int i = 0; i < NUM_LEDS; i += 1) {
                 int set = i % (spacing * 3);  // 0 thru 3*spacing)
                 int group = set / spacing;    // 0 thru 2
-                float interp = float(i % spacing) / spacing;
+                float interp = float(i % spacing) / ((float)spacing);
                 int h = track_a_hue;
                 switch(group) {
                     case 0:
                         // AB
-                        h = track_a_hue * (1 - interp) + track_b_hue * interp;
+                        // (a-b)t+b
+                        h = track_a_hue * (1.0 - interp) + track_b_hue * interp;
+                        // h = (track_a_hue-track_b_hue )* interp + track_b_hue;
                         break;
                     case 1:
                         // BC
-                        h = track_b_hue * (1 - interp) + track_c_hue * interp;
+                        h = track_b_hue * (1.0 - interp) + track_c_hue * interp;
+                        //h = (track_b_hue-track_c_hue )* interp + track_c_hue;
                         break;
                     case 2:
                         // CA
-                        h = track_c_hue * (1 - interp) + track_a_hue * interp;
+                        h = track_c_hue * (1.0 - interp) + track_a_hue * interp;
+                        //h = (track_c_hue-track_a_hue )* interp + track_a_hue;
                         break;
                 }
                 int s = 255;
