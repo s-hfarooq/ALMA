@@ -771,7 +771,7 @@ void alternatingRainbow(void *params) {
 
 void advancedAlternatingRainbow(void *params) {
     const int spacing = 60;
-    const int speed = 1;  // approx = 10*num_min it takes to repeat
+    const int speed = 10;  // approx = 10*num_min it takes to repeat
                            // ie 30 takes 3 min
     // 29738
     while(1) {
