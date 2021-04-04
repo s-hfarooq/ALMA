@@ -1,8 +1,8 @@
 #pragma once
-#include <math.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <sys/param.h>
+#include <math.h>
 
 #include "FastLED.h"
 #include "driver/gpio.h"
