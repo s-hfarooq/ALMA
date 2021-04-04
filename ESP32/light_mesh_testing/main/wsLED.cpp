@@ -2,6 +2,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <sys/param.h>
+#include <math.h>
 
 #include "FastLED.h"
 #include "driver/gpio.h"
@@ -45,6 +46,8 @@ extern const TProgmemPalette16 IRAM_ATTR myRedWhiteBluePalette_p;
 #define BLACKTIME 3
 
 CRGB leds[NUM_LEDS];
+
+#define min(a,b) (((a)<(b))?(a):(b))
 
 #define N_COLORS 17
 static const CRGB colors[N_COLORS] = {
@@ -874,7 +877,7 @@ void advancedAlternatingRainbow(void *params)
         { // base h
             // float spinscale = 1-cos((j*3.14159265)/6375)**256; // dont ask
             float spinscale = min(j / 300, 1.0);
-            spinscale = min(spinscale, -1.0(j + 6375) / 300.0);
+            spinscale = min(spinscale, -1.0*(j + 6375) / 300.0);
             // linear approx of above
             // appearantly raising cos to the 256 power is 'bad' and 'slow' on an esp32 :/
             int spin = spinscale * int(320 * sin(j / 254.64)); // REALLY dont ask
