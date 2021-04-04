@@ -78,10 +78,13 @@ void setPixel(int i, int r, int g, int b) {
     leds[i].b = b;
 }
 
-void setPixelHSV(int i, int h, int s, int v) { leds[i] = CHSV(h, s, v); }
+void setPixelHSV(int i, int h, int s, int v) {
+    leds[i] = CHSV(h, s, v);
+}
 
 void setAll(int r, int g, int b) {
-    for(int i = 0; i < NUM_LEDS; i++) setPixel(i, r, g, b);
+    for(int i = 0; i < NUM_LEDS; i++)
+        setPixel(i, r, g, b);
 }
 
 void setColor(int red, int green, int blue) {
@@ -90,7 +93,9 @@ void setColor(int red, int green, int blue) {
     FastLED.show();
 }
 
-void fShow() { FastLED.show(); }
+void fShow() {
+    FastLED.show();
+}
 
 void ChangePalettePeriodically() {
     uint8_t secondHand = (millis() / 1000) % 60;
