@@ -26,7 +26,7 @@ typedef struct
     int type;
 } FadeColStruct;
 
-static const JMP_TBL_MAX_INDEX = 16;
+static const int JMP_TBL_MAX_INDEX = 17;
 static void (*wsLEDPointers[])(void *pvParameters) = {
     blinkLeds_chase2,    // 0
     colorPalette,        // 1

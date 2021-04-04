@@ -63,4 +63,5 @@ export const animationOptions = [
   { value: '14', label: 'rainbowCycle'},
   { value: '15', label: 'theaterChase'},
   { value: '16', label: 'theaterChaseRainbow'},
+  { value: '17', label: 'alternatingRainbow'},
 ];

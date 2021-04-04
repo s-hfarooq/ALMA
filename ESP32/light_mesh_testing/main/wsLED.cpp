@@ -84,7 +84,7 @@ void setPixel(int i, int r, int g, int b)
 
 void setPixelHSV(int i, int h, int s, int v)
 {
-    leds[i] = CHSV(h, s, v)
+    leds[i] = CHSV(h, s, v);
 }
 
 void setAll(int r, int g, int b)
@@ -838,18 +838,18 @@ void alternatingRainbow(void *params)
                 if ((i / spacing) % 2)
                 {                                               // 0 when increasing lerp, 1 if decreasing
                     float interp = ((float)(i % 60)) / spacing; // 0 to 1
-                    int h = (j + 128 * interp) % 255;
+                    int h = (j + (int)(128 * interp)) % 255;
                     int s = 255;
                     int v = 255;
-                    setPixelHSV(i, h, s, v)
+                    setPixelHSV(i, h, s, v);
                 }
                 else
                 {
                     float interp = -1 * ((float)(i % 60)) / spacing + 2; // 1 to 0
-                    int h = (j + 128 * interp) % 255;
+                    int h = (j + (int)(128 * interp)) % 255;
                     int s = 255;
                     int v = 255;
-                    setPixelHSV(i, h, s, v)
+                    setPixelHSV(i, h, s, v);
                 }
             }
             FastLED.show();
