@@ -64,5 +64,6 @@ export const animationOptions = [
   { value: "15", label: "theaterChase" },
   { value: "16", label: "theaterChaseRainbow" },
   { value: "17", label: "alternatingRainbow" },
-  { value: "18", label: "advancedAlternatingRainbow" }
+  { value: "18", label: "advancedAlternatingRainbow" },
+  { value: "19", label: "strobe" }
 ];
