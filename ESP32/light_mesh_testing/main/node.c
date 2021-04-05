@@ -260,8 +260,10 @@ static void node_read_task(void *arg) {
         if(controller == 0 || controller == DEVICE_ID) {
             // Stop fade if currently active
             if(fadeHandle != NULL) {
+                quitLoop = 1;
+                vTaskDelay(75 / portTICK_RATE_MS);
+
                 vTaskDelete(fadeHandle);
-                fShow();
                 fadeHandle = NULL;
 
                 #if(LOGGING)
@@ -269,6 +271,9 @@ static void node_read_task(void *arg) {
                 #endif
 
                 setColor(0, 0, 0);
+                fShow();
+
+                quitLoop = 0;
             }
 
             FadeColStruct fadeOne, fadeTwo;

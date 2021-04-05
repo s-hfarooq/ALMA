@@ -19,6 +19,8 @@
 #include "mwifi.h"
 #include "sdkconfig.h"
 
+volatile int quitLoop = 0;
+
 CRGBPalette16 currentPalette;
 TBlendType currentBlending;
 
@@ -55,13 +57,8 @@ static const CRGB colors[N_COLORS] = {
     CRGB::AliceBlue,  CRGB::ForestGreen, CRGB::Lavender,   CRGB::MistyRose,
     CRGB::DarkOrchid, CRGB::DarkOrange,  CRGB::Black,      CRGB::Teal,
     CRGB::Violet,     CRGB::Lime,        CRGB::Chartreuse, CRGB::BlueViolet,
-    CRGB::Aqua};
-
-static const char *colors_names[N_COLORS]{
-    "Red",         "Green",    "Blue",      "White",      "aliceblue",
-    "ForestGreen", "Lavender", "MistyRose", "DarkOrchid", "DarkOrange",
-    "Black",       "Teal",     "Violet",    "Lime",       "Chartreuse",
-    "BlueViolet",  "Aqua"};
+    CRGB::Aqua
+};
 
 CRGB colors_chase[N_COLORS_CHASE] = {
     CRGB::AliceBlue, CRGB::Lavender, CRGB::DarkOrange, CRGB::Red,
@@ -176,7 +173,8 @@ char *Wheel(char WheelPos) {
 }
 
 void fadeall() {
-    for(int i = 0; i < NUM_LEDS; i++) leds[i].nscale8(250);
+    for(int i = 0; i < NUM_LEDS; i++)
+        leds[i].nscale8(250);
 }
 
 void blinkLeds_chase2(void *pvParameters) {
@@ -184,15 +182,14 @@ void blinkLeds_chase2(void *pvParameters) {
         for(int ci = 0; ci < N_COLORS; ci++) {
             CRGB color = colors[ci];
 
-            #if(LOGGING)
-                printf(" chase: *** color %s ***\n", colors_names[ci]);
-            #endif
-
             // Set strings to black first
             fill_solid(leds, NUM_LEDS, CRGB::Black);
             FastLED.show();
 
             int prev;
+
+            if(quitLoop == 1)
+                break;
 
             // Forward
             #if(LOGGING)
@@ -211,6 +208,9 @@ void blinkLeds_chase2(void *pvParameters) {
                 delay(CHASE_DELAY);
             }
 
+            if(quitLoop == 1)
+                break;
+
             #if(LOGGING)
                 printf(" chase: backward\n");
             #endif
@@ -226,6 +226,9 @@ void blinkLeds_chase2(void *pvParameters) {
                 FastLED.show();
                 delay(CHASE_DELAY);
             }
+
+            if(quitLoop == 1)
+                break;
 
             // Two at a time
             #if(LOGGING)
@@ -246,9 +249,16 @@ void blinkLeds_chase2(void *pvParameters) {
                 FastLED.show();
                 delay(CHASE_DELAY);
             }
+
+            if(quitLoop == 1)
+                break;
         }
+
+        if(quitLoop == 1)
+            break;
     }
 
+    quitLoop = 0;
     vTaskDelete(NULL);
 }
 
@@ -260,6 +270,9 @@ void colorPalette(void *pvParameters) {
 
         ChangePalettePeriodically();
 
+        if(quitLoop == 1)
+            break;
+
         static uint8_t startIndex = 1;
 
         for(int i = 0; i < NUM_LEDS; i++) {
@@ -268,14 +281,21 @@ void colorPalette(void *pvParameters) {
             startIndex += 3;
         }
 
+        if(quitLoop == 1)
+            break;
+
         #if(LOGGING)
             printf("show leds\n");
         #endif
 
         FastLED.show();
         delay(400);
+
+        if(quitLoop == 1)
+            break;
     }
 
+    quitLoop = 0;
     vTaskDelete(NULL);
 }
 
@@ -286,13 +306,21 @@ void blinkLeds_simple(void *pvParameters) {
                 printf("blink leds\n");
             #endif
 
-            for(int i = 0; i < NUM_LEDS; i++) leds[i] = colors[j];
+            for(int i = 0; i < NUM_LEDS; i++)
+                leds[i] = colors[j];
+
+            if(quitLoop == 1)
+                break;
 
             FastLED.show();
             delay(500);
         }
+
+        if(quitLoop == 1)
+            break;
     }
 
+    quitLoop = 0;
     vTaskDelete(NULL);
 }
 
@@ -307,6 +335,9 @@ void blinkLeds_chase(void *pvParameters) {
         // Blank all LEDS
         setColor(0, 0, 0);
 
+        if(quitLoop == 1)
+            break;
+
         // Set the one LED to the right color
         leds[pos] = colors_chase[led_color];
         pos = (pos + 1) % NUM_LEDS;
@@ -319,6 +350,9 @@ void blinkLeds_chase(void *pvParameters) {
         FastLED.show();
         uint64_t end = esp_timer_get_time();
 
+        if(quitLoop == 1)
+            break;
+
         #if(LOGGING)
             printf("Show Time: %" PRIu64 "\n", end - start);
         #endif
@@ -326,6 +360,7 @@ void blinkLeds_chase(void *pvParameters) {
         delay(200);
     }
 
+    quitLoop = 0;
     vTaskDelete(NULL);
 }
 
@@ -341,6 +376,9 @@ void cylon(void *params) {
             delay(10);
         }
 
+        if(quitLoop == 1)
+            break;
+
         // Now go in the other direction.
         for(int i = NUM_LEDS - 1; i > -1; i--) {
             // Set the i'th led to red
@@ -350,9 +388,13 @@ void cylon(void *params) {
             delay(10);
         }
 
+        if(quitLoop == 1)
+            break;
+
         delay(5);
     }
 
+    quitLoop = 0;
     vTaskDelete(NULL);
 }
 
@@ -361,6 +403,9 @@ void colorTemperature(void *params) {
         // Draw a generic, no-name rainbow
         static uint8_t starthue = 0;
         fill_rainbow(leds, NUM_LEDS, --starthue, 20);
+
+        if(quitLoop == 1)
+            break;
 
         // Choose which 'color temperature' profile to enable.
         uint8_t secs = (millis() / 1000) % (DISPLAYTIME * 2);
@@ -372,10 +417,14 @@ void colorTemperature(void *params) {
             leds[0] = TEMPERATURE_2;                // Show indicator pixel
         }
 
+        if(quitLoop == 1)
+            break;
+
         FastLED.show();
         delay(5);
     }
 
+    quitLoop = 0;
     vTaskDelete(NULL);
 }
 
@@ -391,6 +440,9 @@ void meteorRain(void *params) {
     while(1) {
         setAll(0, 0, 0);
 
+        if(quitLoop == 1)
+            break;
+
         for(int i = 0; i < NUM_LEDS + NUM_LEDS; i++) {
             // fade brightness all LEDs one step
             for(int j = 0; j < NUM_LEDS; j++) {
@@ -399,19 +451,29 @@ void meteorRain(void *params) {
                     leds[j].fadeToBlackBy(meteorTrailDecay);
             }
 
+            if(quitLoop == 1)
+                break;
+
             // draw meteor
             for(int j = 0; j < meteorSize; j++) {
                 if((i - j < NUM_LEDS) && (i - j >= 0))
                     setPixel(i - j, red, green, blue);
             }
 
+            if(quitLoop == 1)
+                break;
+
             FastLED.show();
             delay(SpeedDelay);
         }
 
+        if(quitLoop == 1)
+            break;
+
         delay(5);
     }
 
+    quitLoop = 0;
     vTaskDelete(NULL);
 }
 
@@ -433,6 +495,10 @@ void confetti(void *params) {
         if(lastSecond != secondHand) {  // Debounce to make sure we're not
             // repeating an assignment.
             lastSecond = secondHand;
+
+            if(quitLoop == 1)
+                break;
+
             switch(secondHand) {
                 case 0:
                     thisinc = 1;
@@ -460,6 +526,9 @@ void confetti(void *params) {
             }
         }
 
+        if(quitLoop == 1)
+            break;
+
         if(i > 100) {
             fadeToBlackBy(leds, NUM_LEDS,
                           thisfade);       // Low values = slower fade.
@@ -470,6 +539,9 @@ void confetti(void *params) {
             i = 0;
         }
 
+        if(quitLoop == 1)
+            break;
+
         i++;
 
         #if(LOGGING)
@@ -478,8 +550,12 @@ void confetti(void *params) {
 
         FastLED.show();
         delay(NUM_LEDS / 4);
+
+        if(quitLoop == 1)
+            break;
     }
 
+    quitLoop = 0;
     vTaskDelete(NULL);
 }
 
@@ -500,9 +576,15 @@ void fadeInFadeOut(void *params) {
                         break;
                 }
 
+                if(quitLoop == 1)
+                    break;
+
                 FastLED.show();
                 delay(3);
             }
+
+            if(quitLoop == 1)
+                break;
 
             // Fade OUT
             for(int k = 255; k >= 0; k--) {
@@ -518,12 +600,22 @@ void fadeInFadeOut(void *params) {
                         break;
                 }
 
+                if(quitLoop == 1)
+                    break;
+
                 FastLED.show();
                 delay(5);
             }
+
+            if(quitLoop == 1)
+                break;
         }
+
+        if(quitLoop == 1)
+            break;
     }
 
+    quitLoop = 0;
     vTaskDelete(NULL);
 }
 
@@ -545,6 +637,9 @@ void cylon2(void *params) {
             setPixel(i + EyeSize + 1, red / 10, green / 10, blue / 10);
             FastLED.show();
             delay(SpeedDelay);
+
+            if(quitLoop == 1)
+                break;
         }
 
         delay(ReturnDelay);
@@ -558,11 +653,17 @@ void cylon2(void *params) {
             setPixel(i + EyeSize + 1, red / 10, green / 10, blue / 10);
             FastLED.show();
             delay(SpeedDelay);
+
+            if(quitLoop == 1)
+                break;
         }
 
+        if(quitLoop == 1)
+            break;
         delay(ReturnDelay);
     }
 
+    quitLoop = 0;
     vTaskDelete(NULL);
 }
 
@@ -579,9 +680,13 @@ void sparkle(void *params) {
         delay(SpeedDelay);
         setPixel(Pixel, 0, 0, 0);
 
+        if(quitLoop == 1)
+            break;
+
         delay(5);
     }
 
+    quitLoop = 0;
     vTaskDelete(NULL);
 }
 
@@ -598,12 +703,21 @@ void snowSparkle(void *params) {
         int Pixel = rand() % ((NUM_LEDS + 1));
         setPixel(Pixel, 0xff, 0xff, 0xff);
         FastLED.show();
+
+        if(quitLoop == 1)
+            break;
+
         delay(SparkleDelay);
         setPixel(Pixel, red, green, blue);
         FastLED.show();
+
+        if(quitLoop == 1)
+            break;
+
         delay(SpeedDelay);
     }
 
+    quitLoop = 0;
     vTaskDelete(NULL);
 }
 
@@ -625,11 +739,18 @@ void runningLights(void *params) {
                          ((sin(i + Position) * 127 + 128) / 255) * blue);
             }
 
+            if(quitLoop == 1)
+                break;
+
             FastLED.show();
             delay(WaveDelay);
         }
+
+        if(quitLoop == 1)
+            break;
     }
 
+    quitLoop = 0;
     vTaskDelete(NULL);
 }
 
@@ -643,6 +764,10 @@ void colorWipe(void *params) {
         for(uint16_t i = 0; i < NUM_LEDS; i++) {
             setPixel(i, red, green, blue);
             FastLED.show();
+
+            if(quitLoop == 1)
+                break;
+
             delay(SpeedDelay);
         }
 
@@ -650,14 +775,23 @@ void colorWipe(void *params) {
         green = 0x00;
         blue = 0x00;
         SpeedDelay = 50;
+        if(quitLoop == 1)
+            break;
 
         for(uint16_t i = 0; i < NUM_LEDS; i++) {
             setPixel(i, red, green, blue);
             FastLED.show();
+
+            if(quitLoop == 1)
+                break;
             delay(SpeedDelay);
         }
+
+        if(quitLoop == 1)
+            break;
     }
 
+    quitLoop = 0;
     vTaskDelete(NULL);
 }
 
@@ -674,11 +808,18 @@ void rainbowCycle(void *params) {
                 setPixel(i, *c, *(c + 1), *(c + 2));
             }
 
+            if(quitLoop == 1)
+                break;
+
             FastLED.show();
             delay(SpeedDelay);
         }
+
+        if(quitLoop == 1)
+            break;
     }
 
+    quitLoop = 0;
     vTaskDelete(NULL);
 }
 
@@ -689,21 +830,30 @@ void theaterChase(void *params) {
     int SpeedDelay = 50;
 
     while(1) {
-        for(int j = 0; j < 10; j++) {  // Do 10 cycles of chasing
-            for(int q = 0; q < 3; q++) {
-                for(int i = 0; i < NUM_LEDS; i += 3)
-                    setPixel(i + q, red, green,
-                             blue);  // Turn every third pixel on
+        for(int q = 0; q < 3; q++) {
+            for(int i = 0; i < NUM_LEDS; i += 3)
+                setPixel(i + q, red, green,
+                         blue);  // Turn every third pixel on
 
-                FastLED.show();
-                delay(SpeedDelay);
+            FastLED.show();
 
-                for(int i = 0; i < NUM_LEDS; i += 3)
-                    setPixel(i + q, 0, 0, 0);  // Turn every third pixel off
-            }
+            if(quitLoop == 1)
+                break;
+
+            delay(SpeedDelay);
+
+            for(int i = 0; i < NUM_LEDS; i += 3)
+                setPixel(i + q, 0, 0, 0);  // Turn every third pixel off
+
+            if(quitLoop == 1)
+                break;
         }
+
+        if(quitLoop == 1)
+            break;
     }
 
+    quitLoop = 0;
     vTaskDelete(NULL);
 }
 
@@ -721,15 +871,28 @@ void theaterChaseRainbow(void *params) {
                              *(c + 2));  // Turn every third pixel on
                 }
 
+                if(quitLoop == 1)
+                    break;
+
                 FastLED.show();
                 delay(SpeedDelay);
 
                 for(int i = 0; i < NUM_LEDS; i += 3)
                     setPixel(i + q, 0, 0, 0);  // Turn every third pixel off
+
+                if(quitLoop == 1)
+                    break;
             }
+
+            if(quitLoop == 1)
+                break;
         }
+
+        if(quitLoop == 1)
+            break;
     }
 
+    quitLoop = 0;
     vTaskDelete(NULL);
 }
 
@@ -757,15 +920,26 @@ void alternatingRainbow(void *params) {
                     int v = 255;
                     setPixelHSV(i, h, s, v);
                 }
+
+                if(quitLoop == 1)
+                    break;
             }
             FastLED.show();
+
+            if(quitLoop == 1)
+                break;
+
             delay(speed);
         }
+        if(quitLoop == 1)
+            break;
         // set every nth point to be sinusoid with speed pattern
         // convert rgb to hsv
         // lerp hsv inbetween nth points
         // end points should mirror
     }
+
+    quitLoop = 0;
     vTaskDelete(NULL);
 }
 
@@ -800,6 +974,9 @@ void advancedAlternatingRainbow(void *params) {
             int track_c_hue = .21 * j + warble * spinscale * spin_amp * pow(sin(j * .21 / spin_freq), 2);
             track_c_hue %= 256;
 
+            if(quitLoop == 1)
+                break;
+
             for(int i = 0; i < NUM_LEDS; i += 1) {
                 int set = i % (spacing * 3);  // 0 thru 3*spacing)
                 int group = set / spacing;    // 0 thru 2
@@ -826,16 +1003,27 @@ void advancedAlternatingRainbow(void *params) {
                 int s = 255;
                 int v = 255;
                 setPixelHSV(i, h, s, v);
+
+                if(quitLoop == 1)
+                    break;
             }
+
+            if(quitLoop == 1)
+                break;
+
             FastLED.show();
             delay(speed);
         }
+
+        if(quitLoop == 1)
+            break;
         // set every nth point to be sinusoid with speed pattern
         // convert rgb to hsv
         // lerp hsv inbetween nth points
         // end points should mirror
     }
 
+    quitLoop = 0;
     vTaskDelete(NULL);
 }
 
