@@ -30,7 +30,9 @@ extern const TProgmemPalette16 IRAM_ATTR myRedWhiteBluePalette_p;
 #include "palettes.h"
 
 #define NUM_LEDS (55 + (3 * 150))
+#define NUM_LEDS_2 153
 #define DATA_PIN_1 5
+#define DATA_PIN_2 18
 #define BRIGHTNESS 80
 #define LED_TYPE WS2812B
 #define COLOR_ORDER GRB
@@ -48,6 +50,7 @@ extern const TProgmemPalette16 IRAM_ATTR myRedWhiteBluePalette_p;
 #define BLACKTIME 3
 
 CRGB leds[NUM_LEDS];
+CRGB leds_2[NUM_LEDS_2];
 
 #define min(a, b) (((a) < (b)) ? (a) : (b))
 
@@ -69,22 +72,35 @@ extern "C" {
 }
 
 void setPixel(int i, int r, int g, int b) {
-    leds[i].r = r;
-    leds[i].g = g;
-    leds[i].b = b;
+    if(i >= 0) {
+        leds[i].r = r;
+        leds[i].g = g;
+        leds[i].b = b;
+    }
+
+    if(i <= 0) {
+        leds_2[-i].r = r;
+        leds_2[-i].g = g;
+        leds_2[-i].b = b;
+    }
 }
 
 void setPixelHSV(int i, int h, int s, int v) {
-    leds[i] = CHSV(h, s, v);
+    if(i > -1)
+        leds[i] = CHSV(h, s, v);
+    else
+        leds_2[-i] = CHSV(h, s, v);
 }
 
 void setAll(int r, int g, int b) {
-    for(int i = 0; i < NUM_LEDS; i++) setPixel(i, r, g, b);
+    for(int i = -NUM_LEDS_2; i < NUM_LEDS; i++)
+        setPixel(i, r, g, b);
 }
 
 void setColor(int red, int green, int blue) {
     CRGB newCol = CRGB(red, green, blue);
     fill_solid(leds, NUM_LEDS, newCol);
+    fill_solid(leds_2, NUM_LEDS_2, newCol);
     FastLED.show();
 }
 
@@ -171,7 +187,10 @@ char *Wheel(char WheelPos) {
 }
 
 void fadeall() {
-    for(int i = 0; i < NUM_LEDS; i++) leds[i].nscale8(250);
+    for(int i = 0; i < NUM_LEDS; i++)
+        leds[i].nscale8(250);
+    for(int i = 0; i < NUM_LEDS_2; i++)
+        leds_2[i].nscale8(250);
 }
 
 void blinkLeds_chase2(void *pvParameters) {
@@ -829,9 +848,8 @@ void theaterChase(void *params) {
 
     while(1) {
         for(int q = 0; q < 3; q++) {
-            for(int i = 0; i < NUM_LEDS; i += 3)
-                setPixel(i + q, red, green,
-                         blue);  // Turn every third pixel on
+            for(int i = -NUM_LEDS_2; i < NUM_LEDS; i += 3)
+                setPixel(i + q, red, green, blue);  // Turn every third pixel on
 
             FastLED.show();
 
@@ -840,7 +858,7 @@ void theaterChase(void *params) {
 
             delay(SpeedDelay);
 
-            for(int i = 0; i < NUM_LEDS; i += 3)
+            for(int i = -NUM_LEDS_2; i < NUM_LEDS; i += 3)
                 setPixel(i + q, 0, 0, 0);  // Turn every third pixel off
 
             if(quitLoop == 1)
@@ -858,15 +876,18 @@ void theaterChase(void *params) {
 void theaterChaseRainbow(void *params) {
     int SpeedDelay = 50;
 
+    #if(LOGGING)
+        printf("STARTING theaterChaseRainbow\n");
+    #endif
+
     while(1) {
         char *c;
 
         for(int j = 0; j < 256; j++) {  // Cycle all 256 colors in the wheel
             for(int q = 0; q < 3; q++) {
-                for(int i = 0; i < NUM_LEDS; i += 3) {
-                    c = Wheel((i + j) % 255);
-                    setPixel(i + q, *c, *(c + 1),
-                             *(c + 2));  // Turn every third pixel on
+                for(int i = -NUM_LEDS_2; i < NUM_LEDS; i += 3) {
+                    c = Wheel((i + NUM_LEDS_2 + j) % 255);
+                    setPixel(i + q, *c, *(c + 1), *(c + 2));  // Turn every third pixel on
                 }
 
                 if(quitLoop == 1)
@@ -875,7 +896,7 @@ void theaterChaseRainbow(void *params) {
                 FastLED.show();
                 delay(SpeedDelay);
 
-                for(int i = 0; i < NUM_LEDS; i += 3)
+                for(int i = -NUM_LEDS_2; i < NUM_LEDS; i += 3)
                     setPixel(i + q, 0, 0, 0);  // Turn every third pixel off
 
                 if(quitLoop == 1)
@@ -1051,6 +1072,7 @@ void wsLEDInit() {
     #endif
 
     FastLED.addLeds<LED_TYPE, DATA_PIN_1, COLOR_ORDER>(leds, NUM_LEDS);
+    FastLED.addLeds<LED_TYPE, DATA_PIN_2, COLOR_ORDER>(leds_2, NUM_LEDS_2);
 
     #if(LOGGING)
         printf(" set max power\n");
