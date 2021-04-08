@@ -25,7 +25,6 @@ class i2c:
       self.fw = io.open("/dev/i2c-"+str(bus), "wb", buffering=0)
 
       # set device address
-
       fcntl.ioctl(self.fr, I2C_SLAVE, device)
       fcntl.ioctl(self.fw, I2C_SLAVE, device)
 
@@ -51,10 +50,8 @@ if __name__ == "__main__":
    import sys
 
    while(True):
-       dev = i2c_raw.i2c(0x04, 1) # device 0x32, bus 1
+       dev = i2c_raw.i2c(0x04, 1) # device 0x04, bus 1
        txt = input("Cmd: ")
        strLen = chr(len(txt))
-       #strLen = "\\" + hex(len(txt))
-       print(strLen)
        dev.write((strLen + txt).encode('utf-8'))
        dev.close()

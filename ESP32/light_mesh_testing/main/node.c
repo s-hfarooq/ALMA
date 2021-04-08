@@ -272,6 +272,47 @@ static void node_read_task(void *arg) {
                 MDF_LOGI("DAT3 size: %d", t[8].size);
         #endif
 
+        // Parse recieved JSON string
+        if(r < 12) {
+            #if (LOGGING)
+                MDF_LOGI("r less than 12 (%d)", r);
+            #endif
+
+            continue;
+        }
+
+        // SAMPLE INPUT JSON
+        // {
+        //     "senderType": "ROOT",
+        //     "senderUID": 0123456789,
+        //     "recieverType": "HOLONYAK",
+        //     "recieverUID": 9876543210,
+        //     "functionID": "SET_COLOR",
+        //     "data": [
+        //         255,
+        //         126,
+        //         73
+        //     ]
+        // }
+
+        char *senderType = (char*)MDF_MALLOC(sizeof(char) * (t[2].end - t[2].start)), *senderUID = (char*)MDF_MALLOC(sizeof(char) * (t[4].end - t[4].start));
+        char *recieverType = (char*)MDF_MALLOC(sizeof(char) * (t[6].end - t[6].start)), *recieverUID = (char*)MDF_MALLOC(sizeof(char) * (t[8].end - t[8].start));
+        char *funcID = (char*)MDF_MALLOC(sizeof(char) * (t[10].end - t[10].start));
+        char *parsedData = (char*)MDF_MALLOC(sizeof(char) * (t[12].end - t[12].start));
+        sprintf(senderType, "%.*s", t[2].end - t[2].start, data + t[2].start);
+        sprintf(senderUID, "%.*s", t[4].end - t[4].start, data + t[4].start);
+        sprintf(recieverType, "%.*s", t[6].end - t[6].start, data + t[6].start);
+        sprintf(recieverUID, "%.*s", t[8].end - t[8].start, data + t[8].start);
+        sprintf(funcID, "%.*s", t[10].end - t[10].start, data + t[10].start);
+        sprintf(parsedData, "%.*s", t[12].end - t[12].start, data + t[12].start);
+
+        #if(LOGGING)
+            MDF_LOGI("SENDER: %s | %s", senderType, senderUID);
+            MDF_LOGI("RECIEVER: %s | %s", recieverType, recieverUID);
+            MDF_LOGI("FUNCID: %s", funcID);
+            MDF_LOGI("DATA: %s\n", parsedData);
+        #endif
+
         // Get values from data char array
         int rCol, gCol, bCol, type, controller, speed;
         getValues(data, &rCol, &gCol, &bCol, &type, &controller, &speed);

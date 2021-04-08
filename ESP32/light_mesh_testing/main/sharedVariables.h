@@ -1,7 +1,7 @@
 // Various variables and definitions shared by the other files
 
 // 1 = ceiling, 2 = couch, 3 = testing, -1 = root
-#define DEVICE_ID (-1)
+#define DEVICE_ID (3)
 
 // 0 to disable logging
 #define LOGGING (1)
