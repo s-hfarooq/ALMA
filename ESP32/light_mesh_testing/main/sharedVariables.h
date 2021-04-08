@@ -5,6 +5,7 @@
 
 // 0 to disable logging
 #define LOGGING (1)
+// 151416
 
 #define LEDC_TEST_CH_NUM (6)
 #define LEDC_TEST_DUTY (4000)
@@ -93,9 +94,9 @@ TaskHandle_t fadeHandle = NULL;
 
 int oCol1[3], oCol2[3];
 
-uint8_t outBuff[256];
+uint8_t outBuff[1024];
 uint16_t outBuffLen = 0;
-uint8_t inBuff[256];
+uint8_t inBuff[1024];
 uint16_t inBuffLen = 0;
 bool needsToSend[2] = {false, false};
 

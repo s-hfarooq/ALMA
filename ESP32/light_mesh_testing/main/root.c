@@ -53,6 +53,10 @@ static void root_task(void *arg) {
             if(needsToSend[j]) {
                 mwifi_root_write(src_addr, 1, &data_type, data, size, false);
                 needsToSend[j] = false;
+
+                if(j == 0)
+                    memset(inBuff, 0, sizeof inBuff);
+
             }
 
             #if (LOGGING)
@@ -130,8 +134,19 @@ bool check_for_data() {
         if(inBuff[0] > 0x02) {
             vTaskDelay(pdMS_TO_TICKS(10));
             size_t size_pl = i2c_slave_read_buffer(
-                I2C_SLAVE_NUM, inBuff, inBuff[0], 20 / portTICK_RATE_MS);
+                I2C_SLAVE_NUM, inBuff, inBuff[0], 80 / portTICK_RATE_MS);
             inBuffLen = size_pl;
+
+            // I don't know why but sometimes the first character is weird and not a {
+            if(inBuff[0] != '{') {
+                int offset = 0;
+                while(inBuff[offset] != '{')
+                    offset++;
+                for(int k = 0; k < size_pl; k++)
+                    inBuff[k] = inBuff[k + offset];
+
+                inBuffLen -= offset;
+            }
             return true;
         }
     }
@@ -156,11 +171,12 @@ static void i2cs_test_task(void *arg) {
         if(check_for_data()) {
             needsToSend[0] = true;
             needsToSend[1] = true;
-            inBuffLen = 0;
 
             #if (LOGGING)
-              MDF_LOGI("i2c data recieved: %s", inBuff);
+              MDF_LOGI("i2c data recieved (%d): %s", inBuffLen, inBuff);
             #endif
+
+            inBuffLen = 0;
         }
     }
 

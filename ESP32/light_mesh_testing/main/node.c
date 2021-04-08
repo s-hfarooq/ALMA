@@ -15,6 +15,7 @@
 #include "mdf_common.h"
 #include "mwifi.h"
 #include "sdkconfig.h"
+#include "jsmn.h"
 
 // Struct for fadeToNewCol function parameter - needed due to xTaskCreate
 // parameters
@@ -224,6 +225,13 @@ void loopFade(void *arg) {
         }
     }
 }
+static int jsoneq(const char *json, jsmntok_t *tok, const char *s) {
+  if (tok->type == JSMN_STRING && (int)strlen(s) == tok->end - tok->start &&
+      strncmp(json + tok->start, s, tok->end - tok->start) == 0) {
+    return 0;
+  }
+  return -1;
+}
 
 /*
  * node_read_task
@@ -249,6 +257,20 @@ static void node_read_task(void *arg) {
         size = MWIFI_PAYLOAD_LEN;
         memset(data, 0, MWIFI_PAYLOAD_LEN);
         mwifi_read(src_addr, &data_type, data, &size, portMAX_DELAY);
+
+        // Parse JSON string recieved over mesh network
+        jsmn_parser p;
+        jsmntok_t t[128];
+        jsmn_init(&p);
+        int r = jsmn_parse(&p, data, strlen(data), t, sizeof(t) / sizeof(t[0]));
+
+        #if (LOGGING)
+            MDF_LOGI("DATA: %s, s: %d", data, r);
+            if(jsoneq(data, &t[1], "user") == 0)
+                MDF_LOGI("DAT0: %.*s", t[2].end - t[2].start, data + t[2].start);
+            if(jsoneq(data, &t[7], "groups") == 0)
+                MDF_LOGI("DAT3 size: %d", t[8].size);
+        #endif
 
         // Get values from data char array
         int rCol, gCol, bCol, type, controller, speed;
