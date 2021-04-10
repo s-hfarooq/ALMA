@@ -10,7 +10,7 @@ class App extends React.Component {
         background: '#fff',
         selectedOption: { value: "all" },
         fadeSpeed: 50,
-        animationNum: { value: "0" },
+        animationNum: { value: "2" },
     }
 
     // Runs everytime a color changes

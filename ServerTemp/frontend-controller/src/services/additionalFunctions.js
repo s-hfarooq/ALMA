@@ -48,7 +48,7 @@ export const animationOptions = [
   // { value: "3", label: "blinkLeds_chase" },
   // { value: "4", label: "cylon" },
   // { value: "5", label: "colorTemperature" },
-  { value: "6", label: "meteorRain" },
+  { value: "2", label: "meteorRain" },
   // { value: "7", label: "confetti" },
   // { value: "8", label: "fadeInFadeOut" },
   // { value: "9", label: "cylon2" },
@@ -58,7 +58,7 @@ export const animationOptions = [
   // { value: "13", label: "colorWipe" },
   // { value: "14", label: "rainbowCycle" },
   // { value: "15", label: "theaterChase" },
-  { value: "16", label: "theaterChaseRainbow" },
+  { value: "1", label: "theaterChaseRainbow" },
   // { value: "17", label: "alternatingRainbow" },
   // { value: "18", label: "advancedAlternatingRainbow" },
   // { value: "19", label: "strobe" }
