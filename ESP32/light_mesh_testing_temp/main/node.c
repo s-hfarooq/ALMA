@@ -259,27 +259,27 @@ static void node_read_task(void *arg) {
         mwifi_read(src_addr, &data_type, data, &size, portMAX_DELAY);
 
         // Parse JSON string recieved over mesh network
-        jsmn_parser p;
-        jsmntok_t t[128];
-        jsmn_init(&p);
-        int r = jsmn_parse(&p, data, strlen(data), t, sizeof(t) / sizeof(t[0]));
-
-        #if (LOGGING)
-            MDF_LOGI("DATA: %s, s: %d", data, r);
-            if(jsoneq(data, &t[1], "user") == 0)
-                MDF_LOGI("DAT0: %.*s", t[2].end - t[2].start, data + t[2].start);
-            if(jsoneq(data, &t[7], "groups") == 0)
-                MDF_LOGI("DAT3 size: %d", t[8].size);
-        #endif
-
-        // Parse recieved JSON string
-        if(r < 12) {
-            #if (LOGGING)
-                MDF_LOGI("r less than 12 (%d)", r);
-            #endif
-
-            continue;
-        }
+        // jsmn_parser p;
+        // jsmntok_t t[128];
+        // jsmn_init(&p);
+        // int r = jsmn_parse(&p, data, strlen(data), t, sizeof(t) / sizeof(t[0]));
+        //
+        // #if (LOGGING)
+        //     MDF_LOGI("DATA: %s, s: %d", data, r);
+        //     if(jsoneq(data, &t[1], "user") == 0)
+        //         MDF_LOGI("DAT0: %.*s", t[2].end - t[2].start, data + t[2].start);
+        //     if(jsoneq(data, &t[7], "groups") == 0)
+        //         MDF_LOGI("DAT3 size: %d", t[8].size);
+        // #endif
+        //
+        // // Parse recieved JSON string
+        // if(r < 12) {
+        //     #if (LOGGING)
+        //         MDF_LOGI("r less than 12 (%d)", r);
+        //     #endif
+        //
+        //     continue;
+        // }
 
         // SAMPLE INPUT JSON
         // {
@@ -300,25 +300,25 @@ static void node_read_task(void *arg) {
         //      if != NULL and current device UID not in array continue
 
 
-        char *senderType = (char*)MDF_MALLOC(sizeof(char) * (t[2].end - t[2].start)), *senderUID = (char*)MDF_MALLOC(sizeof(char) * (t[4].end - t[4].start));
-        char *recieverType = (char*)MDF_MALLOC(sizeof(char) * (t[6].end - t[6].start)), *recieverUID = (char*)MDF_MALLOC(sizeof(char) * (t[8].end - t[8].start));
-        char *funcID = (char*)MDF_MALLOC(sizeof(char) * (t[10].end - t[10].start));
-        char *parsedData = (char*)MDF_MALLOC(sizeof(char) * (t[12].end - t[12].start));
-        sprintf(senderType, "%.*s", t[2].end - t[2].start, data + t[2].start);
-        sprintf(senderUID, "%.*s", t[4].end - t[4].start, data + t[4].start);
-        sprintf(recieverType, "%.*s", t[6].end - t[6].start, data + t[6].start);
-        sprintf(recieverUID, "%.*s", t[8].end - t[8].start, data + t[8].start);
-        sprintf(funcID, "%.*s", t[10].end - t[10].start, data + t[10].start);
-        sprintf(parsedData, "%.*s", t[12].end - t[12].start, data + t[12].start);
+        // char *senderType = (char*)MDF_MALLOC(sizeof(char) * (t[2].end - t[2].start)), *senderUID = (char*)MDF_MALLOC(sizeof(char) * (t[4].end - t[4].start));
+        // char *recieverType = (char*)MDF_MALLOC(sizeof(char) * (t[6].end - t[6].start)), *recieverUID = (char*)MDF_MALLOC(sizeof(char) * (t[8].end - t[8].start));
+        // char *funcID = (char*)MDF_MALLOC(sizeof(char) * (t[10].end - t[10].start));
+        // char *parsedData = (char*)MDF_MALLOC(sizeof(char) * (t[12].end - t[12].start));
+        // sprintf(senderType, "%.*s", t[2].end - t[2].start, data + t[2].start);
+        // sprintf(senderUID, "%.*s", t[4].end - t[4].start, data + t[4].start);
+        // sprintf(recieverType, "%.*s", t[6].end - t[6].start, data + t[6].start);
+        // sprintf(recieverUID, "%.*s", t[8].end - t[8].start, data + t[8].start);
+        // sprintf(funcID, "%.*s", t[10].end - t[10].start, data + t[10].start);
+        // sprintf(parsedData, "%.*s", t[12].end - t[12].start, data + t[12].start);
 
         // Convert parsedData into an array of char pointers?
 
-        #if(LOGGING)
-            MDF_LOGI("SENDER: %s | %s", senderType, senderUID);
-            MDF_LOGI("RECIEVER: %s | %s", recieverType, recieverUID);
-            MDF_LOGI("FUNCID: %s", funcID);
-            MDF_LOGI("DATA: %s\n", parsedData);
-        #endif
+        // #if(LOGGING)
+        //     MDF_LOGI("SENDER: %s | %s", senderType, senderUID);
+        //     MDF_LOGI("RECIEVER: %s | %s", recieverType, recieverUID);
+        //     MDF_LOGI("FUNCID: %s", funcID);
+        //     MDF_LOGI("DATA: %s\n", parsedData);
+        // #endif
 
         // Get values from data char array
         int rCol, gCol, bCol, type, controller, speed;
@@ -328,86 +328,94 @@ static void node_read_task(void *arg) {
             MDF_LOGI("Parsed values (read task): %d %d %d %d %d %d", rCol, gCol, bCol, type, controller, speed);
         #endif
 
-        // Set values
-        if(controller == 0 || controller == DEVICE_ID) {
-            // Stop fade if currently active
-            if(fadeHandle != NULL) {
-                quitLoop = 1;
-                vTaskDelay(75 / portTICK_RATE_MS);
-
-                vTaskDelete(fadeHandle);
-                fadeHandle = NULL;
-
-                #if(LOGGING)
-                    MDF_LOGI("KILLED TASK");
-                #endif
-
-                setColor(0, 0, 0);
-                fShow();
-
-                quitLoop = 0;
-            }
-
-            FadeColStruct fadeOne, fadeTwo;
-            fadeOne.type = 1;
-            fadeOne.duration = 150;
-            fadeTwo.type = 2;
-            fadeTwo.duration = 150;
-
-            // Individually addressable LED stuff (sample input =
-            // "0-0-ledFunctionNum-4-3-0-")
-            if(type == 4) {
-                if(rCol != 0 && gCol != 0 && bCol != 0) {
-                    setColor(rCol, gCol, bCol);
-                } else {
-                    if(bCol < 0 || bCol > JMP_TBL_MAX_INDEX)
-                        continue;
-
-                    xTaskCreate(wsLEDPointers[bCol], "blinkLeds", 4096, NULL, 2,
-                                &fadeHandle);
-
-                    #if(LOGGING)
-                        MDF_LOGI("STARTED new pattern");
-                    #endif
-                }
-
-                continue;
-            }
-
-            // Set new color settings
-            if(type == 3) {
-                fadeOne.newR = 255;
-                fadeOne.newG = 0;
-                fadeOne.newB = 0;
-
-                fadeTwo.newR = 255;
-                fadeTwo.newG = 0;
-                fadeTwo.newB = 0;
-
-                xTaskCreate(fadeToNewCol, "fadeScript", 4096, &fadeOne, 2,
-                            NULL);
-                xTaskCreate(fadeToNewCol, "fadeScript", 4096, &fadeTwo, 2,
-                            NULL);
-                vTaskDelay(fadeTwo.duration / portTICK_RATE_MS);
-                xTaskCreate(loopFade, "fadeScript", 4096, &speed, 2,
-                            &fadeHandle);
-            } else {
-                fadeOne.newR = rCol;
-                fadeOne.newG = gCol;
-                fadeOne.newB = bCol;
-
-                fadeTwo.newR = rCol;
-                fadeTwo.newG = gCol;
-                fadeTwo.newB = bCol;
-
-                if(type == 1 || type == 0)
-                    xTaskCreate(fadeToNewCol, "fadeScript", 4096, &fadeOne, 2,
-                                NULL);
-                if(type == 2 || type == 0)
-                    xTaskCreate(fadeToNewCol, "fadeScript", 4096, &fadeTwo, 2,
-                                NULL);
-            }
+        if(rCol != 0 && gCol != 0 && bCol != 0) {
+            MDF_LOGI("SETTING NEW COLOR %d %d %d", rCol, gCol, bCol);
+            setColor(rCol, gCol, bCol);
+            functionNum = -1;
+        } else {
+            functionNum = type;
         }
+
+        // Set values
+        // if(controller == 0 || controller == DEVICE_ID) {
+        //     // Stop fade if currently active
+        //     if(fadeHandle != NULL) {
+        //         quitLoop = 1;
+        //         vTaskDelay(75 / portTICK_RATE_MS);
+        //
+        //         vTaskDelete(fadeHandle);
+        //         fadeHandle = NULL;
+        //
+        //         #if(LOGGING)
+        //             MDF_LOGI("KILLED TASK");
+        //         #endif
+        //
+        //         setColor(0, 0, 0);
+        //         fShow();
+        //
+        //         quitLoop = 0;
+        //     }
+        //
+        //     FadeColStruct fadeOne, fadeTwo;
+        //     fadeOne.type = 1;
+        //     fadeOne.duration = 150;
+        //     fadeTwo.type = 2;
+        //     fadeTwo.duration = 150;
+        //
+        //     // Individually addressable LED stuff (sample input =
+        //     // "0-0-ledFunctionNum-4-3-0-")
+        //     if(type == 4) {
+        //         if(rCol != 0 && gCol != 0 && bCol != 0) {
+        //             setColor(rCol, gCol, bCol);
+        //         } else {
+        //             if(bCol < 0 || bCol > JMP_TBL_MAX_INDEX)
+        //                 continue;
+        //
+        //             xTaskCreate(wsLEDPointers[bCol], "blinkLeds", 4096, NULL, 2,
+        //                         &fadeHandle);
+        //
+        //             #if(LOGGING)
+        //                 MDF_LOGI("STARTED new pattern");
+        //             #endif
+        //         }
+        //
+        //         continue;
+        //     }
+        //
+        //     // Set new color settings
+        //     if(type == 3) {
+        //         fadeOne.newR = 255;
+        //         fadeOne.newG = 0;
+        //         fadeOne.newB = 0;
+        //
+        //         fadeTwo.newR = 255;
+        //         fadeTwo.newG = 0;
+        //         fadeTwo.newB = 0;
+        //
+        //         xTaskCreate(fadeToNewCol, "fadeScript", 4096, &fadeOne, 2,
+        //                     NULL);
+        //         xTaskCreate(fadeToNewCol, "fadeScript", 4096, &fadeTwo, 2,
+        //                     NULL);
+        //         vTaskDelay(fadeTwo.duration / portTICK_RATE_MS);
+        //         xTaskCreate(loopFade, "fadeScript", 4096, &speed, 2,
+        //                     &fadeHandle);
+        //     } else {
+        //         fadeOne.newR = rCol;
+        //         fadeOne.newG = gCol;
+        //         fadeOne.newB = bCol;
+        //
+        //         fadeTwo.newR = rCol;
+        //         fadeTwo.newG = gCol;
+        //         fadeTwo.newB = bCol;
+        //
+        //         if(type == 1 || type == 0)
+        //             xTaskCreate(fadeToNewCol, "fadeScript", 4096, &fadeOne, 2,
+        //                         NULL);
+        //         if(type == 2 || type == 0)
+        //             xTaskCreate(fadeToNewCol, "fadeScript", 4096, &fadeTwo, 2,
+        //                         NULL);
+        //     }
+        // }
     }
 
     MDF_LOGW("Node read task quitting");

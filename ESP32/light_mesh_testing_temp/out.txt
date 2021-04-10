@@ -1,0 +1,80 @@
+[1/8] Performing build step for 'bootloader'
+ninja: no work to do.
+[2/6] Building CXX object esp-idf/main/CMakeFiles/__idf_main.dir/lightMesh.cpp.obj
+FAILED: esp-idf/main/CMakeFiles/__idf_main.dir/lightMesh.cpp.obj 
+/home/hassanf/.espressif/tools/xtensa-esp32-elf/esp-2020r2-8.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-g++ -DHAVE_CONFIG_H -DMBEDTLS_CONFIG_FILE=\"mbedtls/esp_config.h\" -DUNITY_INCLUDE_CONFIG_H -DWITH_POSIX -Iconfig -I/home/hassanf/esp/esp-mdf/esp-idf/components/newlib/platform_include -I/home/hassanf/esp/esp-mdf/esp-idf/components/freertos/include -I/home/hassanf/esp/esp-mdf/esp-idf/components/freertos/xtensa/include -I/home/hassanf/esp/esp-mdf/esp-idf/components/heap/include -I/home/hassanf/esp/esp-mdf/esp-idf/components/log/include -I/home/hassanf/esp/esp-mdf/esp-idf/components/lwip/include/apps -I/home/hassanf/esp/esp-mdf/esp-idf/components/lwip/include/apps/sntp -I/home/hassanf/esp/esp-mdf/esp-idf/components/lwip/lwip/src/include -I/home/hassanf/esp/esp-mdf/esp-idf/components/lwip/port/esp32/include -I/home/hassanf/esp/esp-mdf/esp-idf/components/lwip/port/esp32/include/arch -I/home/hassanf/esp/esp-mdf/esp-idf/components/soc/src/esp32/. -I/home/hassanf/esp/esp-mdf/esp-idf/components/soc/src/esp32/include -I/home/hassanf/esp/esp-mdf/esp-idf/components/soc/include -I/home/hassanf/esp/esp-mdf/esp-idf/components/esp_rom/include -I/home/hassanf/esp/esp-mdf/esp-idf/components/esp_common/include -I/home/hassanf/esp/esp-mdf/esp-idf/components/esp_system/include -I/home/hassanf/esp/esp-mdf/esp-idf/components/xtensa/include -I/home/hassanf/esp/esp-mdf/esp-idf/components/xtensa/esp32/include -I/home/hassanf/esp/esp-mdf/esp-idf/components/esp32/include -I/home/hassanf/esp/esp-mdf/esp-idf/components/driver/include -I/home/hassanf/esp/esp-mdf/esp-idf/components/driver/esp32/include -I/home/hassanf/esp/esp-mdf/esp-idf/components/esp_ringbuf/include -I/home/hassanf/esp/esp-mdf/esp-idf/components/efuse/include -I/home/hassanf/esp/esp-mdf/esp-idf/components/efuse/esp32/include -I/home/hassanf/esp/esp-mdf/esp-idf/components/espcoredump/include -I/home/hassanf/esp/esp-mdf/esp-idf/components/esp_timer/include -I/home/hassanf/esp/esp-mdf/esp-idf/components/esp_ipc/include -I/home/hassanf/esp/esp-mdf/esp-idf/components/soc/soc/esp32/. -I/home/hassanf/esp/esp-mdf/esp-idf/components/soc/soc/esp32/include -I/home/hassanf/esp/esp-mdf/esp-idf/components/soc/soc/esp32/../include -I/home/hassanf/esp/esp-mdf/esp-idf/components/vfs/include -I/home/hassanf/esp/esp-mdf/esp-idf/components/esp_wifi/include -I/home/hassanf/esp/esp-mdf/esp-idf/components/esp_wifi/esp32/include -I/home/hassanf/esp/esp-mdf/esp-idf/components/esp_event/include -I/home/hassanf/esp/esp-mdf/esp-idf/components/esp_netif/include -I/home/hassanf/esp/esp-mdf/esp-idf/components/esp_eth/include -I/home/hassanf/esp/esp-mdf/esp-idf/components/tcpip_adapter/include -I/home/hassanf/esp/esp-mdf/esp-idf/components/app_trace/include -I/home/hassanf/esp/esp-mdf/esp-idf/components/mbedtls/port/include -I/home/hassanf/esp/esp-mdf/esp-idf/components/mbedtls/mbedtls/include -I/home/hassanf/esp/esp-mdf/esp-idf/components/mbedtls/esp_crt_bundle/include -I/home/hassanf/esp/esp-mdf/esp-idf/components/bootloader_support/include -I/home/hassanf/esp/esp-mdf/esp-idf/components/app_update/include -I/home/hassanf/esp/esp-mdf/esp-idf/components/spi_flash/include -I/home/hassanf/esp/esp-mdf/esp-idf/components/wpa_supplicant/include -I/home/hassanf/esp/esp-mdf/esp-idf/components/wpa_supplicant/port/include -I/home/hassanf/esp/esp-mdf/esp-idf/components/wpa_supplicant/include/esp_supplicant -I/home/hassanf/esp/esp-mdf/esp-idf/components/nvs_flash/include -I/home/hassanf/esp/esp-mdf/esp-idf/components/pthread/include -I/home/hassanf/esp/esp-mdf/esp-idf/components/perfmon/include -I/home/hassanf/esp/esp-mdf/esp-idf/components/asio/asio/asio/include -I/home/hassanf/esp/esp-mdf/esp-idf/components/asio/port/include -I/home/hassanf/esp/esp-mdf/esp-idf/components/cbor/port/include -I/home/hassanf/esp/esp-mdf/esp-idf/components/coap/port/include -I/home/hassanf/esp/esp-mdf/esp-idf/components/coap/port/include/coap -I/home/hassanf/esp/esp-mdf/esp-idf/components/coap/libcoap/include -I/home/hassanf/esp/esp-mdf/esp-idf/components/coap/libcoap/include/coap2 -I/home/hassanf/esp/esp-mdf/esp-idf/components/console -I/home/hassanf/esp/esp-mdf/esp-idf/components/nghttp/port/include -I/home/hassanf/esp/esp-mdf/esp-idf/components/nghttp/nghttp2/lib/includes -I/home/hassanf/esp/esp-mdf/esp-idf/components/esp-tls -I/home/hassanf/esp/esp-mdf/esp-idf/components/esp_adc_cal/include -I/home/hassanf/esp/esp-mdf/esp-idf/components/esp_gdbstub/include -I/home/hassanf/esp/esp-mdf/esp-idf/components/esp_hid/include -I/home/hassanf/esp/esp-mdf/esp-idf/components/tcp_transport/include -I/home/hassanf/esp/esp-mdf/esp-idf/components/esp_http_client/include -I/home/hassanf/esp/esp-mdf/esp-idf/components/esp_http_server/include -I/home/hassanf/esp/esp-mdf/esp-idf/components/esp_https_ota/include -I/home/hassanf/esp/esp-mdf/esp-idf/components/protobuf-c/protobuf-c -I/home/hassanf/esp/esp-mdf/esp-idf/components/protocomm/include/common -I/home/hassanf/esp/esp-mdf/esp-idf/components/protocomm/include/security -I/home/hassanf/esp/esp-mdf/esp-idf/components/protocomm/include/transports -I/home/hassanf/esp/esp-mdf/esp-idf/components/mdns/include -I/home/hassanf/esp/esp-mdf/esp-idf/components/esp_local_ctrl/include -I/home/hassanf/esp/esp-mdf/esp-idf/components/sdmmc/include -I/home/hassanf/esp/esp-mdf/esp-idf/components/esp_serial_slave_link/include -I/home/hassanf/esp/esp-mdf/esp-idf/components/esp_websocket_client/include -I/home/hassanf/esp/esp-mdf/esp-idf/components/expat/expat/expat/lib -I/home/hassanf/esp/esp-mdf/esp-idf/components/expat/port/include -I/home/hassanf/esp/esp-mdf/esp-idf/components/wear_levelling/include -I/home/hassanf/esp/esp-mdf/esp-idf/components/fatfs/diskio -I/home/hassanf/esp/esp-mdf/esp-idf/components/fatfs/vfs -I/home/hassanf/esp/esp-mdf/esp-idf/components/fatfs/src -I/home/hassanf/esp/esp-mdf/esp-idf/components/freemodbus/common/include -I/home/hassanf/esp/esp-mdf/esp-idf/components/idf_test/include -I/home/hassanf/esp/esp-mdf/esp-idf/components/idf_test/include/esp32 -I/home/hassanf/esp/esp-mdf/esp-idf/components/jsmn/include -I/home/hassanf/esp/esp-mdf/esp-idf/components/json/cJSON -I/home/hassanf/esp/esp-mdf/esp-idf/components/libsodium/libsodium/src/libsodium/include -I/home/hassanf/esp/esp-mdf/esp-idf/components/libsodium/port_include -I/home/hassanf/esp/esp-mdf/esp-idf/components/mqtt/esp-mqtt/include -I/home/hassanf/esp/esp-mdf/esp-idf/components/openssl/include -I/home/hassanf/esp/esp-mdf/esp-idf/components/spiffs/include -I/home/hassanf/esp/esp-mdf/esp-idf/components/ulp/include -I/home/hassanf/esp/esp-mdf/esp-idf/components/unity/include -I/home/hassanf/esp/esp-mdf/esp-idf/components/unity/unity/src -I/home/hassanf/esp/esp-mdf/esp-idf/components/wifi_provisioning/include -I../components/FastLED-idf -I../components/FastLED-idf/hal -I../components/WS2812FX-idf -I/home/hassanf/esp/esp-mdf/components/mcommon/include -I/home/hassanf/esp/esp-mdf/components/mespnow/include -I/home/hassanf/esp/esp-mdf/components/third_party/miniz -I/home/hassanf/esp/esp-mdf/components/mwifi/include -I/home/hassanf/esp/esp-mdf/components/mconfig/include -I/home/hassanf/esp/esp-mdf/components/mupgrade/include -I/home/hassanf/esp/esp-mdf/components/mdebug/include -I/home/hassanf/esp/esp-mdf/components/mlink/include -mlongcalls -Wno-frame-address -ffunction-sections -fdata-sections -fstrict-volatile-bitfields -Wall -Werror=all -Wno-error=unused-function -Wno-error=unused-but-set-variable -Wno-error=unused-variable -Wno-error=deprecated-declarations -Wextra -Wno-unused-parameter -Wno-sign-compare -ggdb -O2 -std=gnu++11 -fno-exceptions -fno-rtti -D_GNU_SOURCE -DIDF_VER=\"v4.2-dev-2084-g98d5b5dfd\" -DMDF_VER=\"v1.0-123-g26d134c\" -DESP_PLATFORM -MD -MT esp-idf/main/CMakeFiles/__idf_main.dir/lightMesh.cpp.obj -MF esp-idf/main/CMakeFiles/__idf_main.dir/lightMesh.cpp.obj.d -o esp-idf/main/CMakeFiles/__idf_main.dir/lightMesh.cpp.obj -c ../main/lightMesh.cpp
+In file included from ../components/FastLED-idf/FastLED.h:77,
+                 from ../main/wsLED.cpp:7,
+                 from ../main/lightMesh.cpp:31:
+../components/FastLED-idf/fastspi.h:135:23: note: #pragma message: No hardware SPI pins defined.  All SPI access will default to bitbanged output
+ #      pragma message "No hardware SPI pins defined.  All SPI access will default to bitbanged output"
+                       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+In file included from ../main/lightMesh.cpp:31:
+../main/wsLED.cpp: In function 'void blinkLeds_chase(void*)':
+../main/wsLED.cpp:369:18: warning: unused variable 'start' [-Wunused-variable]
+         uint64_t start = esp_timer_get_time();
+                  ^~~~~
+../main/wsLED.cpp:371:18: warning: unused variable 'end' [-Wunused-variable]
+         uint64_t end = esp_timer_get_time();
+                  ^~~
+../main/wsLED.cpp: In function 'void advancedAlternatingRainbow(void*)':
+../main/wsLED.cpp:994:19: warning: unused variable 'spin' [-Wunused-variable]
+             float spin =
+                   ^~~~
+../main/wsLED.cpp: In function 'void strobe(void*)':
+../main/wsLED.cpp:1067:9: warning: unused variable 'SpeedDelay' [-Wunused-variable]
+     int SpeedDelay = 50;
+         ^~~~~~~~~~
+In file included from ../main/lightMesh.cpp:32:
+../main/root.c: In function 'void root_task(void*)':
+../main/root.c:31:37: warning: missing initializer for member 'mwifi_data_type_t::upgrade' [-Wmissing-field-initializers]
+     mwifi_data_type_t data_type = {0};
+                                     ^
+../main/root.c:31:37: warning: missing initializer for member 'mwifi_data_type_t::communicate' [-Wmissing-field-initializers]
+../main/root.c:31:37: warning: missing initializer for member 'mwifi_data_type_t::group' [-Wmissing-field-initializers]
+../main/root.c:31:37: warning: missing initializer for member 'mwifi_data_type_t::reserved' [-Wmissing-field-initializers]
+../main/root.c:31:37: warning: missing initializer for member 'mwifi_data_type_t::protocol' [-Wmissing-field-initializers]
+../main/root.c:31:37: warning: missing initializer for member 'mwifi_data_type_t::custom' [-Wmissing-field-initializers]
+In file included from ../main/lightMesh.cpp:33:
+../main/node.c: In function 'void node_read_task(void*)':
+../main/node.c:246:39: warning: missing initializer for member 'mwifi_data_type_t::upgrade' [-Wmissing-field-initializers]
+     mwifi_data_type_t data_type = {0x0};
+                                       ^
+../main/node.c:246:39: warning: missing initializer for member 'mwifi_data_type_t::communicate' [-Wmissing-field-initializers]
+../main/node.c:246:39: warning: missing initializer for member 'mwifi_data_type_t::group' [-Wmissing-field-initializers]
+../main/node.c:246:39: warning: missing initializer for member 'mwifi_data_type_t::reserved' [-Wmissing-field-initializers]
+../main/node.c:246:39: warning: missing initializer for member 'mwifi_data_type_t::protocol' [-Wmissing-field-initializers]
+../main/node.c:246:39: warning: missing initializer for member 'mwifi_data_type_t::custom' [-Wmissing-field-initializers]
+In file included from ../main/lightMesh.cpp:33:
+../main/node.c: In function 'void node_write_task(void*)':
+../main/node.c:436:39: warning: missing initializer for member 'mwifi_data_type_t::upgrade' [-Wmissing-field-initializers]
+     mwifi_data_type_t data_type = {0x0};
+                                       ^
+../main/node.c:436:39: warning: missing initializer for member 'mwifi_data_type_t::communicate' [-Wmissing-field-initializers]
+../main/node.c:436:39: warning: missing initializer for member 'mwifi_data_type_t::group' [-Wmissing-field-initializers]
+../main/node.c:436:39: warning: missing initializer for member 'mwifi_data_type_t::reserved' [-Wmissing-field-initializers]
+../main/node.c:436:39: warning: missing initializer for member 'mwifi_data_type_t::protocol' [-Wmissing-field-initializers]
+../main/node.c:436:39: warning: missing initializer for member 'mwifi_data_type_t::custom' [-Wmissing-field-initializers]
+../main/lightMesh.cpp: In function 'void app_main()':
+../main/lightMesh.cpp:171:21: error: invalid conversion from 'void (*)()' to 'TaskFunction_t' {aka 'void (*)(void*)'} [-fpermissive]
+         xTaskCreate(doColors, "node_set_color_task", 4 * 1024, NULL,
+                     ^~~~~~~~
+In file included from /home/hassanf/esp/esp-mdf/esp-idf/components/driver/include/driver/i2c.h:28,
+                 from ../main/lightMesh.cpp:19:
+/home/hassanf/esp/esp-mdf/esp-idf/components/freertos/include/freertos/task.h:435:19: note:   initializing argument 1 of 'BaseType_t xTaskCreate(TaskFunction_t, const char*, uint32_t, void*, UBaseType_t, void**)'
+    TaskFunction_t pvTaskCode,
+    ~~~~~~~~~~~~~~~^~~~~~~~~~
+In file included from ../main/lightMesh.cpp:33:
+../main/node.c: At global scope:
+../main/node.c:228:12: warning: 'int jsoneq(const char*, jsmntok_t*, const char*)' defined but not used [-Wunused-function]
+ static int jsoneq(const char *json, jsmntok_t *tok, const char *s) {
+            ^~~~~~
+../main/node.c:31:15: warning: 'wsLEDPointers' defined but not used [-Wunused-variable]
+ static void (*wsLEDPointers[])(void *pvParameters) = {blinkLeds_chase2,            // 0
+               ^~~~~~~~~~~~~
+ninja: build stopped: subcommand failed.
+Setting IDF_PATH environment variable: /home/hassanf/esp/esp-mdf/esp-idf
+Executing action: all (aliases: build)
+Running ninja in directory /home/hassanf/Desktop/ALMA/ALMA/ESP32/light_mesh_testing_temp/build
+Executing "ninja all"...
+ninja failed with exit code 1
