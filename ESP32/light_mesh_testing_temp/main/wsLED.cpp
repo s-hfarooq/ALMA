@@ -404,19 +404,26 @@ void meteorRain(void *params) {
     //while(1) {
         setAll(0, 0, 0);
 
-        for(int i = 0; i < NUM_LEDS + NUM_LEDS; i++) {
+        for(int i = 0; i < NUM_LEDS + NUM_LEDS + NUM_LEDS_2 + NUM_LEDS_2; i++) {
             // fade brightness all LEDs one step
-            setPixel(-1, 0, 0, 0);
-            for(int j = 0; j < NUM_LEDS; j++) {
+            for(int j = 0; j < NUM_LEDS + NUM_LEDS_2; j++) {
                 int randNum = rand() % ((10 + 1));
-                if((!meteorRandomDecay) || (randNum > 5))
-                    leds[j].fadeToBlackBy(meteorTrailDecay);
+                if((!meteorRandomDecay) || (randNum > 5)) {
+                    if(j < NUM_LEDS_2)
+                        leds_2[j].fadeToBlackBy(meteorTrailDecay);
+                    else
+                        leds[j - NUM_LEDS_2].fadeToBlackBy(meteorTrailDecay);
+                }
             }
 
             // draw meteor
             for(int j = 0; j < meteorSize; j++) {
-                if((i - j < NUM_LEDS) && (i - j >= 0))
-                    setPixel(i - j, red, green, blue);
+                if((i - j < NUM_LEDS + NUM_LEDS_2) && (i - j >= 0)) {
+                    if(i - j < NUM_LEDS_2)
+                        setPixel(-(NUM_LEDS_2 - (i - j)), red, green, blue);
+                    else
+                        setPixel((i - j) - NUM_LEDS_2, red, green, blue);
+                }
             }
 
             if(currType != functionNum)
