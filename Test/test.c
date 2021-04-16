@@ -23,7 +23,7 @@ static const char *JSON_STRING =
 
 // {"senderType": "ROOT", "senderUID": "0123456789", "recieverType": "HOLONYAK", "recieverUID": "9876543210", "functionID": "SET_COLOR", "data": ["125", "157", "255"]}
 
-// {"senderType": "ROOT", "senderUID": 0123456789, "recieverType": "HOLONYAK", "recieverUID": 9876543210, "functionID": "SET_COLOR", "data": [125, 157, 255]}
+// {"senderUID": "10000123", "recieverUID": "10B013A1", "functionID": "SET_COLOR", "data": [125, 157, 255]}
 
 static int jsoneq(const char *json, jsmntok_t *tok, const char *s) {
   if (tok->type == JSMN_STRING && (int)strlen(s) == tok->end - tok->start &&

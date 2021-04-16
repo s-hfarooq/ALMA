@@ -17,8 +17,7 @@
 #include "sdkconfig.h"
 #include "jsmn.h"
 
-// Struct for fadeToNewCol function parameter - needed due to xTaskCreate
-// parameters
+// Struct for fadeToNewCol function parameter - needed due to xTaskCreate parameters
 typedef struct {
     int newR;
     int newG;
@@ -26,29 +25,6 @@ typedef struct {
     int duration;
     int type;
 } FadeColStruct;
-
-static const int JMP_TBL_MAX_INDEX = 19;
-static void (*wsLEDPointers[])(void *pvParameters) = {blinkLeds_chase2,            // 0
-                                                      colorPalette,                // 1
-                                                      blinkLeds_simple,            // 2
-                                                      blinkLeds_chase,             // 3
-                                                      cylon,                       // 4
-                                                      colorTemperature,            // 5
-                                                      meteorRain,                  // 6
-                                                      confetti,                    // 7
-                                                      fadeInFadeOut,               // 8
-                                                      cylon2,                      // 9
-                                                      sparkle,                     // 10
-                                                      snowSparkle,                 // 11
-                                                      runningLights,               // 12
-                                                      colorWipe,                   // 13
-                                                      rainbowCycle,                // 14
-                                                      theaterChase,                // 15
-                                                      theaterChaseRainbow,         // 16
-                                                      alternatingRainbow,          // 17
-                                                      advancedAlternatingRainbow,  // 18
-                                                      strobe                       // 19
-};
 
 /*
  * displayCol
@@ -59,7 +35,7 @@ static void (*wsLEDPointers[])(void *pvParameters) = {blinkLeds_chase2,         
  *   SIDE EFFECTS: none
  */
 void displayCol(int r, int g, int b, int type) {
-#if(DEVICE_ID != 3)
+#if (CURRENT_TYPE != 0x101)
     // Convert 0-255 color to 0-4000
     int dutyAmnt[3] = {r * 4000 / 255, g * 4000 / 255, b * 4000 / 255};
 
@@ -96,52 +72,6 @@ void displayCol(int r, int g, int b, int type) {
     }
 
 #endif
-}
-
-/*
- * getValues
- *   DESCRIPTION: Takes input char array and extracts desired values
- *   INPUTS: rx_buf[128] - char array to analyze (all elements seperated by
- * '-'), rCol, gCol, bCol, type, controller, speed all pointers to variable to
- * place extracted values into RETURN VALUE: none SIDE EFFECTS: rCol, gCol,
- * bCol, type, controller, speed all altered
- */
-void getValues(char rx_buf[128], int *rCol, int *gCol, int *bCol, int *type,
-               int *controller, int *speed) {
-    char *split = strtok(rx_buf, "-"), *curr;
-    int temp[6] = {0, 0, 0, 0, 0, 0}, i = 0;
-
-    // Convert char array into int values
-    while(split != NULL && i < 6) {
-        curr = split;
-        temp[i] = atoi(curr);
-        split = strtok(NULL, "-");
-        i++;
-    }
-
-    #if(LOGGING)
-        MDF_LOGI("Parsed values: %d %d %d %d %d %d", temp[0], temp[1], temp[2], temp[3], temp[4], temp[5]);
-    #endif
-
-    // Ensure values are within expected range
-    for(i = 0; i < 3; i++) {
-        temp[i] = temp[i] < 0 ? 0 : temp[i];
-        while(temp[i] > 255) temp[i] %= 255;
-    }
-
-    // Ensure other values are within expected range
-    temp[3] = temp[3] < 0 ? 0 : temp[3];
-    while(temp[3] > 10) temp[3] /= 10;
-    temp[4] = temp[4] < 3 && temp[4] > -1 ? temp[4] : 0;
-    temp[5] = temp[5] < 10 ? 10 : temp[5];
-
-    // Place values from array into input pointer variables
-    *rCol = temp[0];
-    *gCol = temp[1];
-    *bCol = temp[2];
-    *type = temp[3];
-    *controller = temp[4];
-    *speed = temp[5];
 }
 
 /*
@@ -260,20 +190,16 @@ static void node_read_task(void *arg) {
 
         // Parse JSON string recieved over mesh network
         jsmn_parser p;
-        jsmntok_t t[128];
+        jsmntok_t t[12];
         jsmn_init(&p);
         int r = jsmn_parse(&p, data, strlen(data), t, sizeof(t) / sizeof(t[0]));
 
         #if (LOGGING)
             MDF_LOGI("DATA: %s, s: %d", data, r);
-            if(jsoneq(data, &t[1], "user") == 0)
-                MDF_LOGI("DAT0: %.*s", t[2].end - t[2].start, data + t[2].start);
-            if(jsoneq(data, &t[7], "groups") == 0)
-                MDF_LOGI("DAT3 size: %d", t[8].size);
         #endif
 
-        // Parse recieved JSON string
-        if(r < 12) {
+        // Ensure JSON had enough elements
+        if(r < 8) {
             #if (LOGGING)
                 MDF_LOGI("r less than 12 (%d)", r);
             #endif
@@ -283,10 +209,8 @@ static void node_read_task(void *arg) {
 
         // SAMPLE INPUT JSON
         // {
-        //     "senderType": "ROOT",
-        //     "senderUID": 0123456789,
-        //     "recieverType": "HOLONYAK",
-        //     "recieverUID": 9876543210,
+        //     "senderUID": "AAABBCCC",
+        //     "recieverUID": "DDDEEFFF",
         //     "functionID": "SET_COLOR",
         //     "data": [
         //         255,
@@ -294,120 +218,107 @@ static void node_read_task(void *arg) {
         //         73
         //     ]
         // }
+        //
+        // {"senderUID": "10000123", "recieverUID": "101FFFFF", "functionID": "16", "data": []}
+        // {"senderUID": "10000123", "recieverUID": "101FFFFF", "functionID": "-1", "data": [215, 25, 10]}
+        //
+        // UID is 8 hex digits in the format
+        //     AAABBCCC
+        //     where AAA correspond with device type
+        //     BB correspond with physical location
+        //     CCC correspond with a unique identifier
+        //  if device type = FFF -> device type not important for command (all devices matching other parts of UID process command)
+        //  if physical location = FF -> location not important for command (all devices matching other parts of UID process command)
+        //  if unique identifier = FFF -> unique identifier not important for command (all devices matching other parts of UID process command)
 
         // check if recieverType == NULL or == current device type
         //  if false continue otherwise check recieverUID
         //      if != NULL and current device UID not in array continue
 
 
-        char *senderType = (char*)MDF_MALLOC(sizeof(char) * (t[2].end - t[2].start)), *senderUID = (char*)MDF_MALLOC(sizeof(char) * (t[4].end - t[4].start));
-        char *recieverType = (char*)MDF_MALLOC(sizeof(char) * (t[6].end - t[6].start)), *recieverUID = (char*)MDF_MALLOC(sizeof(char) * (t[8].end - t[8].start));
-        char *funcID = (char*)MDF_MALLOC(sizeof(char) * (t[10].end - t[10].start));
-        char *parsedData = (char*)MDF_MALLOC(sizeof(char) * (t[12].end - t[12].start));
-        sprintf(senderType, "%.*s", t[2].end - t[2].start, data + t[2].start);
-        sprintf(senderUID, "%.*s", t[4].end - t[4].start, data + t[4].start);
-        sprintf(recieverType, "%.*s", t[6].end - t[6].start, data + t[6].start);
-        sprintf(recieverUID, "%.*s", t[8].end - t[8].start, data + t[8].start);
-        sprintf(funcID, "%.*s", t[10].end - t[10].start, data + t[10].start);
-        sprintf(parsedData, "%.*s", t[12].end - t[12].start, data + t[12].start);
+        // Parse reciever UID information
+        char *recieverUID = (char*)MDF_MALLOC(sizeof(char) * (t[4].end - t[4].start + 1));
+        sprintf(recieverUID, "%.*s", t[4].end - t[4].start, data + t[4].start);
+        unsigned long recieveJSONID = strtol(recieverUID, NULL, 16);
+        unsigned int recieveType = recieveJSONID >> (4 * 5);
+        unsigned int recieveLoc = (recieveJSONID >> (4 * 3)) & 0xFF;
+        unsigned int recieveID = recieveJSONID & 0xFFF;
+
+        // Ensure current device should be executing recieved command
+        if(recieveType != 0xFFF && recieveType != CURRENT_TYPE)
+            continue;
+        if(recieveLoc != 0xFF && recieveLoc != CURRENT_LOC)
+            continue;
+        if(recieveID != 0xFFF && recieveID != CURRENT_ID)
+            continue;
+
+        // Parse sender UID information (not currently used)
+        char *senderUID = (char*)MDF_MALLOC(sizeof(char) * (t[2].end - t[2].start + 1));
+        sprintf(senderUID, "%.*s", t[2].end - t[2].start, data + t[2].start);
+        unsigned long sendJSONID = strtol(senderUID, NULL, 16);
+        unsigned int sendType = sendJSONID >> (4 * 5);
+        unsigned int sendLoc = (sendJSONID >> (4 * 3)) & 0xFF;
+        unsigned int sendID = sendJSONID & 0xFFF;
+
+        // Parse function ID and data
+        char *funcID = (char*)MDF_MALLOC(sizeof(char) * (t[6].end - t[6].start + 1));
+        char *parsedData = (char*)MDF_MALLOC(sizeof(char) * (t[8].end - t[8].start + 1));
+        sprintf(funcID, "%.*s", t[6].end - t[6].start, data + t[6].start);
+        sprintf(parsedData, "%.*s", t[8].end - t[8].start, data + t[8].start);
 
         // Convert parsedData into an array of char pointers?
 
         #if(LOGGING)
-            MDF_LOGI("SENDER: %s | %s", senderType, senderUID);
-            MDF_LOGI("RECIEVER: %s | %s", recieverType, recieverUID);
+            MDF_LOGI("SENDER: %x | %x | %x", sendType, sendLoc, sendID);
+            MDF_LOGI("RECIEVER: %x | %x | %x", recieveType, recieveLoc, recieveID);
             MDF_LOGI("FUNCID: %s", funcID);
             MDF_LOGI("DATA: %s\n", parsedData);
         #endif
 
-        // Get values from data char array
-        int rCol, gCol, bCol, type, controller, speed;
-        getValues(data, &rCol, &gCol, &bCol, &type, &controller, &speed);
+        // Run command - different for each type of controller
+        // Holonyak controller (individually addressable WS2812B)
+        #if (CURRENT_TYPE == 0x101)
+            int idx = atoi(funcID);
 
-        #if(LOGGING)
-            MDF_LOGI("Parsed values (read task): %d %d %d %d %d %d", rCol, gCol, bCol, type, controller, speed);
-        #endif
+            #if(LOGGING)
+                MDF_LOGI("STARTING TASK %d", idx);
+            #endif
 
-        // Set values
-        if(controller == 0 || controller == DEVICE_ID) {
-            // Stop fade if currently active
-            if(fadeHandle != NULL) {
-                quitLoop = 1;
-                vTaskDelay(75 / portTICK_RATE_MS);
-
-                vTaskDelete(fadeHandle);
-                fadeHandle = NULL;
-
-                #if(LOGGING)
-                    MDF_LOGI("KILLED TASK");
-                #endif
-
-                setColor(0, 0, 0);
-                fShow();
-
-                quitLoop = 0;
-            }
-
-            FadeColStruct fadeOne, fadeTwo;
-            fadeOne.type = 1;
-            fadeOne.duration = 150;
-            fadeTwo.type = 2;
-            fadeTwo.duration = 150;
-
-            // Individually addressable LED stuff (sample input =
-            // "0-0-ledFunctionNum-4-3-0-")
-            if(type == 4) {
-                if(rCol != 0 && gCol != 0 && bCol != 0) {
-                    setColor(rCol, gCol, bCol);
-                } else {
-                    if(bCol < 0 || bCol > JMP_TBL_MAX_INDEX)
-                        continue;
-
-                    xTaskCreate(wsLEDPointers[bCol], "blinkLeds", 4096, NULL, 2,
-                                &fadeHandle);
-
-                    #if(LOGGING)
-                        MDF_LOGI("STARTED new pattern");
-                    #endif
+            if(idx == -1) {
+                char *ptr = parsedData;
+                int cols[3] = {0, 0, 0};
+                int loc = 0;
+                while(*ptr) {
+                    if(isdigit(*ptr)) {
+                        cols[loc] = strtol(ptr, &ptr, 10);
+                        loc++;
+                    } else {
+                        ptr++;
+                    }
                 }
 
-                continue;
-            }
+                #if(LOGGING)
+                    MDF_LOGI("Colors: %d %d %d", cols[0], cols[1], cols[2]);
+                #endif
 
-            // Set new color settings
-            if(type == 3) {
-                fadeOne.newR = 255;
-                fadeOne.newG = 0;
-                fadeOne.newB = 0;
-
-                fadeTwo.newR = 255;
-                fadeTwo.newG = 0;
-                fadeTwo.newB = 0;
-
-                xTaskCreate(fadeToNewCol, "fadeScript", 4096, &fadeOne, 2,
-                            NULL);
-                xTaskCreate(fadeToNewCol, "fadeScript", 4096, &fadeTwo, 2,
-                            NULL);
-                vTaskDelay(fadeTwo.duration / portTICK_RATE_MS);
-                xTaskCreate(loopFade, "fadeScript", 4096, &speed, 2,
-                            &fadeHandle);
+                currType = -1;
+                setColor(cols[0], cols[1], cols[2]);
+                fShow();
             } else {
-                fadeOne.newR = rCol;
-                fadeOne.newG = gCol;
-                fadeOne.newB = bCol;
-
-                fadeTwo.newR = rCol;
-                fadeTwo.newG = gCol;
-                fadeTwo.newB = bCol;
-
-                if(type == 1 || type == 0)
-                    xTaskCreate(fadeToNewCol, "fadeScript", 4096, &fadeOne, 2,
-                                NULL);
-                if(type == 2 || type == 0)
-                    xTaskCreate(fadeToNewCol, "fadeScript", 4096, &fadeTwo, 2,
-                                NULL);
+                currType = idx;
             }
-        }
+
+        #endif
+
+        // 5050 Controller
+        #if (CURRENT_TYPE == 0x102)
+            // TODO: add code for 5050 controller
+        #endif
+
+        // Bluetooth speaker controller
+        #if (CURRENT_TYPE == 0x103)
+            // TODO: add code for bluetooth speaker controller
+        #endif
     }
 
     MDF_LOGW("Node read task quitting");

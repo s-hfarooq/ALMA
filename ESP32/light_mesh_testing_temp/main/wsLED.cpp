@@ -404,7 +404,7 @@ void meteorRain(void *params) {
     //while(1) {
         setAll(0, 0, 0);
 
-        for(int i = 0; i < NUM_LEDS + NUM_LEDS + NUM_LEDS_2 + NUM_LEDS_2; i++) {
+        for(int i = 0; i < NUM_LEDS + NUM_LEDS + (NUM_LEDS_2 / 2); i++) {
             // fade brightness all LEDs one step
             for(int j = 0; j < NUM_LEDS + NUM_LEDS_2; j++) {
                 int randNum = rand() % ((10 + 1));
@@ -929,7 +929,6 @@ void wsLEDInit() {
 
 void doColors(void *arg) {
     while(1) {
-        printf("FUNCTIONNUM: %d\n", functionNum);
         switch(functionNum) {
             case 0:
                 currType = 0;

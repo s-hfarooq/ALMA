@@ -106,7 +106,7 @@ static mdf_err_t event_loop_cb(mdf_event_loop_t event, void *ctx) {
  *   SIDE EFFECTS: none
  */
 void app_main() {
-    #if (DEVICE_ID != 3)
+    #if (CURRENT_TYPE != 0x101)
     ledc_timer_config(&ledc_timer);
     // Prepare and set configuration of timer1 for low speed channels
     ledc_timer.speed_mode = LEDC_HS_MODE;
@@ -168,7 +168,9 @@ void app_main() {
         wsLEDInit();
         xTaskCreate(node_write_task, "node_write_task", 4 * 1024, NULL,
                     CONFIG_MDF_TASK_DEFAULT_PRIOTY, NULL);
-        xTaskCreate(node_read_task, "node_read_task", 4 * 1024, NULL,
+        xTaskCreate(individuallyAddressableDispatcher, "node_set_color_task", 6 * 1024, NULL,
+                    CONFIG_MDF_TASK_DEFAULT_PRIOTY, NULL);
+        xTaskCreate(node_read_task, "node_read_task", 6 * 1024, NULL,
                     CONFIG_MDF_TASK_DEFAULT_PRIOTY, NULL);
     }
 }
