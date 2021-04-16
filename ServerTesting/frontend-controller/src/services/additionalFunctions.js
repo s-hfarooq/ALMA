@@ -8,41 +8,49 @@ export async function sendCommand(data) {
 }
 
 export function getCommandString(color, option) {
-  let newColStr = color.rgb.r + "-" + color.rgb.g + "-" + color.rgb.b;
-
-  // Figure out what output string ending needs to be
+  let recieverUID = "";
   switch (option) {
-    case "1colceiling":
-      newColStr += "-4-3-0-";
+    case "ceiling":
+      recieverUID = "101FFFFF"; // 101 = type Holonyak, FF = any location, FFF = any ID
       break;
-    case "1colcouch":
-      newColStr += "-1-2-0-";
-      break;
-    case "2colceiling":
-      newColStr += "-4-3-0-";
-      break;
-    case "2colcouch":
-      newColStr += "-2-2-0-";
-      break;
-    case "bothceiling":
-      newColStr += "-4-3-0-";
-      break;
-    case "bothcouch":
-      newColStr += "-0-2-0-";
-      break;
+    // case "couch":
+    //   newColStr += "-0-2-0-";
+    //   break;
     default:
-      newColStr += "-0-0-0-";
+      recieverUID = "101FFFFF"; // 101 = type Holonyak, FF = any location, FFF = any ID
   }
 
-  return newColStr;
+  var returnVal = {
+      "senderUID": "10000000",
+      "recieverUID": recieverUID,
+      "functionID": "-1",
+      "data": [
+          color.rgb.r,
+          color.rgb.g,
+          color.rgb.b,
+      ],
+  };
+
+  return returnVal;
+}
+
+export function getAnimationString(animationNum) {
+    let recieverUID = "101FFFFF"; // 101 = type Holonyak, FF = any location, FFF = any ID
+
+    var returnVal = {
+        "senderUID": "10000000",
+        "recieverUID": recieverUID,
+        "functionID": animationNum,
+        "data": [ ],
+    };
+
+    return returnVal;
 }
 
 export const lightOptions = [
-  { value: "all", label: "All", color: "#00B8D9" },
-  { value: "1colceiling", label: "Ceiling Strip 1", color: "#0052CC" },
-  { value: "2colceiling", label: "Ceiling Strip 2", color: "#5243AA" },
-  { value: "bothceiling", label: "Ceiling - Both", color: "#00B8D9" },
-  { value: "bothcouch", label: "Couch", color: "#5243AA" }
+  // { value: "all", label: "All", color: "#00B8D9" },
+  { value: "ceiling", label: "Ceiling", color: "#00B8D9" },
+  // { value: "couch", label: "Couch", color: "#5243AA" }
 ];
 
 export const animationOptions = [

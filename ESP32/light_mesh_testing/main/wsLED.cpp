@@ -384,13 +384,7 @@ void blinkLeds_chase(void *pvParameters) {
     if(pos == 0)
         led_color = (led_color + 1) % N_COLORS_CHASE;
 
-    uint64_t start = esp_timer_get_time();
     FastLED.show();
-    uint64_t end = esp_timer_get_time();
-
-    #if(LOGGING)
-        printf("Show Time: %" PRIu64 "\n", end - start);
-    #endif
 
     if(currType != functionNum)
         return;

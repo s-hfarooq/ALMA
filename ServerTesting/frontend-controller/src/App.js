@@ -1,5 +1,5 @@
 import React from 'react';
-import { sendCommand, getCommandString, lightOptions, animationOptions } from './services/additionalFunctions'
+import { sendCommand, getCommandString, lightOptions, animationOptions, getAnimationString } from './services/additionalFunctions'
 import { ChromePicker } from 'react-color';
 import Select from 'react-select';
 import Button from 'react-bootstrap/Button';
@@ -8,7 +8,7 @@ import InputNumber from 'rc-input-number';
 class App extends React.Component {
     state = {
         background: '#fff',
-        selectedOption: { value: "all" },
+        selectedOption: { value: "ceiling" },
         fadeSpeed: 50,
         animationNum: { value: "0" },
     }
@@ -81,7 +81,7 @@ class App extends React.Component {
                 />
 
                 <Button variant="outline-dark" onClick={async () => {
-                    await sendCommand("0-0-0-3-0-" + this.state.fadeSpeed + "-");
+                    // await sendCommand("0-0-0-3-0-" + this.state.fadeSpeed + "-");
                 }}>Start Fade (delay above)</Button>
 
                 <br/><br/><br/>
@@ -102,7 +102,7 @@ class App extends React.Component {
 
                 <Button variant="outline-dark" onClick={async () => {
                     //console.log("0-0-" + this.state.animationNum.value + "-4-3-0-");
-                    await sendCommand("0-0-" + this.state.animationNum.value + "-4-3-0-");
+                    await sendCommand(getAnimationString(this.state.animationNum.value));
                 }}>Start Ceiling Animation</Button>
             </center> </div>
         );

@@ -2,6 +2,7 @@
 #pragma once
 #include <stdio.h>
 #include <sys/param.h>
+#include <ctype.h>
 
 #include "driver/gpio.h"
 #include "driver/i2c.h"
@@ -16,152 +17,7 @@
 #include "mwifi.h"
 #include "sdkconfig.h"
 #include "jsmn.h"
-
-// Struct for fadeToNewCol function parameter - needed due to xTaskCreate parameters
-typedef struct {
-    int newR;
-    int newG;
-    int newB;
-    int duration;
-    int type;
-} FadeColStruct;
-
-/*
- * displayCol
- *   DESCRIPTION: Helper function to display RGB values
- *   INPUTS: r, g, b - RGB values to set (expected 0-255 inclusive),
- *           type - 0 = both strips, 1 = strip 1, 2 = strip 2
- *   RETURN VALUE: none
- *   SIDE EFFECTS: none
- */
-void displayCol(int r, int g, int b, int type) {
-#if (CURRENT_TYPE != 0x101)
-    // Convert 0-255 color to 0-4000
-    int dutyAmnt[3] = {r * 4000 / 255, g * 4000 / 255, b * 4000 / 255};
-
-    // Set strip 1
-    if(type == 0 || type == 1) {
-        // Set the three channels
-        for(int ch = 0; ch < LEDC_TEST_CH_NUM - 3; ch++) {
-            ledc_set_duty(ledc_channel[ch].speed_mode, ledc_channel[ch].channel,
-                          dutyAmnt[ch]);
-            ledc_update_duty(ledc_channel[ch].speed_mode,
-                             ledc_channel[ch].channel);
-        }
-
-        // Set "old" color array
-        oCol1[0] = r;
-        oCol1[1] = g;
-        oCol1[2] = b;
-    }
-
-    // Set strip 2
-    if(type == 0 || type == 2) {
-        // Set the three channels
-        for(int ch = 3; ch < LEDC_TEST_CH_NUM; ch++) {
-            ledc_set_duty(ledc_channel[ch].speed_mode, ledc_channel[ch].channel,
-                          dutyAmnt[ch - 3]);
-            ledc_update_duty(ledc_channel[ch].speed_mode,
-                             ledc_channel[ch].channel);
-        }
-
-        // Set "old" color array
-        oCol2[0] = r;
-        oCol2[1] = g;
-        oCol2[2] = b;
-    }
-
-#endif
-}
-
-/*
- * fadeToNewCol
- *   DESCRIPTION: Helper function to fade to new color
- *   INPUTS: *arg - pointer to FadeColStruct object
- *   RETURN VALUE: none
- *   SIDE EFFECTS: none
- */
-void fadeToNewCol(void *arg) {
-    // Fade from current color to new value
-    FadeColStruct inputStruct = *(FadeColStruct *)arg;
-
-    #if(LOGGING)
-        MDF_LOGI("Fading to new col");
-    #endif
-
-    int oR, oG, oB;
-    if(inputStruct.type == 0 || inputStruct.type == 1) {
-        oR = oCol1[0];
-        oG = oCol1[1];
-        oB = oCol1[2];
-    } else {
-        oR = oCol2[0];
-        oG = oCol2[1];
-        oB = oCol2[2];
-    }
-
-    // Find difference values for fade
-    int rDiff = inputStruct.newR - oR;
-    int gDiff = inputStruct.newG - oG;
-    int bDiff = inputStruct.newB - oB;
-    int delayAmnt = 20;
-    int steps = inputStruct.duration / delayAmnt;
-    int rV, gV, bV;
-
-    // Loop through all steps to slowly change to new color
-    for(int i = 0; i < steps - 1; i++) {
-        rV = oR + (rDiff * i / steps);
-        gV = oG + (gDiff * i / steps);
-        bV = oB + (bDiff * i / steps);
-
-        displayCol(rV, gV, bV, inputStruct.type);
-        vTaskDelay(delayAmnt / portTICK_PERIOD_MS);
-    }
-
-    displayCol(inputStruct.newR, inputStruct.newG, inputStruct.newB,
-               inputStruct.type);
-    vTaskDelete(NULL);
-}
-
-/*
- * loopFade
- *   DESCRIPTION: Fade script to go through all colors
- *   INPUTS: *arg - pointer to int value determining delay amount
- *   RETURN VALUE: none
- *   SIDE EFFECTS: none
- */
-void loopFade(void *arg) {
-    // Loop through all colors
-    int delay = *(int *)arg;
-
-    #if(LOGGING)
-        MDF_LOGI("speed val: %d", delay);
-    #endif
-
-    // Define settings for input to fade function
-    FadeColStruct fadeSettings;
-    fadeSettings.duration = 5;
-    fadeSettings.type = 0;
-
-    while(true) {
-        for(int i = 0; i < 360; i++) {
-            fadeSettings.newR = lights[(i + 120) % 360];
-            fadeSettings.newG = lights[i];
-            fadeSettings.newB = lights[(i + 240) % 360];
-            xTaskCreate(fadeToNewCol, "fadeScript", 4096, &fadeSettings, 2,
-                        NULL);
-
-            vTaskDelay((delay + fadeSettings.duration) / portTICK_PERIOD_MS);
-        }
-    }
-}
-static int jsoneq(const char *json, jsmntok_t *tok, const char *s) {
-  if (tok->type == JSMN_STRING && (int)strlen(s) == tok->end - tok->start &&
-      strncmp(json + tok->start, s, tok->end - tok->start) == 0) {
-    return 0;
-  }
-  return -1;
-}
+#include "5050led.c"
 
 /*
  * node_read_task
@@ -231,12 +87,9 @@ static void node_read_task(void *arg) {
         //  if physical location = FF -> location not important for command (all devices matching other parts of UID process command)
         //  if unique identifier = FFF -> unique identifier not important for command (all devices matching other parts of UID process command)
 
-        // check if recieverType == NULL or == current device type
-        //  if false continue otherwise check recieverUID
-        //      if != NULL and current device UID not in array continue
-
-
         // Parse reciever UID information
+
+        // TODO: fix this -> instead of using hard coded index, use jsmn example and search for specific keys within JSON
         char *recieverUID = (char*)MDF_MALLOC(sizeof(char) * (t[4].end - t[4].start + 1));
         sprintf(recieverUID, "%.*s", t[4].end - t[4].start, data + t[4].start);
         unsigned long recieveJSONID = strtol(recieverUID, NULL, 16);
