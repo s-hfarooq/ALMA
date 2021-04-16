@@ -31,7 +31,7 @@ export function getCommandString(color, option) {
       ],
   };
 
-  return returnVal;
+  return JSON.stringify(returnVal);
 }
 
 export function getAnimationString(animationNum) {
@@ -44,7 +44,7 @@ export function getAnimationString(animationNum) {
         "data": [ ],
     };
 
-    return returnVal;
+    return JSON.stringify(returnVal);
 }
 
 export const lightOptions = [
