@@ -1,8 +1,5 @@
 // Various variables and definitions shared by the other files
 
-// 1 = ceiling, 2 = couch, 3 = testing, -1 = root
-#define DEVICE_ID (3)
-
 // 0xFFF = reserved (all), 0x100 = root, 0x101 = Holonyayk, 0x102 = 5050 controller, 0x103 = BT speaker controller
 #define CURRENT_TYPE (0x101)
 
@@ -27,7 +24,6 @@
 #define ESP_SLAVE_ADDR 0x04
 #define SLAVE_REQUEST_WAIT_MS (25)
 
-
 #if (CURRENT_TYPE != 0x101)
 #define LEDC_HS_TIMER LEDC_TIMER_0
 #define LEDC_HS_MODE LEDC_HIGH_SPEED_MODE
@@ -46,8 +42,6 @@
 #define LEDC_HS_CH4_CHANNEL LEDC_CHANNEL_4
 #define LEDC_HS_CH5_GPIO (25)
 #define LEDC_HS_CH5_CHANNEL LEDC_CHANNEL_5
-
-
 
 // Configuring PWM settings
 ledc_timer_config_t ledc_timer = {

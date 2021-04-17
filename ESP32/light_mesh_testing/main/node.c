@@ -75,7 +75,7 @@ static void node_read_task(void *arg) {
         //     ]
         // }
         //
-        // {"senderUID": "10000123", "recieverUID": "101FFFFF", "functionID": "16", "data": []}
+        // {"senderUID": "10000123", "recieverUID": "101FFFFF", "functionID": "15", "data": []}
         // {"senderUID": "10000123", "recieverUID": "101FFFFF", "functionID": "-1", "data": [215, 25, 10]}
         //
         // UID is 8 hex digits in the format
@@ -96,6 +96,7 @@ static void node_read_task(void *arg) {
         unsigned int recieveType = recieveJSONID >> (4 * 5);
         unsigned int recieveLoc = (recieveJSONID >> (4 * 3)) & 0xFF;
         unsigned int recieveID = recieveJSONID & 0xFFF;
+        MDF_FREE(recieverUID);
 
         // Ensure current device should be executing recieved command
         if(recieveType != 0xFFF && recieveType != CURRENT_TYPE)
@@ -112,6 +113,7 @@ static void node_read_task(void *arg) {
         unsigned int sendType = sendJSONID >> (4 * 5);
         unsigned int sendLoc = (sendJSONID >> (4 * 3)) & 0xFF;
         unsigned int sendID = sendJSONID & 0xFFF;
+        MDF_FREE(senderUID);
 
         // Parse function ID and data
         char *funcID = (char*)MDF_MALLOC(sizeof(char) * (t[6].end - t[6].start + 1));
@@ -139,11 +141,10 @@ static void node_read_task(void *arg) {
 
             if(idx == -1) {
                 char *ptr = parsedData;
-                int cols[3] = {0, 0, 0};
                 int loc = 0;
                 while(*ptr) {
                     if(isdigit(*ptr)) {
-                        cols[loc] = strtol(ptr, &ptr, 10);
+                        newSetColor[loc] = strtol(ptr, &ptr, 10);
                         loc++;
                     } else {
                         ptr++;
@@ -151,15 +152,11 @@ static void node_read_task(void *arg) {
                 }
 
                 #if(LOGGING)
-                    MDF_LOGI("Colors: %d %d %d", cols[0], cols[1], cols[2]);
+                    MDF_LOGI("Colors: %d %d %d", newSetColor[0], newSetColor[1], newSetColor[2]);
                 #endif
-
-                currType = -1;
-                setColor(cols[0], cols[1], cols[2]);
-                fShow();
-            } else {
-                currType = idx;
             }
+
+            currType = idx;
 
         #endif
 
@@ -172,6 +169,9 @@ static void node_read_task(void *arg) {
         #if (CURRENT_TYPE == 0x103)
             // TODO: add code for bluetooth speaker controller
         #endif
+
+        MDF_FREE(funcID);
+        MDF_FREE(parsedData);
     }
 
     MDF_LOGW("Node read task quitting");

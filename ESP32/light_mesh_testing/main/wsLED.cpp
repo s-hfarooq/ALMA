@@ -54,8 +54,9 @@ extern const TProgmemPalette16 IRAM_ATTR myRedWhiteBluePalette_p;
 CRGB leds[NUM_LEDS];
 CRGB leds_2[NUM_LEDS_2];
 
-volatile int currType = -1;
-volatile int functionNum = -1;
+volatile int currType = -2;
+volatile int functionNum = -2;
+volatile int newSetColor[3] = {0, 0, 0};
 
 #define NUM_FUNCTIONS 20
 
@@ -990,16 +991,21 @@ void individuallyAddressableDispatcher(void *params) {
     // Loop forever
     while(1) {
         // Only start new function when currType variable changed
-        if(currType > 0 && currType < NUM_FUNCTIONS) {
+        if(currType > -2 && currType < NUM_FUNCTIONS) {
             #if (LOGGING)
-                printf("STARTING FUNC %d\n", currType);
+            printf("STARTING FUNC %d\n", currType);
             #endif
+
+            // Set single color
+            if(currType == -1) {
+                functionNum = currType;
+                setColor(newSetColor[0], newSetColor[1], newSetColor[2]);
+                continue;
+            }
 
             // Call new function
             functionNum = currType;
             wsLEDPointers[currType](NULL);
-        } else if(currType == -1) {
-            functionNum = currType;
         }
 
         delay(5);
