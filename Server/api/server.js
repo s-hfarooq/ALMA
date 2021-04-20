@@ -10,7 +10,7 @@ var net = require('net');
 var lastSentTime = new Date();
 
 var spawn = require('child_process').spawn;
-var child = spawn('python3',["i2cpi.py"]);
+var child = spawn('python3',["i2c_raw.py"]);
 
 app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, '../frontend-controller/build')));
