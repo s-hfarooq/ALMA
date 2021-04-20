@@ -101,8 +101,7 @@ static esp_err_t i2c_slave_init() {
  *   SIDE EFFECTS: alters inBuff char array
  */
 bool check_for_data() {
-    size_t size = i2c_slave_read_buffer(I2C_SLAVE_NUM, inBuff, 1,
-                                        1000 / portTICK_RATE_MS);
+    size_t size = i2c_slave_read_buffer(I2C_SLAVE_NUM, inBuff, 1, 1000 / portTICK_RATE_MS);
 
     if(size == 1) {
         if(inBuff[0] == 0x01) {
@@ -143,7 +142,7 @@ bool check_for_data() {
                 while(inBuff[offset] != '{')
                     offset++;
                 for(int k = 0; k < size_pl; k++)
-                    inBuff[k] = inBuff[k + offset];
+                    inBuff[k] = inBuff[k + offset]; //inBuff += offset instead of loop?
 
                 inBuffLen -= offset;
             }

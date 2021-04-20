@@ -968,25 +968,6 @@ void strobe(void *params) {
     delay(30);
 }
 
-void wsLEDInit() {
-    #if(LOGGING)
-        printf(" entering wsLEDInit\n");
-    #endif
-
-    FastLED.addLeds<LED_TYPE, DATA_PIN_1, COLOR_ORDER>(leds, NUM_LEDS);
-    FastLED.addLeds<LED_TYPE, DATA_PIN_2, COLOR_ORDER>(leds_2, NUM_LEDS_2);
-
-    #if(LOGGING)
-        printf(" set max power\n");
-    #endif
-
-    FastLED.setMaxPowerInVoltsAndMilliamps(PSUVOLTS, PSUMILIAMPS);
-
-    #if(LOGGING)
-        printf(" ws2812b initialized\n");
-    #endif
-}
-
 void individuallyAddressableDispatcher(void *params) {
     // Loop forever
     while(1) {
@@ -1012,4 +993,23 @@ void individuallyAddressableDispatcher(void *params) {
     }
 
     vTaskDelete(NULL);
+}
+
+void wsLEDInit() {
+    #if(LOGGING)
+    printf(" entering wsLEDInit\n");
+    #endif
+
+    FastLED.addLeds<LED_TYPE, DATA_PIN_1, COLOR_ORDER>(leds, NUM_LEDS);
+    FastLED.addLeds<LED_TYPE, DATA_PIN_2, COLOR_ORDER>(leds_2, NUM_LEDS_2);
+
+    #if(LOGGING)
+    printf(" set max power\n");
+    #endif
+
+    FastLED.setMaxPowerInVoltsAndMilliamps(PSUVOLTS, PSUMILIAMPS);
+
+    #if(LOGGING)
+    printf(" ws2812b initialized\n");
+    #endif
 }

@@ -140,6 +140,7 @@ static void node_read_task(void *arg) {
             #endif
 
             if(idx == -1) {
+                // Parse data for single color
                 char *ptr = parsedData;
                 int loc = 0;
                 while(*ptr) {
