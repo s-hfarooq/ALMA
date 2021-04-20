@@ -77,6 +77,7 @@ static void node_read_task(void *arg) {
         //
         // {"senderUID": "10000123", "recieverUID": "101FFFFF", "functionID": "15", "data": []}
         // {"senderUID": "10000123", "recieverUID": "101FFFFF", "functionID": "-1", "data": [215, 25, 10]}
+        // {"senderUID": "10000123", "recieverUID": "101FFFFF", "functionID": "-1", "data": [0, 215, 100]}
         //
         // UID is 8 hex digits in the format
         //     AAABBCCC
@@ -158,7 +159,6 @@ static void node_read_task(void *arg) {
             }
 
             currType = idx;
-
         #endif
 
         // 5050 Controller
@@ -198,14 +198,14 @@ void node_write_task(void *arg) {
 
     while(true) {
         if(!mwifi_is_connected()) {
-            vTaskDelay(50 / portTICK_RATE_MS);
+            vTaskDelay(100 / portTICK_RATE_MS);
             continue;
         }
 
         size = sprintf(data, "(%d)", count++);
         mwifi_write(NULL, &data_type, data, size, true);
 
-        vTaskDelay(500 / portTICK_RATE_MS);
+        vTaskDelay(75 / portTICK_RATE_MS);
     }
 
     MDF_LOGW("Node write quitting");

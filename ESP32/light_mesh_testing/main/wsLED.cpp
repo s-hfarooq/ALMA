@@ -974,7 +974,7 @@ void individuallyAddressableDispatcher(void *params) {
         // Only start new function when currType variable changed
         if(currType > -2 && currType < NUM_FUNCTIONS) {
             #if (LOGGING)
-            printf("STARTING FUNC %d\n", currType);
+                printf("STARTING FUNC %d\n", currType);
             #endif
 
             // Set single color
@@ -1008,6 +1008,8 @@ void wsLEDInit() {
     #endif
 
     FastLED.setMaxPowerInVoltsAndMilliamps(PSUVOLTS, PSUMILIAMPS);
+    setAll(0, 0, 0);
+    fShow();
 
     #if(LOGGING)
     printf(" ws2812b initialized\n");

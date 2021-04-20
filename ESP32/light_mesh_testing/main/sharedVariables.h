@@ -11,7 +11,6 @@
 
 // 0 to disable logging
 #define LOGGING (1)
-// 151416
 
 #define LEDC_TEST_CH_NUM (6)
 #define LEDC_TEST_DUTY (4000)
@@ -25,73 +24,73 @@
 #define SLAVE_REQUEST_WAIT_MS (25)
 
 #if (CURRENT_TYPE != 0x101)
-#define LEDC_HS_TIMER LEDC_TIMER_0
-#define LEDC_HS_MODE LEDC_HIGH_SPEED_MODE
-#define LEDC_HS_CH0_GPIO (18)
-#define LEDC_HS_CH0_CHANNEL LEDC_CHANNEL_0
-#define LEDC_HS_CH1_GPIO (5)
-#define LEDC_HS_CH1_CHANNEL LEDC_CHANNEL_1
-#define LEDC_LS_TIMER LEDC_TIMER_1
-#define LEDC_LS_MODE LEDC_LOW_SPEED_MODE
-#define LEDC_LS_CH2_GPIO (17)
-#define LEDC_LS_CH2_CHANNEL LEDC_CHANNEL_2
-#define LEDC_LS_CH3_GPIO (32)
-#define LEDC_LS_CH3_CHANNEL LEDC_CHANNEL_3
+    #define LEDC_HS_TIMER LEDC_TIMER_0
+    #define LEDC_HS_MODE LEDC_HIGH_SPEED_MODE
+    #define LEDC_HS_CH0_GPIO (18)
+    #define LEDC_HS_CH0_CHANNEL LEDC_CHANNEL_0
+    #define LEDC_HS_CH1_GPIO (5)
+    #define LEDC_HS_CH1_CHANNEL LEDC_CHANNEL_1
+    #define LEDC_LS_TIMER LEDC_TIMER_1
+    #define LEDC_LS_MODE LEDC_LOW_SPEED_MODE
+    #define LEDC_LS_CH2_GPIO (17)
+    #define LEDC_LS_CH2_CHANNEL LEDC_CHANNEL_2
+    #define LEDC_LS_CH3_GPIO (32)
+    #define LEDC_LS_CH3_CHANNEL LEDC_CHANNEL_3
 
-#define LEDC_HS_CH4_GPIO (33)
-#define LEDC_HS_CH4_CHANNEL LEDC_CHANNEL_4
-#define LEDC_HS_CH5_GPIO (25)
-#define LEDC_HS_CH5_CHANNEL LEDC_CHANNEL_5
+    #define LEDC_HS_CH4_GPIO (33)
+    #define LEDC_HS_CH4_CHANNEL LEDC_CHANNEL_4
+    #define LEDC_HS_CH5_GPIO (25)
+    #define LEDC_HS_CH5_CHANNEL LEDC_CHANNEL_5
 
-// Configuring PWM settings
-ledc_timer_config_t ledc_timer = {
-    .speed_mode = LEDC_LS_MODE,            // timer mode
-    .duty_resolution = LEDC_TIMER_13_BIT,  // resolution of PWM duty
-    .timer_num = LEDC_LS_TIMER,            // timer index
-    .freq_hz = 5000,                       // frequency of PWM signal
-    .clk_cfg = LEDC_AUTO_CLK,              // Auto select the source clock
-};
+    // Configuring PWM settings
+    ledc_timer_config_t ledc_timer = {
+        .speed_mode = LEDC_LS_MODE,            // timer mode
+        .duty_resolution = LEDC_TIMER_13_BIT,  // resolution of PWM duty
+        .timer_num = LEDC_LS_TIMER,            // timer index
+        .freq_hz = 5000,                       // frequency of PWM signal
+        .clk_cfg = LEDC_AUTO_CLK,              // Auto select the source clock
+    };
 
-// Configuring PWM settings
-ledc_channel_config_t ledc_channel[LEDC_TEST_CH_NUM] = {
-    {.gpio_num = LEDC_HS_CH0_GPIO,
-     .speed_mode = LEDC_HS_MODE,
-     .channel = LEDC_HS_CH0_CHANNEL,
-     .timer_sel = LEDC_HS_TIMER,
-     .duty = 0,
-     .hpoint = 0},
-    {.gpio_num = LEDC_HS_CH1_GPIO,
-     .speed_mode = LEDC_HS_MODE,
-     .channel = LEDC_HS_CH1_CHANNEL,
-     .timer_sel = LEDC_HS_TIMER,
-     .duty = 0,
-     .hpoint = 0},
-    {.gpio_num = LEDC_LS_CH2_GPIO,
-     .speed_mode = LEDC_LS_MODE,
-     .channel = LEDC_LS_CH2_CHANNEL,
-     .timer_sel = LEDC_LS_TIMER,
-     .duty = 0,
-     .hpoint = 0},
-    {.gpio_num = LEDC_LS_CH3_GPIO,
-     .speed_mode = LEDC_LS_MODE,
-     .channel = LEDC_LS_CH3_CHANNEL,
-     .timer_sel = LEDC_LS_TIMER,
-     .duty = 0,
-     .hpoint = 0},
-    {.gpio_num = LEDC_HS_CH4_GPIO,
-     .speed_mode = LEDC_HS_MODE,
-     .channel = LEDC_HS_CH4_CHANNEL,
-     .timer_sel = LEDC_HS_TIMER,
-     .duty = 0,
-     .hpoint = 0},
-    {.gpio_num = LEDC_HS_CH5_GPIO,
-     .speed_mode = LEDC_HS_MODE,
-     .channel = LEDC_HS_CH5_CHANNEL,
-     .timer_sel = LEDC_HS_TIMER,
-     .duty = 0,
-     .hpoint = 0},
-};
-#endif
+    // Configuring PWM settings
+    ledc_channel_config_t ledc_channel[LEDC_TEST_CH_NUM] = {
+        {.gpio_num = LEDC_HS_CH0_GPIO,
+         .speed_mode = LEDC_HS_MODE,
+         .channel = LEDC_HS_CH0_CHANNEL,
+         .timer_sel = LEDC_HS_TIMER,
+         .duty = 0,
+         .hpoint = 0},
+        {.gpio_num = LEDC_HS_CH1_GPIO,
+         .speed_mode = LEDC_HS_MODE,
+         .channel = LEDC_HS_CH1_CHANNEL,
+         .timer_sel = LEDC_HS_TIMER,
+         .duty = 0,
+         .hpoint = 0},
+        {.gpio_num = LEDC_LS_CH2_GPIO,
+         .speed_mode = LEDC_LS_MODE,
+         .channel = LEDC_LS_CH2_CHANNEL,
+         .timer_sel = LEDC_LS_TIMER,
+         .duty = 0,
+         .hpoint = 0},
+        {.gpio_num = LEDC_LS_CH3_GPIO,
+         .speed_mode = LEDC_LS_MODE,
+         .channel = LEDC_LS_CH3_CHANNEL,
+         .timer_sel = LEDC_LS_TIMER,
+         .duty = 0,
+         .hpoint = 0},
+        {.gpio_num = LEDC_HS_CH4_GPIO,
+         .speed_mode = LEDC_HS_MODE,
+         .channel = LEDC_HS_CH4_CHANNEL,
+         .timer_sel = LEDC_HS_TIMER,
+         .duty = 0,
+         .hpoint = 0},
+        {.gpio_num = LEDC_HS_CH5_GPIO,
+         .speed_mode = LEDC_HS_MODE,
+         .channel = LEDC_HS_CH5_CHANNEL,
+         .timer_sel = LEDC_HS_TIMER,
+         .duty = 0,
+         .hpoint = 0},
+    };
+#endif // (CURRENT_TYPE != 0x101)
 
 TaskHandle_t fadeHandle = NULL;
 

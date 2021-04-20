@@ -14,6 +14,7 @@
 
 #include <stdio.h>
 #include <sys/param.h>
+#include <string>
 
 #include "driver/gpio.h"
 #include "driver/i2c.h"
@@ -106,41 +107,40 @@ static mdf_err_t event_loop_cb(mdf_event_loop_t event, void *ctx) {
  *   SIDE EFFECTS: none
  */
 void app_main() {
-    #if (CURRENT_TYPE != 0x101)
-    ledc_timer_config(&ledc_timer);
-    // Prepare and set configuration of timer1 for low speed channels
-    ledc_timer.speed_mode = LEDC_HS_MODE;
-    ledc_timer.timer_num = LEDC_HS_TIMER;
-    ledc_timer_config(&ledc_timer);
+    #if (CURRENT_TYPE == 0x101)
+        wsLEDInit();
+    #endif // (CURRENT_TYPE == 0x101)
 
-    for(int ch = 0; ch < LEDC_TEST_CH_NUM; ch++)
-        ledc_channel_config(&ledc_channel[ch]);
-    #endif
+    #if (CURRENT_TYPE == 0x102)
+        ledc_timer_config(&ledc_timer);
+        // Prepare and set configuration of timer for low speed channels
+        ledc_timer.speed_mode = LEDC_HS_MODE;
+        ledc_timer.timer_num = LEDC_HS_TIMER;
+        ledc_timer_config(&ledc_timer);
 
-    for(int i = 0; i < 3; i++) {
-        oCol1[i] = 0;
-        oCol2[i] = 0;
-    }
+        for(int ch = 0; ch < LEDC_TEST_CH_NUM; ch++)
+            ledc_channel_config(&ledc_channel[ch]);
+
+        // Initialize oCol arrays
+        for(int i = 0; i < 3; i++) {
+            oCol1[i] = 0;
+            oCol2[i] = 0;
+        }
+    #endif // (CURRENT_TYPE == 0x102)
+
 
     mwifi_init_config_t cfg = MWIFI_INIT_CONFIG_DEFAULT();
-    // mwifi_config_t config = {
-    //     .channel = CONFIG_MESH_CHANNEL,
-    //     .mesh_id = CONFIG_MESH_ID,
-    //     .mesh_type = CONFIG_DEVICE_TYPE,
-    // };
-    // uint8_t arr[6] = {1, 2, 3, 4, 5, 6};
-    mwifi_config_t config;
+
+    // Create config for network specific to current device
+    mwifi_config_t config = {};
     config.channel = CONFIG_MESH_CHANNEL;
-    // config.mesh_id[0] = '1';
-    // config.mesh_id[1] = '5';
-    // config.mesh_id[2] = '1';
-    // config.mesh_id[3] = '4';
-    // config.mesh_id[4] = '1';
-    // config.mesh_id[5] = '6';
-    //config.mesh_password = "TEST";
-    memcpy(config.mesh_id, CONFIG_MESH_ID, sizeof(config.mesh_id));
-    strncpy(config.mesh_password, "TESTTESTTEST", sizeof(config.mesh_password));
+    for(int i = 0; i < 6; i++)
+        config.mesh_id[i] = CONFIG_MESH_ID[i];
     config.mesh_type = CONFIG_DEVICE_TYPE;
+    // For now set password to 10 'A's -> should change to something dynamic in
+    // the future -> User input on frontend to configure network?
+    for(int i = 0; i < 10; i++)
+        config.mesh_password[i] = 'A';
 
     // Set log levels
     esp_log_level_set("*", ESP_LOG_INFO);
@@ -165,11 +165,14 @@ void app_main() {
                     CONFIG_MDF_TASK_DEFAULT_PRIOTY, NULL);
         xTaskCreate(i2cs_test_task, "slave", 1024 * 2, (void *)1, 4, NULL);
     } else {
-        wsLEDInit();
         xTaskCreate(node_write_task, "node_write_task", 4 * 1024, NULL,
                     CONFIG_MDF_TASK_DEFAULT_PRIOTY, NULL);
-        xTaskCreate(individuallyAddressableDispatcher, "node_set_color_task", 6 * 1024, NULL,
-                    CONFIG_MDF_TASK_DEFAULT_PRIOTY, NULL);
+
+        #if (CURRENT_TYPE == 0x101)
+            xTaskCreate(individuallyAddressableDispatcher, "node_set_color_task", 6 * 1024, NULL,
+                        CONFIG_MDF_TASK_DEFAULT_PRIOTY, NULL);
+        #endif // (CURRENT_TYPE == 0x101)
+
         xTaskCreate(node_read_task, "node_read_task", 6 * 1024, NULL,
                     CONFIG_MDF_TASK_DEFAULT_PRIOTY, NULL);
     }

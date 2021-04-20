@@ -46,22 +46,22 @@ static void root_task(void *arg) {
 
             size = sprintf(data, "%s", inBuff);
 
-            #if (LOGGING)
-              MDF_LOGI("Writing data \"%s\" to mesh", data);
-            #endif
-
             if(needsToSend[j]) {
+                #if (LOGGING)
+                    MDF_LOGI("Writing data \"%s\" to mesh", data);
+                #endif
+
                 mwifi_root_write(src_addr, 1, &data_type, data, size, false);
                 needsToSend[j] = false;
 
                 if(j == 0)
                     memset(inBuff, 0, sizeof inBuff);
 
+                #if (LOGGING)
+                    MDF_LOGI("Finished sending data");
+                #endif
             }
 
-            #if (LOGGING)
-              MDF_LOGI("Finished sending data");
-            #endif
         }
     }
 
