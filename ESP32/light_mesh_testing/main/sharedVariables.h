@@ -12,6 +12,7 @@
 // 0 to disable logging
 #define LOGGING (1)
 
+#define MAX_NUM_CHILDREN (10)
 #define LEDC_TEST_CH_NUM (6)
 #define LEDC_TEST_DUTY (4000)
 #define LEDC_TEST_FADE_TIME (150)
@@ -100,7 +101,7 @@ uint8_t outBuff[1024];
 uint16_t outBuffLen = 0;
 uint8_t inBuff[1024];
 uint16_t inBuffLen = 0;
-bool needsToSend[2] = {false, false};
+bool needsToSend[MAX_NUM_CHILDREN];
 
 static const char *TAG = "meshNetwork";
 

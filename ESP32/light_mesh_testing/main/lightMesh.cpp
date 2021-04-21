@@ -107,9 +107,9 @@ static mdf_err_t event_loop_cb(mdf_event_loop_t event, void *ctx) {
  *   SIDE EFFECTS: none
  */
 void app_main() {
-    #if (CURRENT_TYPE == 0x101)
-        wsLEDInit();
-    #endif // (CURRENT_TYPE == 0x101)
+    // Set log levels
+    esp_log_level_set("*", ESP_LOG_INFO);
+    esp_log_level_set(TAG, ESP_LOG_DEBUG);
 
     #if (CURRENT_TYPE == 0x102)
         ledc_timer_config(&ledc_timer);
@@ -128,6 +128,8 @@ void app_main() {
         }
     #endif // (CURRENT_TYPE == 0x102)
 
+    for(int i = 0; i < MAX_NUM_CHILDREN; i++)
+        needsToSend[i] = false;
 
     mwifi_init_config_t cfg = MWIFI_INIT_CONFIG_DEFAULT();
 
@@ -141,10 +143,10 @@ void app_main() {
     // the future -> User input on frontend to configure network?
     for(int i = 0; i < 10; i++)
         config.mesh_password[i] = 'A';
-
-    // Set log levels
-    esp_log_level_set("*", ESP_LOG_INFO);
-    esp_log_level_set(TAG, ESP_LOG_DEBUG);
+    for(int i = 0; i < 30; i++)
+        config.router_ssid[i] = ' ';
+    for(int i = 0; i < 62; i++)
+        config.router_password[i] = ' ';
 
     ESP_ERROR_CHECK(i2c_slave_init());
 
@@ -154,6 +156,10 @@ void app_main() {
     MDF_ERROR_ASSERT(mwifi_init(&cfg));
     MDF_ERROR_ASSERT(mwifi_set_config(&config));
     MDF_ERROR_ASSERT(mwifi_start());
+
+    #if (CURRENT_TYPE == 0x101)
+        wsLEDInit();
+    #endif // (CURRENT_TYPE == 0x101)
 
     #if (LOGGING)
       MDF_LOGI("Settings initialized, starting tasks...");

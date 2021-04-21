@@ -5,19 +5,6 @@
 #include <sys/param.h>
 
 #include "FastLED.h"
-#include "driver/gpio.h"
-#include "driver/i2c.h"
-#include "driver/ledc.h"
-#include "esp_event.h"
-#include "esp_log.h"
-#include "esp_netif.h"
-#include "esp_spi_flash.h"
-#include "esp_system.h"
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
-#include "mdf_common.h"
-#include "mwifi.h"
-#include "sdkconfig.h"
 
 CRGBPalette16 currentPalette;
 TBlendType currentBlending;
@@ -29,8 +16,14 @@ extern const TProgmemPalette16 IRAM_ATTR myRedWhiteBluePalette_p;
 
 #define min(a, b) (((a) < (b)) ? (a) : (b))
 
-#define NUM_LEDS (55 + (3 * 150))
-#define NUM_LEDS_2 153
+// static const char *TAG = "wsLED";
+
+
+// #define NUM_LEDS (55 + (3 * 150))
+// #define NUM_LEDS_2 153
+#define NUM_LEDS (150)
+#define NUM_LEDS_2 0
+
 #define DATA_PIN_1 5
 #define DATA_PIN_2 18
 #define BRIGHTNESS 80
@@ -52,7 +45,7 @@ extern const TProgmemPalette16 IRAM_ATTR myRedWhiteBluePalette_p;
 
 
 CRGB leds[NUM_LEDS];
-CRGB leds_2[NUM_LEDS_2];
+CRGB leds_2[NUM_LEDS_2 + 1];
 
 volatile int currType = -2;
 volatile int functionNum = -2;
@@ -255,10 +248,6 @@ void blinkLeds_chase2(void *pvParameters) {
         int prev;
 
         // Forward
-        #if(LOGGING)
-            printf(" chase: forward\n");
-        #endif
-
         prev = -1;
         for(int i = 0; i < NUM_LEDS; i++) {
             if(prev > -1)
@@ -274,10 +263,6 @@ void blinkLeds_chase2(void *pvParameters) {
 
             delay(CHASE_DELAY);
         }
-
-        #if(LOGGING)
-            printf(" chase: backward\n");
-        #endif
 
         prev = -1;
         for(int i = NUM_LEDS - 1; i >= 0; i--) {
@@ -296,10 +281,6 @@ void blinkLeds_chase2(void *pvParameters) {
         }
 
         // Two at a time
-        #if(LOGGING)
-            printf(" chase: twofer\n");
-        #endif
-
         prev = -1;
         for(int i = 0; i < NUM_LEDS; i += 2) {
             if(prev > -1) {
@@ -348,10 +329,6 @@ void colorPalette(void *pvParameters) {
 
 void blinkLeds_simple(void *pvParameters) {
     for(int j = 0; j < N_COLORS; j++) {
-        #if(LOGGING)
-            printf("blink leds\n");
-        #endif
-
         for(int i = 0; i < NUM_LEDS; i++) leds[i] = colors[j];
 
         FastLED.show();
@@ -366,10 +343,6 @@ void blinkLeds_simple(void *pvParameters) {
 void blinkLeds_chase(void *pvParameters) {
     int pos = 0;
     int led_color = 0;
-
-    #if(LOGGING)
-        printf("chase leds\n");
-    #endif
 
     // Blank all LEDS
     setColor(0, 0, 0);
@@ -557,10 +530,6 @@ void confetti(void *params) {
     }
 
     i++;
-
-    #if(LOGGING)
-        printf("AT %d\n", i);
-    #endif
 
     FastLED.show();
     delay(NUM_LEDS / 4);
@@ -812,15 +781,12 @@ void theaterChase(void *params) {
         if(currType != functionNum)
             return;
     }
+
+    // vTaskDelete(NULL);
 }
 
 void theaterChaseRainbow(void *params) {
     int SpeedDelay = 50;
-
-    #if(LOGGING)
-        printf("STARTING theaterChaseRainbow\n");
-    #endif
-
     char *c;
 
     for(int j = 0; j < 256; j++) {  // Cycle all 256 colors in the wheel
@@ -969,49 +935,35 @@ void strobe(void *params) {
 }
 
 void individuallyAddressableDispatcher(void *params) {
+    static const char *TAG = "wsLED";
     // Loop forever
     while(1) {
         // Only start new function when currType variable changed
         if(currType > -2 && currType < NUM_FUNCTIONS) {
-            #if (LOGGING)
-                printf("STARTING FUNC %d\n", currType);
-            #endif
+            //#if (LOGGING)
+                MDF_LOGI("STARTING FUNC %d\n", currType);
+            //#endif
 
-            // Set single color
-            if(currType == -1) {
-                functionNum = currType;
-                setColor(newSetColor[0], newSetColor[1], newSetColor[2]);
-                continue;
-            }
+            functionNum = currType;
 
             // Call new function
-            functionNum = currType;
-            wsLEDPointers[currType](NULL);
+            if(currType == -1)
+                setColor(newSetColor[0], newSetColor[1], newSetColor[2]);
+            else
+                wsLEDPointers[functionNum](NULL);
         }
 
-        delay(5);
+        delay(15);
     }
 
     vTaskDelete(NULL);
 }
 
 void wsLEDInit() {
-    #if(LOGGING)
-    printf(" entering wsLEDInit\n");
-    #endif
-
     FastLED.addLeds<LED_TYPE, DATA_PIN_1, COLOR_ORDER>(leds, NUM_LEDS);
-    FastLED.addLeds<LED_TYPE, DATA_PIN_2, COLOR_ORDER>(leds_2, NUM_LEDS_2);
-
-    #if(LOGGING)
-    printf(" set max power\n");
-    #endif
+    // FastLED.addLeds<LED_TYPE, DATA_PIN_2, COLOR_ORDER>(leds_2, NUM_LEDS_2);
 
     FastLED.setMaxPowerInVoltsAndMilliamps(PSUVOLTS, PSUMILIAMPS);
     setAll(0, 0, 0);
     fShow();
-
-    #if(LOGGING)
-    printf(" ws2812b initialized\n");
-    #endif
 }

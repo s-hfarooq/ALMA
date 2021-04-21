@@ -4,20 +4,8 @@
 #include <sys/param.h>
 #include <ctype.h>
 
-#include "driver/gpio.h"
-#include "driver/i2c.h"
-#include "driver/ledc.h"
-#include "esp_event.h"
-#include "esp_log.h"
-#include "esp_netif.h"
-#include "esp_system.h"
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
-#include "mdf_common.h"
-#include "mwifi.h"
-#include "sdkconfig.h"
 #include "jsmn.h"
-#include "5050led.c"
+// #include "5050led.c"
 
 /*
  * node_read_task
@@ -27,22 +15,24 @@
  *   SIDE EFFECTS: none
  */
 static void node_read_task(void *arg) {
-    char *data = (char *)MDF_MALLOC(MWIFI_PAYLOAD_LEN);
-    size_t size = MWIFI_PAYLOAD_LEN;
-    mwifi_data_type_t data_type = {0x0};
+    mdf_err_t ret = MDF_OK;
+    char *data    = (char*)MDF_MALLOC(MWIFI_PAYLOAD_LEN);
+    size_t size   = MWIFI_PAYLOAD_LEN;
+    mwifi_data_type_t data_type      = {0x0};
     uint8_t src_addr[MWIFI_ADDR_LEN] = {0x0};
 
-    MDF_LOGI("Node read task starting");
+    MDF_LOGI("Note read task is running");
 
-    while(true) {
-        if(!mwifi_is_connected()) {
-            vTaskDelay(50 / portTICK_RATE_MS);
+    for (;;) {
+        if (!mwifi_is_connected()) {
+            vTaskDelay(500 / portTICK_RATE_MS);
             continue;
         }
 
         size = MWIFI_PAYLOAD_LEN;
         memset(data, 0, MWIFI_PAYLOAD_LEN);
-        mwifi_read(src_addr, &data_type, data, &size, portMAX_DELAY);
+        ret = mwifi_read(src_addr, &data_type, data, &size, portMAX_DELAY);
+        MDF_ERROR_CONTINUE(ret != MDF_OK, "mwifi_read, ret: %x", ret);
 
         // Parse JSON string recieved over mesh network
         jsmn_parser p;
@@ -173,9 +163,10 @@ static void node_read_task(void *arg) {
 
         MDF_FREE(funcID);
         MDF_FREE(parsedData);
+        vTaskDelay(10 / portTICK_RATE_MS);
     }
 
-    MDF_LOGW("Node read task quitting");
+    MDF_LOGW("Note read task is exit");
 
     MDF_FREE(data);
     vTaskDelete(NULL);
@@ -189,23 +180,25 @@ static void node_read_task(void *arg) {
  *   SIDE EFFECTS: none
  */
 void node_write_task(void *arg) {
-    int count = 0;
-    size_t size = 0;
-    char *data = (char *)MDF_MALLOC(MWIFI_PAYLOAD_LEN);
+    mdf_err_t ret = MDF_OK;
+    int count     = 0;
+    size_t size   = 0;
+    char *data    = (char*)MDF_MALLOC(MWIFI_PAYLOAD_LEN);
     mwifi_data_type_t data_type = {0x0};
 
     MDF_LOGI("Node write task starting");
 
-    while(true) {
-        if(!mwifi_is_connected()) {
-            vTaskDelay(100 / portTICK_RATE_MS);
+    for (;;) {
+        if (!mwifi_is_connected()) {
+            vTaskDelay(500 / portTICK_RATE_MS);
             continue;
         }
 
         size = sprintf(data, "(%d)", count++);
-        mwifi_write(NULL, &data_type, data, size, true);
+        ret = mwifi_write(NULL, &data_type, data, size, true);
+        MDF_ERROR_CONTINUE(ret != MDF_OK, "mwifi_write, ret: %x", ret);
 
-        vTaskDelay(75 / portTICK_RATE_MS);
+        vTaskDelay(50 / portTICK_RATE_MS);
     }
 
     MDF_LOGW("Node write quitting");

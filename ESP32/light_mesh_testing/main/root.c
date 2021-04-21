@@ -39,7 +39,7 @@ static void root_task(void *arg) {
             continue;
         }
 
-        for(int j = 0; j < 1; j++) {
+        for(int j = 0; j < MAX_NUM_CHILDREN; j++) {
             size = MWIFI_PAYLOAD_LEN;
             memset(data, 0, MWIFI_PAYLOAD_LEN);
             mwifi_root_read(src_addr, &data_type, data, &size, portMAX_DELAY);
@@ -54,7 +54,7 @@ static void root_task(void *arg) {
                 mwifi_root_write(src_addr, 1, &data_type, data, size, false);
                 needsToSend[j] = false;
 
-                if(j == 0)
+                if(j == MAX_NUM_CHILDREN - 1)
                     memset(inBuff, 0, sizeof inBuff);
 
                 #if (LOGGING)
@@ -168,8 +168,8 @@ bool check_for_data() {
 static void i2cs_test_task(void *arg) {
     while(1) {
         if(check_for_data()) {
-            needsToSend[0] = true;
-            needsToSend[1] = true;
+            for(int i = 0; i < MAX_NUM_CHILDREN; i++)
+                needsToSend[i] = true;
 
             #if (LOGGING)
               MDF_LOGI("i2c data recieved (%d): %s", inBuffLen, inBuff);
