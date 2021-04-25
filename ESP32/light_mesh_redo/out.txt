@@ -1,0 +1,89 @@
+[1/8] Performing build step for 'bootloader'
+ninja: no work to do.
+[2/6] Building CXX object esp-idf/main/CMakeFiles/__idf_main.dir/get_started.cpp.obj
+FAILED: esp-idf/main/CMakeFiles/__idf_main.dir/get_started.cpp.obj 
+/home/hassanf/.espressif/tools/xtensa-esp32-elf/esp-2020r2-8.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-g++ -DHAVE_CONFIG_H -DMBEDTLS_CONFIG_FILE=\"mbedtls/esp_config.h\" -DUNITY_INCLUDE_CONFIG_H -DWITH_POSIX -Iconfig -I/home/hassanf/esp/esp-mdf/esp-idf/components/newlib/platform_include -I/home/hassanf/esp/esp-mdf/esp-idf/components/freertos/include -I/home/hassanf/esp/esp-mdf/esp-idf/components/freertos/xtensa/include -I/home/hassanf/esp/esp-mdf/esp-idf/components/heap/include -I/home/hassanf/esp/esp-mdf/esp-idf/components/log/include -I/home/hassanf/esp/esp-mdf/esp-idf/components/lwip/include/apps -I/home/hassanf/esp/esp-mdf/esp-idf/components/lwip/include/apps/sntp -I/home/hassanf/esp/esp-mdf/esp-idf/components/lwip/lwip/src/include -I/home/hassanf/esp/esp-mdf/esp-idf/components/lwip/port/esp32/include -I/home/hassanf/esp/esp-mdf/esp-idf/components/lwip/port/esp32/include/arch -I/home/hassanf/esp/esp-mdf/esp-idf/components/soc/src/esp32/. -I/home/hassanf/esp/esp-mdf/esp-idf/components/soc/src/esp32/include -I/home/hassanf/esp/esp-mdf/esp-idf/components/soc/include -I/home/hassanf/esp/esp-mdf/esp-idf/components/esp_rom/include -I/home/hassanf/esp/esp-mdf/esp-idf/components/esp_common/include -I/home/hassanf/esp/esp-mdf/esp-idf/components/esp_system/include -I/home/hassanf/esp/esp-mdf/esp-idf/components/xtensa/include -I/home/hassanf/esp/esp-mdf/esp-idf/components/xtensa/esp32/include -I/home/hassanf/esp/esp-mdf/esp-idf/components/esp32/include -I/home/hassanf/esp/esp-mdf/esp-idf/components/driver/include -I/home/hassanf/esp/esp-mdf/esp-idf/components/driver/esp32/include -I/home/hassanf/esp/esp-mdf/esp-idf/components/esp_ringbuf/include -I/home/hassanf/esp/esp-mdf/esp-idf/components/efuse/include -I/home/hassanf/esp/esp-mdf/esp-idf/components/efuse/esp32/include -I/home/hassanf/esp/esp-mdf/esp-idf/components/espcoredump/include -I/home/hassanf/esp/esp-mdf/esp-idf/components/esp_timer/include -I/home/hassanf/esp/esp-mdf/esp-idf/components/esp_ipc/include -I/home/hassanf/esp/esp-mdf/esp-idf/components/soc/soc/esp32/. -I/home/hassanf/esp/esp-mdf/esp-idf/components/soc/soc/esp32/include -I/home/hassanf/esp/esp-mdf/esp-idf/components/soc/soc/esp32/../include -I/home/hassanf/esp/esp-mdf/esp-idf/components/vfs/include -I/home/hassanf/esp/esp-mdf/esp-idf/components/esp_wifi/include -I/home/hassanf/esp/esp-mdf/esp-idf/components/esp_wifi/esp32/include -I/home/hassanf/esp/esp-mdf/esp-idf/components/esp_event/include -I/home/hassanf/esp/esp-mdf/esp-idf/components/esp_netif/include -I/home/hassanf/esp/esp-mdf/esp-idf/components/esp_eth/include -I/home/hassanf/esp/esp-mdf/esp-idf/components/tcpip_adapter/include -I/home/hassanf/esp/esp-mdf/esp-idf/components/app_trace/include -I/home/hassanf/esp/esp-mdf/esp-idf/components/mbedtls/port/include -I/home/hassanf/esp/esp-mdf/esp-idf/components/mbedtls/mbedtls/include -I/home/hassanf/esp/esp-mdf/esp-idf/components/mbedtls/esp_crt_bundle/include -I/home/hassanf/esp/esp-mdf/esp-idf/components/bootloader_support/include -I/home/hassanf/esp/esp-mdf/esp-idf/components/app_update/include -I/home/hassanf/esp/esp-mdf/esp-idf/components/spi_flash/include -I/home/hassanf/esp/esp-mdf/esp-idf/components/wpa_supplicant/include -I/home/hassanf/esp/esp-mdf/esp-idf/components/wpa_supplicant/port/include -I/home/hassanf/esp/esp-mdf/esp-idf/components/wpa_supplicant/include/esp_supplicant -I/home/hassanf/esp/esp-mdf/esp-idf/components/nvs_flash/include -I/home/hassanf/esp/esp-mdf/esp-idf/components/pthread/include -I/home/hassanf/esp/esp-mdf/esp-idf/components/perfmon/include -I/home/hassanf/esp/esp-mdf/esp-idf/components/asio/asio/asio/include -I/home/hassanf/esp/esp-mdf/esp-idf/components/asio/port/include -I/home/hassanf/esp/esp-mdf/esp-idf/components/cbor/port/include -I/home/hassanf/esp/esp-mdf/esp-idf/components/coap/port/include -I/home/hassanf/esp/esp-mdf/esp-idf/components/coap/port/include/coap -I/home/hassanf/esp/esp-mdf/esp-idf/components/coap/libcoap/include -I/home/hassanf/esp/esp-mdf/esp-idf/components/coap/libcoap/include/coap2 -I/home/hassanf/esp/esp-mdf/esp-idf/components/console -I/home/hassanf/esp/esp-mdf/esp-idf/components/nghttp/port/include -I/home/hassanf/esp/esp-mdf/esp-idf/components/nghttp/nghttp2/lib/includes -I/home/hassanf/esp/esp-mdf/esp-idf/components/esp-tls -I/home/hassanf/esp/esp-mdf/esp-idf/components/esp_adc_cal/include -I/home/hassanf/esp/esp-mdf/esp-idf/components/esp_gdbstub/include -I/home/hassanf/esp/esp-mdf/esp-idf/components/esp_hid/include -I/home/hassanf/esp/esp-mdf/esp-idf/components/tcp_transport/include -I/home/hassanf/esp/esp-mdf/esp-idf/components/esp_http_client/include -I/home/hassanf/esp/esp-mdf/esp-idf/components/esp_http_server/include -I/home/hassanf/esp/esp-mdf/esp-idf/components/esp_https_ota/include -I/home/hassanf/esp/esp-mdf/esp-idf/components/protobuf-c/protobuf-c -I/home/hassanf/esp/esp-mdf/esp-idf/components/protocomm/include/common -I/home/hassanf/esp/esp-mdf/esp-idf/components/protocomm/include/security -I/home/hassanf/esp/esp-mdf/esp-idf/components/protocomm/include/transports -I/home/hassanf/esp/esp-mdf/esp-idf/components/mdns/include -I/home/hassanf/esp/esp-mdf/esp-idf/components/esp_local_ctrl/include -I/home/hassanf/esp/esp-mdf/esp-idf/components/sdmmc/include -I/home/hassanf/esp/esp-mdf/esp-idf/components/esp_serial_slave_link/include -I/home/hassanf/esp/esp-mdf/esp-idf/components/esp_websocket_client/include -I/home/hassanf/esp/esp-mdf/esp-idf/components/expat/expat/expat/lib -I/home/hassanf/esp/esp-mdf/esp-idf/components/expat/port/include -I/home/hassanf/esp/esp-mdf/esp-idf/components/wear_levelling/include -I/home/hassanf/esp/esp-mdf/esp-idf/components/fatfs/diskio -I/home/hassanf/esp/esp-mdf/esp-idf/components/fatfs/vfs -I/home/hassanf/esp/esp-mdf/esp-idf/components/fatfs/src -I/home/hassanf/esp/esp-mdf/esp-idf/components/freemodbus/common/include -I/home/hassanf/esp/esp-mdf/esp-idf/components/idf_test/include -I/home/hassanf/esp/esp-mdf/esp-idf/components/idf_test/include/esp32 -I/home/hassanf/esp/esp-mdf/esp-idf/components/jsmn/include -I/home/hassanf/esp/esp-mdf/esp-idf/components/json/cJSON -I/home/hassanf/esp/esp-mdf/esp-idf/components/libsodium/libsodium/src/libsodium/include -I/home/hassanf/esp/esp-mdf/esp-idf/components/libsodium/port_include -I/home/hassanf/esp/esp-mdf/esp-idf/components/mqtt/esp-mqtt/include -I/home/hassanf/esp/esp-mdf/esp-idf/components/openssl/include -I/home/hassanf/esp/esp-mdf/esp-idf/components/spiffs/include -I/home/hassanf/esp/esp-mdf/esp-idf/components/ulp/include -I/home/hassanf/esp/esp-mdf/esp-idf/components/unity/include -I/home/hassanf/esp/esp-mdf/esp-idf/components/unity/unity/src -I/home/hassanf/esp/esp-mdf/esp-idf/components/wifi_provisioning/include -I../components/FastLED-idf -I../components/FastLED-idf/hal -I../components/WS2812FX-idf -I/home/hassanf/esp/esp-mdf/components/mcommon/include -I/home/hassanf/esp/esp-mdf/components/mespnow/include -I/home/hassanf/esp/esp-mdf/components/third_party/miniz -I/home/hassanf/esp/esp-mdf/components/mwifi/include -I/home/hassanf/esp/esp-mdf/components/mconfig/include -I/home/hassanf/esp/esp-mdf/components/mupgrade/include -I/home/hassanf/esp/esp-mdf/components/mdebug/include -I/home/hassanf/esp/esp-mdf/components/mlink/include -mlongcalls -Wno-frame-address -ffunction-sections -fdata-sections -fstrict-volatile-bitfields -Wall -Werror=all -Wno-error=unused-function -Wno-error=unused-but-set-variable -Wno-error=unused-variable -Wno-error=deprecated-declarations -Wextra -Wno-unused-parameter -Wno-sign-compare -ggdb -O2 -std=gnu++11 -fno-exceptions -fno-rtti -D_GNU_SOURCE -DIDF_VER=\"v4.2-dev-2084-g98d5b5dfd\" -DMDF_VER=\"v1.0-123-g26d134c\" -DESP_PLATFORM -MD -MT esp-idf/main/CMakeFiles/__idf_main.dir/get_started.cpp.obj -MF esp-idf/main/CMakeFiles/__idf_main.dir/get_started.cpp.obj.d -o esp-idf/main/CMakeFiles/__idf_main.dir/get_started.cpp.obj -c ../main/get_started.cpp
+../main/get_started.cpp:15:9: warning: #pragma once in main file
+ #pragma once
+         ^~~~
+In file included from ../components/FastLED-idf/FastLED.h:77,
+                 from ../main/wsLED.cpp:7,
+                 from ../main/get_started.cpp:19:
+../components/FastLED-idf/fastspi.h:135:23: note: #pragma message: No hardware SPI pins defined.  All SPI access will default to bitbanged output
+ #      pragma message "No hardware SPI pins defined.  All SPI access will default to bitbanged output"
+                       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+In file included from ../main/get_started.cpp:19:
+../main/wsLED.cpp: In function 'void advancedAlternatingRainbow(void*)':
+../main/wsLED.cpp:862:15: warning: unused variable 'spin' [-Wunused-variable]
+         float spin = spinscale * int(320 * sin(j / 254.64));  // REALLY dont ask
+               ^~~~
+In file included from ../main/get_started.cpp:20:
+../main/root.c: In function 'void root_task(void*)':
+../main/root.c:24:42: warning: missing initializer for member 'mwifi_data_type_t::upgrade' [-Wmissing-field-initializers]
+     mwifi_data_type_t data_type      = {0};
+                                          ^
+../main/root.c:24:42: warning: missing initializer for member 'mwifi_data_type_t::communicate' [-Wmissing-field-initializers]
+../main/root.c:24:42: warning: missing initializer for member 'mwifi_data_type_t::group' [-Wmissing-field-initializers]
+../main/root.c:24:42: warning: missing initializer for member 'mwifi_data_type_t::reserved' [-Wmissing-field-initializers]
+../main/root.c:24:42: warning: missing initializer for member 'mwifi_data_type_t::protocol' [-Wmissing-field-initializers]
+../main/root.c:24:42: warning: missing initializer for member 'mwifi_data_type_t::custom' [-Wmissing-field-initializers]
+In file included from ../main/get_started.cpp:21:
+../main/node.c: In function 'void node_read_task(void*)':
+../main/node.c:9:44: warning: missing initializer for member 'mwifi_data_type_t::upgrade' [-Wmissing-field-initializers]
+     mwifi_data_type_t data_type      = {0x0};
+                                            ^
+../main/node.c:9:44: warning: missing initializer for member 'mwifi_data_type_t::communicate' [-Wmissing-field-initializers]
+../main/node.c:9:44: warning: missing initializer for member 'mwifi_data_type_t::group' [-Wmissing-field-initializers]
+../main/node.c:9:44: warning: missing initializer for member 'mwifi_data_type_t::reserved' [-Wmissing-field-initializers]
+../main/node.c:9:44: warning: missing initializer for member 'mwifi_data_type_t::protocol' [-Wmissing-field-initializers]
+../main/node.c:9:44: warning: missing initializer for member 'mwifi_data_type_t::custom' [-Wmissing-field-initializers]
+../main/node.c:32:9: error: 'jsmn_parser' was not declared in this scope
+         jsmn_parser p;
+         ^~~~~~~~~~~
+../main/node.c:32:9: note: suggested alternative: 'http_parser'
+         jsmn_parser p;
+         ^~~~~~~~~~~
+         http_parser
+../main/node.c:33:9: error: 'jsmntok_t' was not declared in this scope
+         jsmntok_t t[12];
+         ^~~~~~~~~
+../main/node.c:33:9: note: suggested alternative: 'strtok_r'
+         jsmntok_t t[12];
+         ^~~~~~~~~
+         strtok_r
+../main/node.c:34:20: error: 'p' was not declared in this scope
+         jsmn_init(&p);
+                    ^
+../main/node.c:34:9: error: 'jsmn_init' was not declared in this scope
+         jsmn_init(&p);
+         ^~~~~~~~~
+../main/node.c:34:9: note: suggested alternative: 'memp_init'
+         jsmn_init(&p);
+         ^~~~~~~~~
+         memp_init
+../main/node.c:35:52: error: 't' was not declared in this scope
+         int r = jsmn_parse(&p, data, strlen(data), t, sizeof(t) / sizeof(t[0]));
+                                                    ^
+../main/node.c:35:17: error: 'jsmn_parse' was not declared in this scope
+         int r = jsmn_parse(&p, data, strlen(data), t, sizeof(t) / sizeof(t[0]));
+                 ^~~~~~~~~~
+../main/node.c:35:17: note: suggested alternative: 'http_parser'
+         int r = jsmn_parse(&p, data, strlen(data), t, sizeof(t) / sizeof(t[0]));
+                 ^~~~~~~~~~
+                 http_parser
+In file included from ../main/get_started.cpp:21:
+../main/node.c: In function 'void node_write_task(void*)':
+../main/node.c:161:39: warning: missing initializer for member 'mwifi_data_type_t::upgrade' [-Wmissing-field-initializers]
+     mwifi_data_type_t data_type = {0x0};
+                                       ^
+../main/node.c:161:39: warning: missing initializer for member 'mwifi_data_type_t::communicate' [-Wmissing-field-initializers]
+../main/node.c:161:39: warning: missing initializer for member 'mwifi_data_type_t::group' [-Wmissing-field-initializers]
+../main/node.c:161:39: warning: missing initializer for member 'mwifi_data_type_t::reserved' [-Wmissing-field-initializers]
+../main/node.c:161:39: warning: missing initializer for member 'mwifi_data_type_t::protocol' [-Wmissing-field-initializers]
+../main/node.c:161:39: warning: missing initializer for member 'mwifi_data_type_t::custom' [-Wmissing-field-initializers]
+ninja: build stopped: subcommand failed.
+Setting IDF_PATH environment variable: /home/hassanf/esp/esp-mdf/esp-idf
+Executing action: all (aliases: build)
+Running ninja in directory /home/hassanf/Desktop/ALMA/ALMA/ESP32/light_mesh_redo/build
+Executing "ninja all"...
+ninja failed with exit code 1
