@@ -17,20 +17,13 @@ static void node_read_task(void *arg) {
     mwifi_data_type_t data_type      = { 0x0 };
     uint8_t src_addr[MWIFI_ADDR_LEN] = { 0x0 };
 
-    MDF_LOGI("Note read task is running");
+    MDF_LOGI("Node read task starting");
 
     for(;;) {
         if(!mwifi_is_connected()) {
             vTaskDelay(50 / portTICK_RATE_MS);
             continue;
         }
-
-        // size = MWIFI_PAYLOAD_LEN;
-        // memset(data, 0, MWIFI_PAYLOAD_LEN);
-        // ret = mwifi_read(src_addr, &data_type, data, &size, portMAX_DELAY);
-        // MDF_ERROR_CONTINUE(ret != MDF_OK, "mwifi_read, ret: %x", ret);
-        // MDF_LOGI("Node receive, addr: " MACSTR ", size: %d, data: %s",
-        // MAC2STR(src_addr), size, data);
 
         size = MWIFI_PAYLOAD_LEN;
         memset(data, 0, MWIFI_PAYLOAD_LEN);
@@ -68,12 +61,9 @@ static void node_read_task(void *arg) {
         //     ]
         // }
         //
-        // {"senderUID": "10000123", "recieverUID": "101FFFFF", "functionID":
-        // "15", "data": []}
-        // {"senderUID": "10000123", "recieverUID": "101FFFFF", "functionID":
-        // "-1", "data": [215, 25, 10]}
-        // {"senderUID": "10000123", "recieverUID": "101FFFFF", "functionID":
-        // "-1", "data": [0, 215, 100]}
+        // {"senderUID": "10000123", "recieverUID": "101FFFFF", "functionID": "15", "data": []}
+        // {"senderUID": "10000123", "recieverUID": "101FFFFF", "functionID": "-1", "data": [215, 25, 10]}
+        // {"senderUID": "10000123", "recieverUID": "101FFFFF", "functionID": "-1", "data": [0, 215, 100]}
         //
         // UID is 8 hex digits in the format
         //     AAABBCCC
@@ -100,12 +90,12 @@ static void node_read_task(void *arg) {
         MDF_FREE(recieverUID);
 
         // Ensure current device should be executing recieved command
-        // if(recieveType != 0xFFF && recieveType != CURRENT_TYPE)
-        //     continue;
-        // if(recieveLoc != 0xFF && recieveLoc != CURRENT_LOC)
-        //     continue;
-        // if(recieveID != 0xFFF && recieveID != CURRENT_ID)
-        //     continue;
+        if(recieveType != 0xFFF && recieveType != CURRENT_TYPE)
+            continue;
+        if(recieveLoc != 0xFF && recieveLoc != CURRENT_LOC)
+            continue;
+        if(recieveID != 0xFFF && recieveID != CURRENT_ID)
+            continue;
 
         // Parse sender UID information (not currently used)
         char *senderUID = (char *)MDF_MALLOC(sizeof(char) * (t[2].end - t[2].start + 1));
@@ -131,40 +121,54 @@ static void node_read_task(void *arg) {
             MDF_LOGI("DATA: %s\n",             parsedData);
         #endif /* if (LOGGING) */
 
-        // Run command - different for each type of controller
-        // Holonyak controller (individually addressable WS2812B)
-        int idx = atoi(funcID);
 
         #if (LOGGING)
             MDF_LOGI("STARTING TASK %d", idx);
         #endif /* if (LOGGING) */
 
-        if(idx == -1) {
-            // Parse data for single color
-            char *ptr = parsedData;
-            int loc   = 0;
+        // Run command - different for each type of controller
 
-            while(*ptr) {
-                if(isdigit(*ptr)) {
-                    newSetColor[loc] = strtol(ptr, &ptr, 10);
-                    loc++;
-                } else {
-                    ptr++;
+        // HOLONYAK
+        #if (CURRENT_TYPE == 0x101)
+            int idx = atoi(funcID);
+
+            if(idx == -1) {
+                // Parse data for single color
+                char *ptr = parsedData;
+                int loc   = 0;
+
+                while(*ptr) {
+                    if(isdigit(*ptr)) {
+                        newSetColor[loc] = strtol(ptr, &ptr, 10);
+                        loc++;
+                    } else {
+                        ptr++;
+                    }
                 }
+
+                #if (LOGGING)
+                    MDF_LOGI("Colors: %d %d %d", newSetColor[0], newSetColor[1], newSetColor[2]);
+                #endif /* if (LOGGING) */
             }
 
-            #if (LOGGING)
-                MDF_LOGI("Colors: %d %d %d", newSetColor[0], newSetColor[1], newSetColor[2]);
-            #endif /* if (LOGGING) */
-        }
+            currType = idx;
+        #endif // (CURRENT_TYPE == 0x101)
 
-        currType = idx;
+        // 5050 light controller
+        #if (CURRENT_TYPE == 0x102)
+            // TODO
+        #endif // (CURRENT_TYPE == 0x102)
+
+        // BT speaker controller
+        #if (CURRENT_TYPE == 0x103)
+            // TODO
+        #endif // (CURRENT_TYPE == 0x103)
 
         MDF_FREE(funcID);
         MDF_FREE(parsedData);
     }
 
-    MDF_LOGW("Note read task is exit");
+    MDF_LOGW("Node read task quitting");
 
     MDF_FREE(data);
     vTaskDelete(NULL);
@@ -184,7 +188,7 @@ void node_write_task(void *arg) {
     char *data                  = (char *)MDF_MALLOC(MWIFI_PAYLOAD_LEN);
     mwifi_data_type_t data_type = { 0x0 };
 
-    MDF_LOGI("Node write task is running");
+    MDF_LOGI("Node write task starting");
 
     for(;;) {
         if(!mwifi_is_connected()) {
@@ -199,7 +203,7 @@ void node_write_task(void *arg) {
         vTaskDelay(50 / portTICK_RATE_MS);
     }
 
-    MDF_LOGW("Node write task is exit");
+    MDF_LOGW("Node write task quitting");
 
     MDF_FREE(data);
     vTaskDelete(NULL);

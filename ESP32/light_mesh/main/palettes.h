@@ -1,3 +1,5 @@
+#if (CURRENT_TYPE == 0x101)
+
 #pragma once
 
 #include "FastLED.h"
@@ -60,3 +62,5 @@ const TProgmemPalette16 myRedWhiteBluePalette_p = {
     CRGB::Black,
     CRGB::Black
 };
+
+#endif // (CURRENT_TYPE == 0x101)

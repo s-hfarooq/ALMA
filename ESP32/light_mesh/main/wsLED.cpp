@@ -1,3 +1,5 @@
+#if (CURRENT_TYPE == 0x101)
+
 #pragma once
 #include <math.h>
 #include <stdint.h>
@@ -963,3 +965,5 @@ void wsLEDInit() {
     setAll(125, 125, 15);
     fShow();
 }
+
+#endif //(CURRENT_TYPE == 0x101)

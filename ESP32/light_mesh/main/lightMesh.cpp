@@ -143,13 +143,17 @@ void app_main() {
         xTaskCreate(root_task, "root_task", 4 * 1024,
                     NULL, CONFIG_MDF_TASK_DEFAULT_PRIOTY, NULL);
     } else {
-        wsLEDInit();
+        #if (CURRENT_TYPE == 0x101)
+            wsLEDInit();
+        #endif
 
         xTaskCreate(node_write_task, "node_write_task", 4 * 1024,
                     NULL, CONFIG_MDF_TASK_DEFAULT_PRIOTY, NULL);
         xTaskCreate(node_read_task, "node_read_task", 4 * 1024,
                     NULL, CONFIG_MDF_TASK_DEFAULT_PRIOTY, NULL);
-        xTaskCreatePinnedToCore(individuallyAddressableDispatcher, "leds_task", 8 * 1024, NULL, 100, NULL, 0);
+
+        #if (CURRENT_TYPE == 0x101)
+            xTaskCreatePinnedToCore(individuallyAddressableDispatcher, "leds_task", 8 * 1024, NULL, 100, NULL, 0);
+        #endif
     }
-//546589
 }
