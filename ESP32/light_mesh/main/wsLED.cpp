@@ -52,15 +52,15 @@ volatile int newSetColor[3] = {0, 0, 0};
 #define NUM_FUNCTIONS 20
 
 static const CRGB colors[N_COLORS] = {
-    CRGB::Red,        CRGB::Green,       CRGB::Blue,       CRGB::White,
-    CRGB::AliceBlue,  CRGB::ForestGreen, CRGB::Lavender,   CRGB::MistyRose,
-    CRGB::DarkOrchid, CRGB::DarkOrange,  CRGB::Black,      CRGB::Teal,
-    CRGB::Violet,     CRGB::Lime,        CRGB::Chartreuse, CRGB::BlueViolet,
-    CRGB::Aqua};
+        CRGB::Red,        CRGB::Green,       CRGB::Blue,       CRGB::White,
+        CRGB::AliceBlue,  CRGB::ForestGreen, CRGB::Lavender,   CRGB::MistyRose,
+        CRGB::DarkOrchid, CRGB::DarkOrange,  CRGB::Black,      CRGB::Teal,
+        CRGB::Violet,     CRGB::Lime,        CRGB::Chartreuse, CRGB::BlueViolet,
+        CRGB::Aqua};
 
 CRGB colors_chase[N_COLORS_CHASE] = {
-    CRGB::AliceBlue, CRGB::Lavender, CRGB::DarkOrange, CRGB::Red,
-    CRGB::Green,     CRGB::Blue,     CRGB::White,
+        CRGB::AliceBlue, CRGB::Lavender, CRGB::DarkOrange, CRGB::Red,
+        CRGB::Green,     CRGB::Blue,     CRGB::White,
 };
 
 void blinkLeds_chase2(void *pvParameters);
@@ -112,15 +112,15 @@ extern "C" {
 
 void setPixel(int i, int r, int g, int b) {
     if(i >= 0) {
-        leds[i].r = r;
-        leds[i].g = g;
-        leds[i].b = b;
+            leds[i].r = r;
+            leds[i].g = g;
+            leds[i].b = b;
     }
 
     if(i <= 0) {
-        leds_2[-i].r = r;
-        leds_2[-i].g = g;
-        leds_2[-i].b = b;
+            leds_2[-i].r = r;
+            leds_2[-i].g = g;
+            leds_2[-i].b = b;
     }
 }
 
@@ -309,8 +309,7 @@ void colorPalette(void *pvParameters) {
     static uint8_t startIndex = 1;
 
     for(int i = 0; i < NUM_LEDS; i++) {
-        leds[i] = ColorFromPalette(currentPalette, startIndex, 255,
-                                   currentBlending);
+        leds[i] = ColorFromPalette(currentPalette, startIndex, 255, currentBlending);
         startIndex += 3;
 
         if(currType != functionNum)
@@ -406,11 +405,11 @@ void colorTemperature(void *params) {
     // Choose which 'color temperature' profile to enable.
     uint8_t secs = (millis() / 1000) % (DISPLAYTIME * 2);
     if(secs < DISPLAYTIME) {
-        FastLED.setTemperature(TEMPERATURE_1);  // First temperature
-        leds[0] = TEMPERATURE_1;                // Show indicator pixel
+        FastLED.setTemperature(TEMPERATURE_1); // First temperature
+        leds[0] = TEMPERATURE_1;        // Show indicator pixel
     } else {
-        FastLED.setTemperature(TEMPERATURE_2);  // Second temperature
-        leds[0] = TEMPERATURE_2;                // Show indicator pixel
+        FastLED.setTemperature(TEMPERATURE_2); // Second temperature
+        leds[0] = TEMPERATURE_2;        // Show indicator pixel
     }
 
     FastLED.show();
@@ -468,59 +467,55 @@ void meteorRain(void *params) {
 
 void confetti(void *params) {
     int i = 0;
-    uint8_t thisfade = 8;  // How quickly does it fade? Lower = slower fade rate.
-    int thishue = 50;      // Starting hue.
-    uint8_t thisinc = 1;   // Incremental value for rotating hues
+    uint8_t thisfade = 8; // How quickly does it fade? Lower = slower fade rate.
+    int thishue = 50;  // Starting hue.
+    uint8_t thisinc = 1; // Incremental value for rotating hues
     uint8_t thissat = 100; // The saturation, where 255 = brilliant colours.
     uint8_t thisbri = 255; // Brightness of a sequence. Remember, max_bright is
                            // the overall limiter.
-    int huediff = 256;     // Range of random #'s to use for hue
+    int huediff = 256; // Range of random #'s to use for hue
 
-    uint8_t secondHand = (millis() / 1000) % 15;  // IMPORTANT!!! Change '15' to a different
-                                 // value to change duration of the loop.
+    uint8_t secondHand = (millis() / 1000) % 15; // IMPORTANT!!! Change '15' to a different
+    // value to change duration of the loop.
     static uint8_t lastSecond = 99;
-    if(lastSecond != secondHand) {  // Debounce to make sure we're not
+    if(lastSecond != secondHand) { // Debounce to make sure we're not
         // repeating an assignment.
         lastSecond = secondHand;
 
         switch(secondHand) {
-            case 0:
-                thisinc = 1;
-                thishue = 192;
-                thissat = 255;
-                thisfade = 2;
-                huediff = 256;
-                break;  // You can change values here, one at a time , or
-                        // altogether.
-            case 5:
-                thisinc = 2;
-                thishue = 128;
-                thisfade = 8;
-                huediff = 64;
-                break;
-            case 10:
-                thisinc = 1;
-                thishue = random16(255);
-                thisfade = 1;
-                huediff = 16;
-                break;  // Only gets called once, and not continuously for
-                        // the next several seconds. Therefore, no rainbows.
-            case 15:
-                break;  // Here's the matching 15 for the other one.
+        case 0:
+            thisinc = 1;
+            thishue = 192;
+            thissat = 255;
+            thisfade = 2;
+            huediff = 256;
+            break; // You can change values here, one at a time , or altogether.
+        case 5:
+            thisinc = 2;
+            thishue = 128;
+            thisfade = 8;
+            huediff = 64;
+            break;
+        case 10:
+            thisinc = 1;
+            thishue = random16(255);
+            thisfade = 1;
+            huediff = 16;
+            break; // Only gets called once, and not continuously for the next several seconds. Therefore, no rainbows.
+        case 15:
+            break; // Here's the matching 15 for the other one.
         }
     }
 
     if(currType != functionNum)
-        return;
+            return;
 
     if(i > 100) {
-        fadeToBlackBy(leds, NUM_LEDS,
-                      thisfade);       // Low values = slower fade.
-        int pos = random16(NUM_LEDS);  // Pick an LED at random.
-        leds[pos] += CHSV((thishue + random16(huediff)) / 4, thissat,
-                          thisbri);   // I use 12 bits for hue so that the
-                                      // hue increment isn't too quick.
-        thishue = thishue + thisinc;  // It increments here.
+        fadeToBlackBy(leds, NUM_LEDS, thisfade); // Low values = slower fade.
+        int pos = random16(NUM_LEDS); // Pick an LED at random.
+        leds[pos] += CHSV((thishue + random16(huediff)) / 4, thissat, thisbri); // I use 12 bits for hue so that the
+                                                                                // hue increment isn't too quick.
+        thishue = thishue + thisinc; // It increments here.
         i = 0;
 
         if(currType != functionNum)
@@ -684,8 +679,8 @@ void runningLights(void *params) {
 
         for(int i = 0; i < NUM_LEDS; i++) {
             setPixel(i, ((sin(i + position) * 127 + 128) / 255) * red,
-                        ((sin(i + position) * 127 + 128) / 255) * green,
-                        ((sin(i + position) * 127 + 128) / 255) * blue);
+                     ((sin(i + position) * 127 + 128) / 255) * green,
+                     ((sin(i + position) * 127 + 128) / 255) * blue);
 
             if(currType != functionNum)
                 return;
@@ -737,7 +732,7 @@ void rainbowCycle(void *params) {
     char *c;
     uint16_t i, j;
 
-    for(j = 0; j < 256 * 5; j++) {  // 5 cycles of all colors on wheel
+    for(j = 0; j < 256 * 5; j++) { // 5 cycles of all colors on wheel
         for(i = 0; i < NUM_LEDS; i++) {
             c = Wheel(((i * 256 / NUM_LEDS) + j) & 255);
             setPixel(i, *c, *(c + 1), *(c + 2));
@@ -765,7 +760,7 @@ void theaterChase(void *params) {
 
     for(int q = 0; q < 3; q++) {
         for(int i = -NUM_LEDS_2; i < NUM_LEDS; i += 3)
-            setPixel(i + q, red, green, blue);  // Turn every third pixel on
+            setPixel(i + q, red, green, blue); // Turn every third pixel on
 
         if(currType != functionNum)
             return;
@@ -774,24 +769,22 @@ void theaterChase(void *params) {
         delay(SpeedDelay);
 
         for(int i = -NUM_LEDS_2; i < NUM_LEDS; i += 3)
-            setPixel(i + q, 0, 0, 0);  // Turn every third pixel off
+            setPixel(i + q, 0, 0, 0); // Turn every third pixel off
 
         if(currType != functionNum)
             return;
     }
-
-    // vTaskDelete(NULL);
 }
 
 void theaterChaseRainbow(void *params) {
     int SpeedDelay = 50;
     char *c;
 
-    for(int j = 0; j < 256; j++) {  // Cycle all 256 colors in the wheel
+    for(int j = 0; j < 256; j++) { // Cycle all 256 colors in the wheel
         for(int q = 0; q < 3; q++) {
             for(int i = -NUM_LEDS_2; i < NUM_LEDS; i += 3) {
                 c = Wheel((i + NUM_LEDS_2 + j) % 255);
-                setPixel(i + q, *c, *(c + 1), *(c + 2));  // Turn every third pixel on
+                setPixel(i + q, *c, *(c + 1), *(c + 2)); // Turn every third pixel on
             }
 
             if(currType != functionNum)
@@ -801,7 +794,7 @@ void theaterChaseRainbow(void *params) {
             delay(SpeedDelay);
 
             for(int i = -NUM_LEDS_2; i < NUM_LEDS; i += 3)
-                setPixel(i + q, 0, 0, 0);  // Turn every third pixel off
+                setPixel(i + q, 0, 0, 0); // Turn every third pixel off
         }
 
         if(currType != functionNum)
@@ -815,17 +808,17 @@ void alternatingRainbow(void *params) {
     const int spacing = 45;
     const int speed = 50;
 
-    for(int j = 0; j < 256; j++) {  // base h
+    for(int j = 0; j < 256; j++) { // base h
         for(int i = 0; i < NUM_LEDS; i++) {
             // float interp = -1*abs((i%60-30)/spacing) + 1
-            if((i / spacing) % 2) {  // 0 when increasing lerp, 1 if decreasing
-                float interp = ((float)(i % (2 * spacing))) / spacing;  // 0 to 1
+            if((i / spacing) % 2) { // 0 when increasing lerp, 1 if decreasing
+                float interp = ((float)(i % (2 * spacing))) / spacing; // 0 to 1
                 int h = (j + (int)(128 * interp)) % 255;
                 int s = 255;
                 int v = 255;
                 setPixelHSV(i, h, s, v);
             } else {
-                float interp = -1 * ((float)(i % (2 * spacing))) / spacing + 2;  // 1 to 0
+                float interp = -1 * ((float)(i % (2 * spacing))) / spacing + 2; // 1 to 0
                 int h = (j + (int)(128 * interp)) % 255;
                 int s = 255;
                 int v = 255;
@@ -849,10 +842,10 @@ void alternatingRainbow(void *params) {
 
 void advancedAlternatingRainbow(void *params) {
     const int spacing = 60;
-    const int speed = 10;  // approx = 10*num_min it takes to repeat
-                           // ie 30 takes 3 min
+    const int speed = 10; // approx = 10*num_min it takes to repeat
+                          // ie 30 takes 3 min
     // 29738
-    for(int j = 0; j >= 0; j++) {  // base h
+    for(int j = 0; j >= 0; j++) { // base h
         float warble = sin(j / 750);
         // float spinscale = 1-cos((j*3.14159265)/6375)**256; // dont ask
 
@@ -862,7 +855,7 @@ void advancedAlternatingRainbow(void *params) {
         // appearantly raising cos to the 256 power is 'bad' and 'slow' on
         // an esp32 :/
 
-        float spin = spinscale * int(320 * sin(j / 254.64));  // REALLY dont ask
+        float spin = spinscale * int(320 * sin(j / 254.64)); // REALLY dont ask
         float spin_amp = 131;
         float spin_freq = 760;
 
@@ -878,8 +871,8 @@ void advancedAlternatingRainbow(void *params) {
         track_c_hue %= 256;
 
         for(int i = 0; i < NUM_LEDS; i++) {
-            int set = i % (spacing * 3);  // 0 thru 3*spacing)
-            int group = set / spacing;    // 0 thru 2
+            int set = i % (spacing * 3); // 0 thru 3*spacing)
+            int group = set / spacing; // 0 thru 2
             float interp = float(i % spacing) / ((float)spacing);
             int h = track_a_hue;
             switch(group) {

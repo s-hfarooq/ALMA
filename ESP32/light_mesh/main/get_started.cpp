@@ -23,9 +23,16 @@
 TaskHandle_t fadeHandle = NULL;
 
 extern "C" {
-  void app_main();
+    void app_main();
 }
 
+/*
+ * wifi_init
+ *   DESCRIPTION: initialize wifi
+ *   INPUTS: none
+ *   RETURN VALUE: error values
+ *   SIDE EFFECTS: none
+ */
 static mdf_err_t wifi_init() {
     mdf_err_t ret          = nvs_flash_init();
     wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
@@ -80,15 +87,23 @@ static mdf_err_t event_loop_cb(mdf_event_loop_t event, void *ctx) {
     return MDF_OK;
 }
 
+/*
+ * app_main
+ *   DESCRIPTION: main function, runs on boot
+ *   INPUTS: none
+ *   RETURN VALUE: none
+ *   SIDE EFFECTS: none
+ */
 void app_main() {
     mwifi_init_config_t cfg = MWIFI_INIT_CONFIG_DEFAULT();
 
     /**
-    * @brief Set the log level for serial port printing.
-    */
+     * @brief Set the log level for serial port printing.
+     */
     esp_log_level_set("*", ESP_LOG_INFO);
     esp_log_level_set(TAG, ESP_LOG_DEBUG);
 
+    // Create config for network specific to current device
     mwifi_config_t config = {};
     for(int i = 0; i < 30; i++)
         config.router_ssid[i] = ' ';
