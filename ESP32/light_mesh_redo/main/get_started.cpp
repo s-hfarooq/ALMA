@@ -19,7 +19,8 @@
 #include "wsLED.cpp"
 #include "root.c"
 #include "node.c"
-//123456
+
+TaskHandle_t fadeHandle = NULL;
 
 extern "C" {
   void app_main();
@@ -79,6 +80,17 @@ static mdf_err_t event_loop_cb(mdf_event_loop_t event, void *ctx) {
     return MDF_OK;
 }
 
+void restartDeadTask(void *timer) {
+    MDF_LOGI("CHECKING TASK");
+
+    if(fadeHandle == NULL) {
+        MDF_LOGI("RESTARTING TASK...");
+        xTaskCreate(individuallyAddressableDispatcher, "node_set_color_task", 6 * 1024, NULL,
+                CONFIG_MDF_TASK_DEFAULT_PRIOTY, &fadeHandle);
+        MDF_LOGI("RESTARTED TASK");
+    }
+}
+
 void app_main() {
     mwifi_init_config_t cfg = MWIFI_INIT_CONFIG_DEFAULT();
     // mwifi_config_t config   = {
@@ -133,12 +145,20 @@ void app_main() {
                     NULL, CONFIG_MDF_TASK_DEFAULT_PRIOTY, NULL);
     } else {
         wsLEDInit();
-        
+
         xTaskCreate(node_write_task, "node_write_task", 4 * 1024,
                     NULL, CONFIG_MDF_TASK_DEFAULT_PRIOTY, NULL);
         xTaskCreate(node_read_task, "node_read_task", 4 * 1024,
                     NULL, CONFIG_MDF_TASK_DEFAULT_PRIOTY, NULL);
-        xTaskCreate(individuallyAddressableDispatcher, "node_set_color_task", 6 * 1024, NULL,
-                CONFIG_MDF_TASK_DEFAULT_PRIOTY, NULL);
+        // xTaskCreate(individuallyAddressableDispatcher, "node_set_color_task", 6 * 1024, NULL,
+        //         CONFIG_MDF_TASK_DEFAULT_PRIOTY, NULL);
+
+        // while(1)
+        //     individuallyAddressableDispatcher(NULL);
+          xTaskCreatePinnedToCore(individuallyAddressableDispatcher, "leds_task", 8 * 1024, NULL, 100, NULL, 0);
     }
+//546589
+    // TimerHandle_t timer = xTimerCreate("restart_dead_task", 1000 / portTICK_RATE_MS,
+    //                                true, NULL, restartDeadTask);
+    // xTimerStart(timer, 0);
 }

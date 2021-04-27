@@ -4,6 +4,9 @@
 #include <stdio.h>
 #include <sys/param.h>
 
+#define FASTLED_ALLOW_INTERRUPTS 0
+// #define FASTLED_INTERRUPT_RETRY_COUNT 1
+
 #include "FastLED.h"
 
 CRGBPalette16 currentPalette;
@@ -930,38 +933,48 @@ void strobe(void *params) {
 }
 
 void individuallyAddressableDispatcher(void *params) {
-    static const char *TAG = "wsLED";
+    #if (LOGGING)
+        static const char *TAG = "wsLED";
+        int i = 0;
+    #endif
+
     // Loop forever
     while(1) {
         // Only start new function when currType variable changed
         if(currType > -2 && currType < NUM_FUNCTIONS) {
-            //#if (LOGGING)
+            #if (LOGGING)
                 MDF_LOGI("STARTING FUNC %d\n", currType);
-            //#endif
+            #endif
 
             functionNum = currType;
 
             // Call new function
             if(currType == -1) {
                 setColor(newSetColor[0], newSetColor[1], newSetColor[2]);
-                delay(25);
+                delay(75);
             }
             else {
                 wsLEDPointers[functionNum](NULL);
             }
         }
 
-        // #if (LOGGING)
-        //     if (!heap_caps_check_integrity_all(true)) {
-        //         MDF_LOGE("At least one heap is corrupt");
-        //     }
-        //
-        //     mdf_mem_print_heap();
-        //     mdf_mem_print_record();
-        //     mdf_mem_print_task();
-        // #endif
+        #if (LOGGING)
+            if(i % 50 == 0) {
+                if (!heap_caps_check_integrity_all(true)) {
+                    MDF_LOGE("At least one heap is corrupt");
+                }
 
-        delay(5);
+                mdf_mem_print_heap();
+                mdf_mem_print_record();
+                mdf_mem_print_task();
+
+                i = 0;
+            }
+
+            i++;
+        #endif
+
+        delay(25);
     }
 
     vTaskDelete(NULL);
