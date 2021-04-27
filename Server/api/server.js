@@ -9,6 +9,7 @@ var net = require('net');
 
 var lastSentTime = new Date();
 
+// Spawn Python script to be able to send signals to ESP32 root node over i2c
 var spawn = require('child_process').spawn;
 var child = spawn('python3',["i2c_raw.py"]);
 
@@ -19,9 +20,11 @@ app.get('/', (req,res) => {
   res.sendFile(path.join(__dirname, '../frontend-controller/build/index.html'));
 });
 
+// Send command via Python script
 app.post('/sendCommand', (req, res) => {
   console.log("COMMAND: " + req.body.color);
 
+  // Only send commands every 250ms
   let currTime = new Date();
   if(currTime - lastSentTime > 250) {
     child.stdin.setEncoding('utf-8');

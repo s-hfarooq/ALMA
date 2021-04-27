@@ -23,7 +23,7 @@ static void root_task(void *arg) {
     uint8_t src_addr[MWIFI_ADDR_LEN] = {0x0};
     mwifi_data_type_t data_type      = {0};
 
-    MDF_LOGI("Root is running");
+    MDF_LOGI("Root is starting");
 
     for (int i = 0;; ++i) {
         if (!mwifi_is_started()) {
@@ -59,7 +59,7 @@ static void root_task(void *arg) {
         }
     }
 
-    MDF_LOGW("Root is exit");
+    MDF_LOGW("Root is quitting");
 
     MDF_FREE(data);
     vTaskDelete(NULL);

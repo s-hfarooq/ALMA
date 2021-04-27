@@ -935,7 +935,6 @@ void strobe(void *params) {
 void individuallyAddressableDispatcher(void *params) {
     #if (LOGGING)
         static const char *TAG = "wsLED";
-        int i = 0;
     #endif
 
     // Loop forever
@@ -952,27 +951,10 @@ void individuallyAddressableDispatcher(void *params) {
             if(currType == -1) {
                 setColor(newSetColor[0], newSetColor[1], newSetColor[2]);
                 delay(75);
-            }
-            else {
+            } else {
                 wsLEDPointers[functionNum](NULL);
             }
         }
-
-        #if (LOGGING)
-            if(i % 50 == 0) {
-                if (!heap_caps_check_integrity_all(true)) {
-                    MDF_LOGE("At least one heap is corrupt");
-                }
-
-                mdf_mem_print_heap();
-                mdf_mem_print_record();
-                mdf_mem_print_task();
-
-                i = 0;
-            }
-
-            i++;
-        #endif
 
         delay(25);
     }

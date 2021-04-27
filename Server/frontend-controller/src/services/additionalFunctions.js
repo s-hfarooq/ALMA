@@ -1,3 +1,4 @@
+// Sends command to backend API
 export async function sendCommand(data) {
   const response = await fetch("/sendCommand", {
     method: "POST",
@@ -7,6 +8,7 @@ export async function sendCommand(data) {
   return await response;
 }
 
+// Creates command JSON string based on strip selected and current device ID
 export function getCommandString(color, option) {
   let recieverUID = "";
   switch (option) {
@@ -34,6 +36,7 @@ export function getCommandString(color, option) {
   return JSON.stringify(returnVal);
 }
 
+// Creates animation JSON string to send to backend API
 export function getAnimationString(animationNum) {
     let recieverUID = "101FFFFF"; // 101 = type Holonyak, FF = any location, FFF = any ID
 
@@ -47,12 +50,14 @@ export function getAnimationString(animationNum) {
     return JSON.stringify(returnVal);
 }
 
+// Available light strip options to display
 export const lightOptions = [
   // { value: "all", label: "All", color: "#00B8D9" },
   { value: "ceiling", label: "Ceiling", color: "#00B8D9" },
   // { value: "couch", label: "Couch", color: "#5243AA" }
 ];
 
+// Available animations to display
 export const animationOptions = [
   { value: "0", label: "blinkLeds_chase2" },
   { value: "1", label: "colorPalette" },

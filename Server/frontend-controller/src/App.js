@@ -18,10 +18,9 @@ class App extends React.Component {
         this.setState({ background: color.hex });
     }
 
-    // Kill connection when colors aren't being changed
+    // Set final color once colors stop changing
     handleChangeComplete = async (color, event) => {
         let option = this.state.selectedOption.value;
-        //console.log(getCommandString(color, option));
         await sendCommand(getCommandString(color, option));
     }
 
@@ -41,13 +40,16 @@ class App extends React.Component {
         );
     };
 
+    // Handle fade speed input
     onNumChange = fadeSpeed => {
         this.setState({ fadeSpeed });
     }
 
+    // Render output
     render() {
         return (
             <div> <center>
+                {/* Color picker */}
                 <ChromePicker
                     color={this.state.background}
                     onChangeComplete={this.handleChangeComplete}
@@ -56,6 +58,7 @@ class App extends React.Component {
 
                 <br/>
 
+                {/* Strip selector */}
                 <Select
                     className="basic-single"
                     classNamePrefix="select"
@@ -72,6 +75,7 @@ class App extends React.Component {
 
                 <br/>
 
+                {/* Fade delay text box input */}
                 <InputNumber min={10}
                     value={this.state.fadeSpeed}
                     defaultValue={50}
@@ -80,12 +84,14 @@ class App extends React.Component {
                     onChange={this.onNumChange}
                 />
 
+                {/* Fade start button */}
                 <Button variant="outline-dark" onClick={async () => {
                     // await sendCommand("0-0-0-3-0-" + this.state.fadeSpeed + "-");
                 }}>Start Fade (delay above)</Button>
 
                 <br/><br/><br/>
 
+                {/* Animation selector */}
                 <Select
                     className="basic-single"
                     classNamePrefix="select"
@@ -100,8 +106,8 @@ class App extends React.Component {
                     onChange={this.handleAnimationSelect}
                 />
 
+                {/* Animation start button */}
                 <Button variant="outline-dark" onClick={async () => {
-                    //console.log("0-0-" + this.state.animationNum.value + "-4-3-0-");
                     await sendCommand(getAnimationString(this.state.animationNum.value));
                 }}>Start Ceiling Animation</Button>
             </center> </div>

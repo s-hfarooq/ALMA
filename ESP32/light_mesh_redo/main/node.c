@@ -5,7 +5,7 @@
 
 static void node_read_task(void *arg) {
     mdf_err_t ret = MDF_OK;
-    char *data    = (char*)MDF_MALLOC(MWIFI_PAYLOAD_LEN);
+    char *data    = (char *)MDF_MALLOC(MWIFI_PAYLOAD_LEN);
     size_t size   = MWIFI_PAYLOAD_LEN;
     mwifi_data_type_t data_type      = {0x0};
     uint8_t src_addr[MWIFI_ADDR_LEN] = {0x0};
@@ -76,7 +76,7 @@ static void node_read_task(void *arg) {
         // Parse reciever UID information
 
         // TODO: fix this -> instead of using hard coded index, use jsmn example and search for specific keys within JSON
-        char *recieverUID = (char*)MDF_MALLOC(sizeof(char) * (t[4].end - t[4].start + 1));
+        char *recieverUID = (char *)MDF_MALLOC(sizeof(char) * (t[4].end - t[4].start + 1));
         sprintf(recieverUID, "%.*s", t[4].end - t[4].start, data + t[4].start);
         unsigned long recieveJSONID = strtol(recieverUID, NULL, 16);
         unsigned int recieveType = recieveJSONID >> (4 * 5);
@@ -93,7 +93,7 @@ static void node_read_task(void *arg) {
         //     continue;
 
         // Parse sender UID information (not currently used)
-        char *senderUID = (char*)MDF_MALLOC(sizeof(char) * (t[2].end - t[2].start + 1));
+        char *senderUID = (char *)MDF_MALLOC(sizeof(char) * (t[2].end - t[2].start + 1));
         sprintf(senderUID, "%.*s", t[2].end - t[2].start, data + t[2].start);
         unsigned long sendJSONID = strtol(senderUID, NULL, 16);
         unsigned int sendType = sendJSONID >> (4 * 5);
@@ -102,8 +102,8 @@ static void node_read_task(void *arg) {
         MDF_FREE(senderUID);
 
         // Parse function ID and data
-        char *funcID = (char*)MDF_MALLOC(sizeof(char) * (t[6].end - t[6].start + 1));
-        char *parsedData = (char*)MDF_MALLOC(sizeof(char) * (t[8].end - t[8].start + 1));
+        char *funcID = (char *)MDF_MALLOC(sizeof(char) * (t[6].end - t[6].start + 1));
+        char *parsedData = (char *)MDF_MALLOC(sizeof(char) * (t[8].end - t[8].start + 1));
         sprintf(funcID, "%.*s", t[6].end - t[6].start, data + t[6].start);
         sprintf(parsedData, "%.*s", t[8].end - t[8].start, data + t[8].start);
 
@@ -158,7 +158,7 @@ void node_write_task(void *arg) {
     mdf_err_t ret = MDF_OK;
     int count     = 0;
     size_t size   = 0;
-    char *data    = (char*)MDF_MALLOC(MWIFI_PAYLOAD_LEN);
+    char *data    = (char *)MDF_MALLOC(MWIFI_PAYLOAD_LEN);
     mwifi_data_type_t data_type = {0x0};
 
     MDF_LOGI("Node write task is running");
