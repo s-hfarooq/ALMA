@@ -1,5 +1,5 @@
+set(COMPONENT_SRCS "get_started.cpp")
+set(COMPONENT_ADD_INCLUDEDIRS "")
+set(REQUIRES mcommon mconfig mwifi mlink)
 
-idf_component_register(SRCS "lightMesh.c" "./lightMesh.c"
-                    INCLUDE_DIRS ""
-                    REQUIRES mcommon mconfig mwifi mlink
-)
+register_component()

@@ -1,79 +1,70 @@
-// Functions used exclusively on the root device
-
-#include <stdio.h>
-#include <sys/param.h>
-
-#include "driver/gpio.h"
-#include "driver/i2c.h"
-#include "driver/ledc.h"
-#include "esp_event.h"
-#include "esp_log.h"
-#include "esp_netif.h"
-#include "esp_system.h"
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
+#pragma once
 #include "mdf_common.h"
 #include "mwifi.h"
-#include "sdkconfig.h"
-#include "sharedVariables.h"
 
-/*
- * root_task
- *   DESCRIPTION: function run by root node (connected directly to Pi)
- *   INPUTS: arg - arguments
- *   RETURN VALUE: none
- *   SIDE EFFECTS: none
- */
+#define I2C_SLAVE_SDA_IO GPIO_NUM_21
+#define I2C_SLAVE_SCL_IO GPIO_NUM_22
+#define I2C_SLAVE_NUM I2C_NUM_0
+#define I2C_SLAVE_TX_BUF_LEN (256)
+#define I2C_SLAVE_RX_BUF_LEN (256)
+#define ESP_SLAVE_ADDR 0x04
+#define SLAVE_REQUEST_WAIT_MS (25)
+
+uint8_t outBuff[1024];
+uint16_t outBuffLen = 0;
+uint8_t inBuff[1024];
+uint16_t inBuffLen = 0;
+bool needsToSend[MAX_NUM_CHILDREN];
+
 static void root_task(void *arg) {
-    char *data = MDF_MALLOC(MWIFI_PAYLOAD_LEN);
-    size_t size = MWIFI_PAYLOAD_LEN;
+    mdf_err_t ret                    = MDF_OK;
+    char *data                       = (char*)MDF_MALLOC(MWIFI_PAYLOAD_LEN);
+    size_t size                      = MWIFI_PAYLOAD_LEN;
     uint8_t src_addr[MWIFI_ADDR_LEN] = {0x0};
-    mwifi_data_type_t data_type = {0};
+    mwifi_data_type_t data_type      = {0};
 
-    MDF_LOGI("Root starting");
-    srand(time(NULL));
+    MDF_LOGI("Root is starting");
 
-    for(int i = 0;; ++i) {
-        if(!mwifi_is_started()) {
-            vTaskDelay(20 / portTICK_RATE_MS);
+    for (int i = 0;; ++i) {
+        if (!mwifi_is_started()) {
+            vTaskDelay(50 / portTICK_RATE_MS);
             continue;
         }
 
-        for(int j = 0; j < 2; j++) {
+        for(int j = 0; j < MAX_NUM_CHILDREN; j++) {
             size = MWIFI_PAYLOAD_LEN;
             memset(data, 0, MWIFI_PAYLOAD_LEN);
-            mwifi_root_read(src_addr, &data_type, data, &size, portMAX_DELAY);
+            ret = mwifi_root_read(src_addr, &data_type, data, &size, portMAX_DELAY);
+            MDF_ERROR_CONTINUE(ret != MDF_OK, "<%s> mwifi_root_read", mdf_err_to_name(ret));
 
             size = sprintf(data, "%s", inBuff);
 
-            #if (LOGGING)
-              MDF_LOGI("Writing data \"%s\" to mesh", data);
-            #endif
-
             if(needsToSend[j]) {
-                mwifi_root_write(src_addr, 1, &data_type, data, size, false);
+                #if (LOGGING)
+                    MDF_LOGI("Writing data \"%s\" to mesh", data);
+                #endif
+
+                ret = mwifi_root_write(src_addr, 1, &data_type, data, size, false);
+                MDF_ERROR_CONTINUE(ret != MDF_OK, "mwifi_root_recv, ret: %x", ret);
                 needsToSend[j] = false;
+
+                if(j == MAX_NUM_CHILDREN - 1)
+                    memset(inBuff, 0, sizeof inBuff);
+
+                #if (LOGGING)
+                    MDF_LOGI("Finished sending data");
+                #endif
             }
 
-            #if (LOGGING)
-              MDF_LOGI("Finished sending data");
-            #endif
         }
     }
 
-    MDF_LOGW("Root quitting");
+    MDF_LOGW("Root is quitting");
 
     MDF_FREE(data);
     vTaskDelete(NULL);
 }
 
-/*
- * i2c_slave_init
- *   DESCRIPTION: initialize i2c slave
- *   INPUTS: none
- *   RETURN VALUE: error values
- *   SIDE EFFECTS: none
- */
 static esp_err_t i2c_slave_init() {
     i2c_port_t i2c_slave_port = I2C_SLAVE_NUM;
     i2c_config_t conf_slave;
@@ -89,16 +80,8 @@ static esp_err_t i2c_slave_init() {
                               I2C_SLAVE_RX_BUF_LEN, I2C_SLAVE_TX_BUF_LEN, 0);
 }
 
-/*
- * check_for_data
- *   DESCRIPTION: checks i2c bus for new data
- *   INPUTS: none
- *   RETURN VALUE: bool (true if data changed, false otherwise)
- *   SIDE EFFECTS: alters inBuff char array
- */
 bool check_for_data() {
-    size_t size = i2c_slave_read_buffer(I2C_SLAVE_NUM, inBuff, 1,
-                                        1000 / portTICK_RATE_MS);
+    size_t size = i2c_slave_read_buffer(I2C_SLAVE_NUM, inBuff, 1, 1000 / portTICK_RATE_MS);
 
     if(size == 1) {
         if(inBuff[0] == 0x01) {
@@ -130,8 +113,19 @@ bool check_for_data() {
         if(inBuff[0] > 0x02) {
             vTaskDelay(pdMS_TO_TICKS(10));
             size_t size_pl = i2c_slave_read_buffer(
-                I2C_SLAVE_NUM, inBuff, inBuff[0], 20 / portTICK_RATE_MS);
+                I2C_SLAVE_NUM, inBuff, inBuff[0], 80 / portTICK_RATE_MS);
             inBuffLen = size_pl;
+
+            // I don't know why but sometimes the first character is weird and not a {
+            if(inBuff[0] != '{') {
+                int offset = 0;
+                while(inBuff[offset] != '{')
+                    offset++;
+                for(int k = 0; k < size_pl; k++)
+                    inBuff[k] = inBuff[k + offset]; //inBuff += offset instead of loop?
+
+                inBuffLen -= offset;
+            }
             return true;
         }
     }
@@ -144,23 +138,17 @@ bool check_for_data() {
     return false;
 }
 
-/*
- * i2cs_test_task
- *   DESCRIPTION: continuously calls check_for_data function
- *   INPUTS: arg - arguments
- *   RETURN VALUE: none
- *   SIDE EFFECTS: alters inBuff char array
- */
 static void i2cs_test_task(void *arg) {
     while(1) {
         if(check_for_data()) {
-            needsToSend[0] = true;
-            needsToSend[1] = true;
-            inBuffLen = 0;
+            for(int i = 0; i < MAX_NUM_CHILDREN; i++)
+                needsToSend[i] = true;
 
             #if (LOGGING)
-              MDF_LOGI("i2c data recieved: %s", inBuff);
+              MDF_LOGI("i2c data recieved (%d): %s", inBuffLen, inBuff);
             #endif
+
+            inBuffLen = 0;
         }
     }
 

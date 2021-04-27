@@ -1,3 +1,5 @@
+[[中文]](./README_cn.md)
+
 # get_started Example
 
 ## Introduction
@@ -22,7 +24,7 @@ You can also go to the submenu `Component config -> MDF Mwifi`, and configure th
 
 ## Run
 
-1. Set the event callback function;
+1. Set the event callback function; 
 2. Initialize wifi, and start ESP-WIFI-MESH;
 3. Create an event handler function:
 	- Non-root nodes send the data packet `Hello root!` to the root node at an interval of three seconds, and wait for its reply;
