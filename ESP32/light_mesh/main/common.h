@@ -9,7 +9,7 @@
 #define LOGGING 1
 
 // 0xFFF = reserved (all), 0x100 = root, 0x101 = Holonyayk, 0x102 = 5050 controller, 0x103 = BT speaker controller
-#define CURRENT_TYPE (0x102)
+#define CURRENT_TYPE (0x100)
 
 // 0xFF = reserved (all), 0x00 = living room, 0x01 = kitchen, 0x02 = bathroom, 0x03 = Hassan's room, 0x04 = Weustis' room
 #define CURRENT_LOC (0x00)

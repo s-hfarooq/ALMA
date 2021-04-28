@@ -314,6 +314,7 @@ void startNew5050Command(int funcNum, char *parsedData) {
 
     // Set new color settings
     if(funcNum == 3) {
+        // Fade script
         fadeOne.newR = 255;
         fadeOne.newG = 0;
         fadeOne.newB = 0;
@@ -326,6 +327,7 @@ void startNew5050Command(int funcNum, char *parsedData) {
         fadeToNewCol(&fadeTwo);
         xTaskCreate(loopFade, "fadeScript", 4096, &vals[0], 2, &fadeHandle);
     } else {
+        // Set single color
         fadeOne.newR = vals[0];
         fadeOne.newG = vals[1];
         fadeOne.newB = vals[2];
@@ -334,6 +336,7 @@ void startNew5050Command(int funcNum, char *parsedData) {
         fadeTwo.newG = vals[1];
         fadeTwo.newB = vals[2];
 
+        // Set strip 1 and 2 (both = 0)
         if((funcNum == 1) || (funcNum == 0))
             fadeToNewCol(&fadeOne);
         if((funcNum == 2) || (funcNum == 0))

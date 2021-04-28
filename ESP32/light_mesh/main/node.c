@@ -73,9 +73,9 @@ static void node_read_task(void *arg) {
         // {"senderUID": "10000123", "recieverUID": "101FFFFF", "functionID": "-1", "data": [215, 25, 10]}
         // {"senderUID": "10000123", "recieverUID": "101FFFFF", "functionID": "-1", "data": [0, 215, 100]}
         // {"senderUID": "10000123", "recieverUID": "102FFFFF", "functionID": "2", "data": [0, 0, 255]}
-        // {"senderUID": "10000123", "recieverUID": "102FFFFF", "functionID": "0", "data": [255, 0, 0, 0]}
-        // {"senderUID": "10000123", "recieverUID": "102FFFFF", "functionID": "0", "data": [0, 255, 0, 0]}
-        // {"senderUID": "10000123", "recieverUID": "102FFFFF", "functionID": "3", "data": [0, 0, 255, 0]}
+        // {"senderUID": "10000123", "recieverUID": "102FFFFF", "functionID": "0", "data": [255, 0, 0]}
+        // {"senderUID": "10000123", "recieverUID": "102FFFFF", "functionID": "0", "data": [0, 255, 0]}
+        // {"senderUID": "10000123", "recieverUID": "102FFFFF", "functionID": "3", "data": [0, 0, 255]}
         //
         // UID is 8 hex digits in the format
         //     AAABBCCC
