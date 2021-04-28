@@ -25,8 +25,13 @@
     #include "5050Controller.c"
 #endif
 
-#include "root.c"
-#include "node.c"
+#if (CURRENT_TYPE == 0x100)
+    #include "root.c"
+#endif
+
+#if (CURRENT_TYPE != 0x100)
+    #include "node.c"
+#endif
 
 TaskHandle_t fadeHandle = NULL;
 
@@ -130,9 +135,6 @@ void app_main() {
     config.channel_switch_disable = 1;
     config.router_switch_disable = 1;
 
-    if(config.mesh_type == MESH_ROOT)
-        ESP_ERROR_CHECK(i2c_slave_init());
-
     /**
      * @brief Initialize wifi mesh.
      */
@@ -142,30 +144,35 @@ void app_main() {
     MDF_ERROR_ASSERT(mwifi_set_config(&config));
     MDF_ERROR_ASSERT(mwifi_start());
 
-
     /**
      * @brief Data transfer between wifi mesh devices
      */
     if (config.mesh_type == MESH_ROOT) {
-        xTaskCreate(i2cs_test_task, "slave", 1024 * 2, (void *)1, 4, NULL);
-        xTaskCreate(root_task, "root_task", 4 * 1024,
-                    NULL, CONFIG_MDF_TASK_DEFAULT_PRIOTY, NULL);
+        #if (CURRENT_TYPE == 0x100)
+            ESP_ERROR_CHECK(i2c_slave_init());
+
+            xTaskCreate(i2cs_test_task, "slave", 1024 * 2, (void *)1, 4, NULL);
+            xTaskCreate(root_task, "root_task", 4 * 1024,
+                        NULL, CONFIG_MDF_TASK_DEFAULT_PRIOTY, NULL);
+        #endif // (CURRENT_TYPE == 0x100)
     } else {
-        #if (CURRENT_TYPE == 0x101)
-            wsLEDInit();
-        #endif
+        #if (CURRENT_TYPE != 0x100)
+            #if (CURRENT_TYPE == 0x101)
+                wsLEDInit();
+            #endif
 
-        #if (CURRENT_TYPE == 0x102)
-            init_5050();
-        #endif
+            #if (CURRENT_TYPE == 0x102)
+                init_5050();
+            #endif
 
-        xTaskCreate(node_write_task, "node_write_task", 4 * 1024,
-                    NULL, CONFIG_MDF_TASK_DEFAULT_PRIOTY, NULL);
-        xTaskCreate(node_read_task, "node_read_task", 4 * 1024,
-                    NULL, CONFIG_MDF_TASK_DEFAULT_PRIOTY, NULL);
+            xTaskCreate(node_write_task, "node_write_task", 4 * 1024,
+                        NULL, CONFIG_MDF_TASK_DEFAULT_PRIOTY, NULL);
+            xTaskCreate(node_read_task, "node_read_task", 4 * 1024,
+                        NULL, CONFIG_MDF_TASK_DEFAULT_PRIOTY, NULL);
 
-        #if (CURRENT_TYPE == 0x101)
-            xTaskCreatePinnedToCore(individuallyAddressableDispatcher, "leds_task", 8 * 1024, NULL, 100, NULL, 0);
-        #endif
+            #if (CURRENT_TYPE == 0x101)
+                xTaskCreatePinnedToCore(individuallyAddressableDispatcher, "leds_task", 8 * 1024, NULL, 100, NULL, 0);
+            #endif
+        #endif // (CURRENT_TYPE != 0x100)
     }
 }
