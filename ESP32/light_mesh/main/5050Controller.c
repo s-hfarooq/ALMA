@@ -307,49 +307,37 @@ void startNew5050Command(int funcNum, char *parsedData) {
 
     fadeOne.type     = 1;
     fadeOne.duration = 150;
+    fadeOne.newThread = 0;
     fadeTwo.type     = 2;
     fadeTwo.duration = 150;
+    fadeTwo.newThread = 0;
 
     // Set new color settings
     if(funcNum == 3) {
         fadeOne.newR = 255;
         fadeOne.newG = 0;
         fadeOne.newB = 0;
-        fadeOne.newThread = 0;
 
         fadeTwo.newR = 255;
         fadeTwo.newG = 0;
         fadeTwo.newB = 0;
-        fadeTwo.newThread = 0;
 
-        // xTaskCreate(fadeToNewCol, "fadeScript", 4096, &fadeOne, 2, NULL);
-        // xTaskCreate(fadeToNewCol, "fadeScript", 4096, &fadeTwo, 2, NULL);
         fadeToNewCol(&fadeOne);
         fadeToNewCol(&fadeTwo);
-        // vTaskDelay(fadeTwo.duration / portTICK_RATE_MS);
         xTaskCreate(loopFade, "fadeScript", 4096, &vals[0], 2, &fadeHandle);
     } else {
         fadeOne.newR = vals[0];
         fadeOne.newG = vals[1];
         fadeOne.newB = vals[2];
-        fadeOne.newThread = 0;
 
         fadeTwo.newR = vals[0];
         fadeTwo.newG = vals[1];
         fadeTwo.newB = vals[2];
-        fadeTwo.newThread = 0;
 
-        MDF_LOGI("FUNCNUM IS %d", funcNum);
-        if((funcNum == 1) || (funcNum == 0)) {
-            MDF_LOGI("STARTING FIRST FADE");
+        if((funcNum == 1) || (funcNum == 0))
             fadeToNewCol(&fadeOne);
-            // xTaskCreate(fadeToNewCol, "fadeScript", 4 * 1024, &fadeOne, 2, NULL);
-        }
-        if((funcNum == 2) || (funcNum == 0)) {
-            MDF_LOGI("STARTING SECOND FADE");
+        if((funcNum == 2) || (funcNum == 0))
             fadeToNewCol(&fadeTwo);
-            // xTaskCreate(fadeToNewCol, "fadeScript", 4 * 1024, &fadeTwo, 2, NULL);
-        }
     }
 }
 
