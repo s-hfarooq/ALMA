@@ -72,6 +72,10 @@ static void node_read_task(void *arg) {
         // {"senderUID": "10000123", "recieverUID": "101FFFFF", "functionID": "15", "data": []}
         // {"senderUID": "10000123", "recieverUID": "101FFFFF", "functionID": "-1", "data": [215, 25, 10]}
         // {"senderUID": "10000123", "recieverUID": "101FFFFF", "functionID": "-1", "data": [0, 215, 100]}
+        // {"senderUID": "10000123", "recieverUID": "102FFFFF", "functionID": "2", "data": [0, 0, 255]}
+        // {"senderUID": "10000123", "recieverUID": "102FFFFF", "functionID": "0", "data": [255, 0, 0, 0]}
+        // {"senderUID": "10000123", "recieverUID": "102FFFFF", "functionID": "0", "data": [0, 255, 0, 0]}
+        // {"senderUID": "10000123", "recieverUID": "102FFFFF", "functionID": "3", "data": [0, 0, 255, 0]}
         //
         // UID is 8 hex digits in the format
         //     AAABBCCC
@@ -130,6 +134,7 @@ static void node_read_task(void *arg) {
         #endif /* if (LOGGING) */
 
 
+        int idx = atoi(funcID);
         #if (LOGGING)
             MDF_LOGI("STARTING TASK %d", idx);
         #endif /* if (LOGGING) */
@@ -138,8 +143,6 @@ static void node_read_task(void *arg) {
 
         // HOLONYAK
         #if (CURRENT_TYPE == 0x101)
-            int idx = atoi(funcID);
-
             if(idx == -1) {
                 // Parse data for single color
                 char *ptr = parsedData;
@@ -164,7 +167,7 @@ static void node_read_task(void *arg) {
 
         // 5050 light controller
         #if (CURRENT_TYPE == 0x102)
-            startNew5050Command(atoi(funcID), parsedData);
+            startNew5050Command(idx, parsedData);
         #endif // (CURRENT_TYPE == 0x102)
 
         // BT speaker controller

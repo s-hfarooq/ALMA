@@ -51,51 +51,51 @@ bool needsToSend[2] = { false, false };
 
 // Configuring PWM settings
 ledc_timer_config_t ledc_timer = {
-    .duty_resolution = LEDC_TIMER_13_BIT, // resolution of PWM duty
-    .freq_hz         = 5000,              // frequency of PWM signal
-    .speed_mode      = LEDC_LS_MODE,      // timer mode
-    .timer_num       = LEDC_LS_TIMER,     // timer index
-    .clk_cfg         = LEDC_AUTO_CLK,     // Auto select the source clock
+    .speed_mode = LEDC_LS_MODE,            // timer mode
+    .duty_resolution = LEDC_TIMER_13_BIT,  // resolution of PWM duty
+    .timer_num = LEDC_LS_TIMER,            // timer index
+    .freq_hz = 5000,                       // frequency of PWM signal
+    .clk_cfg = LEDC_AUTO_CLK,              // Auto select the source clock
 };
 
 // Configuring PWM settings
 ledc_channel_config_t ledc_channel[LEDC_TEST_CH_NUM] = {
-    { .channel    = LEDC_HS_CH0_CHANNEL,
-      .duty       = 0,
-      .gpio_num   = LEDC_HS_CH0_GPIO,
-      .speed_mode = LEDC_HS_MODE,
-      .hpoint     = 0,
-      .timer_sel  = LEDC_HS_TIMER },
-    { .channel    = LEDC_HS_CH1_CHANNEL,
-      .duty       = 0,
-      .gpio_num   = LEDC_HS_CH1_GPIO,
-      .speed_mode = LEDC_HS_MODE,
-      .hpoint     = 0,
-      .timer_sel  = LEDC_HS_TIMER },
-    { .channel    = LEDC_LS_CH2_CHANNEL,
-      .duty       = 0,
-      .gpio_num   = LEDC_LS_CH2_GPIO,
-      .speed_mode = LEDC_LS_MODE,
-      .hpoint     = 0,
-      .timer_sel  = LEDC_LS_TIMER },
-    { .channel    = LEDC_LS_CH3_CHANNEL,
-      .duty       = 0,
-      .gpio_num   = LEDC_LS_CH3_GPIO,
-      .speed_mode = LEDC_LS_MODE,
-      .hpoint     = 0,
-      .timer_sel  = LEDC_LS_TIMER },
-    { .channel    = LEDC_HS_CH4_CHANNEL,
-      .duty       = 0,
-      .gpio_num   = LEDC_HS_CH4_GPIO,
-      .speed_mode = LEDC_HS_MODE,
-      .hpoint     = 0,
-      .timer_sel  = LEDC_HS_TIMER },
-    { .channel    = LEDC_HS_CH5_CHANNEL,
-      .duty       = 0,
-      .gpio_num   = LEDC_HS_CH5_GPIO,
-      .speed_mode = LEDC_HS_MODE,
-      .hpoint     = 0,
-      .timer_sel  = LEDC_HS_TIMER },
+    {.gpio_num = LEDC_HS_CH0_GPIO,
+     .speed_mode = LEDC_HS_MODE,
+     .channel = LEDC_HS_CH0_CHANNEL,
+     .timer_sel = LEDC_HS_TIMER,
+     .duty = 0,
+     .hpoint = 0},
+    {.gpio_num = LEDC_HS_CH1_GPIO,
+     .speed_mode = LEDC_HS_MODE,
+     .channel = LEDC_HS_CH1_CHANNEL,
+     .timer_sel = LEDC_HS_TIMER,
+     .duty = 0,
+     .hpoint = 0},
+    {.gpio_num = LEDC_LS_CH2_GPIO,
+     .speed_mode = LEDC_LS_MODE,
+     .channel = LEDC_LS_CH2_CHANNEL,
+     .timer_sel = LEDC_LS_TIMER,
+     .duty = 0,
+     .hpoint = 0},
+    {.gpio_num = LEDC_LS_CH3_GPIO,
+     .speed_mode = LEDC_LS_MODE,
+     .channel = LEDC_LS_CH3_CHANNEL,
+     .timer_sel = LEDC_LS_TIMER,
+     .duty = 0,
+     .hpoint = 0},
+    {.gpio_num = LEDC_HS_CH4_GPIO,
+     .speed_mode = LEDC_HS_MODE,
+     .channel = LEDC_HS_CH4_CHANNEL,
+     .timer_sel = LEDC_HS_TIMER,
+     .duty = 0,
+     .hpoint = 0},
+    {.gpio_num = LEDC_HS_CH5_GPIO,
+     .speed_mode = LEDC_HS_MODE,
+     .channel = LEDC_HS_CH5_CHANNEL,
+     .timer_sel = LEDC_HS_TIMER,
+     .duty = 0,
+     .hpoint = 0},
 };
 
 // Array used for fading (sinusoidal instead of linear)
@@ -134,6 +134,7 @@ typedef struct {
     int newB;
     int duration;
     int type;
+    int newThread;
 } FadeColStruct;
 
 /*
@@ -223,7 +224,9 @@ void fadeToNewCol(void *arg) {
     }
 
     displayCol(inputStruct.newR, inputStruct.newG, inputStruct.newB, inputStruct.type);
-    vTaskDelete(NULL);
+
+    if(inputStruct.newThread == 1)
+        vTaskDelete(NULL);
 }
 
 /*
@@ -243,8 +246,9 @@ void loopFade(void *arg) {
 
     // Define settings for input to fade function
     FadeColStruct fadeSettings;
-    fadeSettings.duration = 5;
-    fadeSettings.type     = 0;
+    fadeSettings.duration  = 5;
+    fadeSettings.type      = 0;
+    fadeSettings.newThread = 1;
 
     while(true) {
         for(int i = 0; i < 360; i++) {
@@ -277,12 +281,13 @@ void init_5050() {
 
 void startNew5050Command(int funcNum, char *parsedData) {
     // Parse input string
-    // rCol, gCol, bCol, speed
-    int vals[4] = { 0, 0, 0, 0 };
+    // rCol/speed, gCol, bCol
+    int vals[3] = { 0, 0, 0 };
     char *ptr   = parsedData;
     int loc     = 0;
 
-    while(*ptr && loc < 4) {
+    int max = (funcNum == 3) ? 1 : 3;
+    while(*ptr && loc < max) {
         if(isdigit(*ptr)) {
             vals[loc] = strtol(ptr, &ptr, 10);
             loc++;
@@ -310,28 +315,41 @@ void startNew5050Command(int funcNum, char *parsedData) {
         fadeOne.newR = 255;
         fadeOne.newG = 0;
         fadeOne.newB = 0;
+        fadeOne.newThread = 0;
 
         fadeTwo.newR = 255;
         fadeTwo.newG = 0;
         fadeTwo.newB = 0;
+        fadeTwo.newThread = 0;
 
-        xTaskCreate(fadeToNewCol, "fadeScript", 4096, &fadeOne, 2, NULL);
-        xTaskCreate(fadeToNewCol, "fadeScript", 4096, &fadeTwo, 2, NULL);
-        vTaskDelay(fadeTwo.duration / portTICK_RATE_MS);
-        xTaskCreate(loopFade, "fadeScript", 4096, &vals[3], 2, &fadeHandle);
+        // xTaskCreate(fadeToNewCol, "fadeScript", 4096, &fadeOne, 2, NULL);
+        // xTaskCreate(fadeToNewCol, "fadeScript", 4096, &fadeTwo, 2, NULL);
+        fadeToNewCol(&fadeOne);
+        fadeToNewCol(&fadeTwo);
+        // vTaskDelay(fadeTwo.duration / portTICK_RATE_MS);
+        xTaskCreate(loopFade, "fadeScript", 4096, &vals[0], 2, &fadeHandle);
     } else {
         fadeOne.newR = vals[0];
         fadeOne.newG = vals[1];
         fadeOne.newB = vals[2];
+        fadeOne.newThread = 0;
 
         fadeTwo.newR = vals[0];
         fadeTwo.newG = vals[1];
         fadeTwo.newB = vals[2];
+        fadeTwo.newThread = 0;
 
-        if((funcNum == 1) || (funcNum == 0))
-            xTaskCreate(fadeToNewCol, "fadeScript", 4096, &fadeOne, 2, NULL);
-        if((funcNum == 2) || (funcNum == 0))
-            xTaskCreate(fadeToNewCol, "fadeScript", 4096, &fadeTwo, 2, NULL);
+        MDF_LOGI("FUNCNUM IS %d", funcNum);
+        if((funcNum == 1) || (funcNum == 0)) {
+            MDF_LOGI("STARTING FIRST FADE");
+            fadeToNewCol(&fadeOne);
+            // xTaskCreate(fadeToNewCol, "fadeScript", 4 * 1024, &fadeOne, 2, NULL);
+        }
+        if((funcNum == 2) || (funcNum == 0)) {
+            MDF_LOGI("STARTING SECOND FADE");
+            fadeToNewCol(&fadeTwo);
+            // xTaskCreate(fadeToNewCol, "fadeScript", 4 * 1024, &fadeTwo, 2, NULL);
+        }
     }
 }
 

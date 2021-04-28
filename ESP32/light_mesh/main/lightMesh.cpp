@@ -33,8 +33,6 @@
     #include "node.c"
 #endif
 
-TaskHandle_t fadeHandle = NULL;
-
 extern "C" {
     void app_main();
 }
