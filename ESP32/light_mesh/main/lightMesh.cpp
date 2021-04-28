@@ -16,7 +16,15 @@
 #include "common.h"
 #include "mdf_common.h"
 #include "mwifi.h"
-#include "wsLED.cpp"
+
+#if (CURRENT_TYPE == 0x101)
+    #include "wsLED.cpp"
+#endif
+
+#if (CURRENT_TYPE == 0x102)
+    #include "5050Controller.c"
+#endif
+
 #include "root.c"
 #include "node.c"
 
@@ -145,6 +153,10 @@ void app_main() {
     } else {
         #if (CURRENT_TYPE == 0x101)
             wsLEDInit();
+        #endif
+
+        #if (CURRENT_TYPE == 0x102)
+            init_5050();
         #endif
 
         xTaskCreate(node_write_task, "node_write_task", 4 * 1024,

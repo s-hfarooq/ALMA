@@ -934,7 +934,7 @@ void individuallyAddressableDispatcher(void *params) {
 
     // Loop forever
     while(1) {
-        // Only start new function when currType variable changed
+        // Ensure currType is within bounds
         if(currType > -2 && currType < NUM_FUNCTIONS) {
             #if (LOGGING)
                 MDF_LOGI("STARTING FUNC %d\n", currType);

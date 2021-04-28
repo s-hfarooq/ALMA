@@ -3,6 +3,14 @@
 #include "mwifi.h"
 #include "jsmn.h"
 
+#if (CURRENT_TYPE == 0x101)
+    #include "wsLED.cpp"
+#endif
+
+#if (CURRENT_TYPE == 0x102)
+    #include "5050Controller.c"
+#endif
+
 /*
  * node_read_task
  *   DESCRIPTION: function run by child nodes to read
@@ -156,7 +164,7 @@ static void node_read_task(void *arg) {
 
         // 5050 light controller
         #if (CURRENT_TYPE == 0x102)
-            // TODO
+            startNew5050Command(atoi(funcID), parsedData);
         #endif // (CURRENT_TYPE == 0x102)
 
         // BT speaker controller
