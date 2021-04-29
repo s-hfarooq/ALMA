@@ -12,11 +12,15 @@
     * Random folders containing test code that isn't currently being used -> delete?
 
 #### Server folder
-  * When running on the Pi, you should be able to go into the frontend folder, build the frontend (`npm run build`), the go into the api folder and run `./server.js`. The site should then be running at `localhost:3080`. Run forever using `nohup ./server.js &`. You may need to kill the previous instance using `ps -ef` to find the PID of server.js, then running `kill PID`, replacing PID with the actual value.
   * api
     * Backend server to send signal over i2c to ESP32 which relays message across mesh network
   * frontend-controller
     * Website to control lights
+
+###### Running frontend
+  * Run `npm run build` before pushing frontend changes since running this on the RPi takes very long.
+  * Go into the api folder and run `./server.js`. The site should then be running at `localhost:3080`.
+  * Run forever using `nohup ./server.js &`. You may need to kill the previous instance using `kill PID`. Find the PID by running `ps -ef` and look for the value corresponding to `server.js`.
 
 ## Development Environment
 @weustis you should do this
@@ -25,21 +29,21 @@
 Follow the [official guide](https://docs.espressif.com/projects/esp-mdf/en/latest/get-started/) from Espressif to install ESP-MDF - the mesh development framework. You may (and probably should) also install ESP-IDF (IoT development framework) using the [official guide](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/get-started/#installation-step-by-step).
 
 #### Flashing devices
-1. Make sure PATH to ESP-MDF (or IDF) exists
+1. Make sure PATH to ESP-MDF (or IDF) exists on the current terminal window
     * Linux: `. $HOME/esp/esp-mdf/export.sh`
     * Windows
         * No
-2. Ensure all config options are correct (check idf.py menuconfig and common.h)
+2. Ensure all config options are correct (check `idf.py menuconfig` and common.h)
 3. Enable r+w permissions on port for the device to be flashed
     * Linux
         * `/dev/tty` -> tab to find device port
-        * `sudo chmod a+rw /dev/ttyUSB0` (replace ttyUSB0 with correct port)
+        * `sudo chmod a+rw /dev/ttyUSB0` (replace `/dev/ttyUSB0` with correct port)
     * Windows
         * No
 4. Flash the device by running `idf.py -p /dev/ttyUSB0 flash monitor` replacing `/dev/ttyUSB0` with the correct port. This also opens up the serial monitor
     * If flashing a custom PCB, connect the UART board to the correct pins (look at schematics, make sure `TX` on UART is connected to `RX` on custom PCB, `RX` on UART to `TX` on custom), connect `IO0` to ground, connect the UART board to the computer, then short the `Enable` and ground pins on the custom board (for a very short time). This will put the device into programming mode. Disconnect `IO0` from ground and short Enable to ground again to leave programming mode.
 
-To just build and check for compilation errors, follow steps 1 and 2 above, then run `idf.py build`.
+To only build and not flash a device, for instance to check for compilation errors, follow steps 1 and 2 above, then run `idf.py build`.
 
 ## Mesh Network Details
 All packets are sent in a JSON string format similar to the following template:
@@ -102,22 +106,22 @@ ID's:
 
 
 #### Examples
-If the JSON string were
+If the JSON string was
 
 ```json
 {"senderUID": "10000123", "recieverUID": "101FFFFF", "functionID": "15", "data": []}
 ```
 
-The sender was the root node in the living room with ID 123, while the receiver would be all Holonyak devices. Those devices would then run function #15, which requires no data since the data array is empty.
+The sender was the root node in the living room with ID `123`, while the receiver would be all Holonyak devices. Those devices would then run function `15`, which requires no data since the data array is empty.
 
 
-If the JSON string were
+If the JSON string was
 
 ```json
 {"senderUID": "10000123", "recieverUID": "10200FFF", "functionID": "3", "data": [0, 0, 255]}
 ```
 
-The sender was the root node in the living room with ID 123, with the receivers being all 5050 LED controller devices in the living room. Those devices would then run function #3 with the provided data array.
+The sender was the root node in the living room with ID `123`, with the receivers being all 5050 LED controller devices in the living room. Those devices would then run function `3` with the provided data array.
 
 
 ## Other info
