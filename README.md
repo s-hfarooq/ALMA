@@ -4,10 +4,10 @@
 #### ESP32 Folder
 * light_mesh
     * main mesh network device code -> supports root node, 5050 LED controller, and WS2812B LED controller (Holonyak)
-    * View common.h and idf.py menuconfig for config options
+    * View common.h and run `idf.py menuconfig` for config options
     * Uses a [FastLED port](https://github.com/bbulkow/FastLED-idf) for ESP-IDF
 * Schematics
-    * Schematics, BOMs, etc. of the various PCBs
+    * Schematics, BOMs, etc. for the various custom PCBs
 * Testing
     * Random folders containing test code that isn't currently being used -> delete?
 
@@ -22,11 +22,13 @@
 @weustis you should do this
 
 #### Installation
-Follow the [official guide](https://docs.espressif.com/projects/esp-mdf/en/latest/get-started/) from Espressif to install ESP-MDF - the mesh development framework. You may (and probably should) also install ESP-IDF (IoT development framework) using the [official guide]((https://docs.espressif.com/projects/esp-idf/en/latest/esp32/get-started/#installation-step-by-step)).
+Follow the [official guide](https://docs.espressif.com/projects/esp-mdf/en/latest/get-started/) from Espressif to install ESP-MDF - the mesh development framework. You may (and probably should) also install ESP-IDF (IoT development framework) using the [official guide](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/get-started/#installation-step-by-step).
 
 #### Flashing devices
 1. Make sure PATH to ESP-MDF (or IDF) exists
     * Linux: `. $HOME/esp/esp-mdf/export.sh`
+    * Windows
+        * No
 2. Ensure all config options are correct (check idf.py menuconfig and common.h)
 3. Enable r+w permissions on port for the device to be flashed
     * Linux
@@ -34,8 +36,8 @@ Follow the [official guide](https://docs.espressif.com/projects/esp-mdf/en/lates
         * `sudo chmod a+rw /dev/ttyUSB0` (replace ttyUSB0 with correct port)
     * Windows
         * No
-4. Flash the device by running `idf.py -p /dev/ttyUSB0 flash monitor' replacing `/dev/ttyUSB0` with the correct port. This also opens up the serial monitor
-    * If flashing a custom PCB, connect the UART board to the correct pins (look at schematics, make sure TX on UART is connected to RX on custom PCB, RX on UART to TX on custom), connect IO0 to ground, connect the UART board to the computer, then short the Enable and ground pins on the custom board (for a very short time). This will put the device into programming mode. Disconnect IO0 from ground and short Enable to ground again to leave programming mode.
+4. Flash the device by running `idf.py -p /dev/ttyUSB0 flash monitor` replacing `/dev/ttyUSB0` with the correct port. This also opens up the serial monitor
+    * If flashing a custom PCB, connect the UART board to the correct pins (look at schematics, make sure `TX` on UART is connected to `RX` on custom PCB, `RX` on UART to `TX` on custom), connect `IO0` to ground, connect the UART board to the computer, then short the `Enable` and ground pins on the custom board (for a very short time). This will put the device into programming mode. Disconnect `IO0` from ground and short Enable to ground again to leave programming mode.
 
 To just build and check for compilation errors, follow steps 1 and 2 above, then run `idf.py build`.
 
@@ -58,6 +60,8 @@ All packets are sent in a JSON string format similar to the following template:
 The UID's are 8 hex values in the format `AAABBCCC` where `AAA` corresponds with device type<sup>*</sup>, `BB` corresponds with physical location, and `CCC` corresponds with a unique identifier. If the device type is `FFF`, the device type is not important for the command received and all devices matching other parts of the UID should process the command. If the physical location is `FF`, the location is not important for command and all devices matching other parts of the UID should process the command.If the unique identifier is `FFF`, then the unique identifier not important for the command and all devices matching other parts of the UID should process the command.
 
 The JSON strings are parsed using the [jsmn](https://github.com/zserge/jsmn) library.
+
+Even if certain values aren't being used (ie. the `data` field), they still must be present. The order also must be identical to that above (so for instance, putting `senderUID` after `recieverUID` would not be valid).
 
 <sup>*</sup>Note that the device type cannot start with the value `0`.
 
