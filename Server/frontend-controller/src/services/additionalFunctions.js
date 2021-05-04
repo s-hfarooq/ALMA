@@ -11,6 +11,11 @@ export async function sendCommand(data) {
 // Creates command JSON string based on strip selected and current device ID
 export function getCommandString(color, option, isFade, fadeSpeed) {
     let recieverUID = "", functionID = "", data = [];
+
+    // Only couch can run fade command
+    if(isFade == 1 && option == "ceiling")
+        return;
+
     switch (option) {
         case "ceiling":
             recieverUID = "101FFFFF"; // 101 = type Holonyak, FF = any location, FFF = any ID
@@ -18,10 +23,7 @@ export function getCommandString(color, option, isFade, fadeSpeed) {
             break;
         case "couch":
             recieverUID = "102FFFFF"; // 102 = type 5050 LED controller, FF = any location, FFF = any ID
-            if(isFade == 1)
-                functionID = "3";
-            else
-                functionID = "0";
+            functionID = (isFade == 1) ? "3" : "0";
             break;
         default:
             recieverUID = "101FFFFF"; // 101 = type Holonyak, FF = any location, FFF = any ID
