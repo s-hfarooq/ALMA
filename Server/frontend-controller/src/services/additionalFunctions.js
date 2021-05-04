@@ -18,7 +18,7 @@ export function getCommandString(color, option, isFade, fadeSpeed) {
             break;
         case "couch":
             recieverUID = "102FFFFF"; // 102 = type 5050 LED controller, FF = any location, FFF = any ID
-            if(isFade)
+            if(isFade == 1)
                 functionID = "3";
             else
                 functionID = "0";
@@ -27,7 +27,7 @@ export function getCommandString(color, option, isFade, fadeSpeed) {
             recieverUID = "101FFFFF"; // 101 = type Holonyak, FF = any location, FFF = any ID
     }
 
-    if(!isFade)
+    if(isFade == 0)
         data = [color.rgb.r, color.rgb.g, color.rgb.b];
     else
         data = [fadeSpeed]

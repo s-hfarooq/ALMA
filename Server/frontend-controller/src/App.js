@@ -21,7 +21,7 @@ class App extends React.Component {
     // Set final color once colors stop changing
     handleChangeComplete = async (color, event) => {
         let option = this.state.selectedOption.value;
-        await sendCommand(getCommandString(color, option, false, 0));
+        await sendCommand(getCommandString(color, option, 0, 0));
     }
 
     // Handle strip selection dropdown menu
@@ -87,7 +87,7 @@ class App extends React.Component {
                 {/* Fade start button */}
                 <Button variant="outline-dark" onClick={async () => {
                     // await sendCommand("0-0-0-3-0-" + this.state.fadeSpeed + "-");
-                    await sendCommand(getCommandString(0, this.state.selectedOption.value, true, this.state.fadeSpeed));
+                    await sendCommand(getCommandString(0, this.state.selectedOption.value, 1, this.state.fadeSpeed));
                 }}>Start Fade (delay above)</Button>
 
                 <br/><br/><br/>
