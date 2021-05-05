@@ -51,7 +51,7 @@ All packets are sent in a JSON string format similar to the following template:
 ```json
  {
      "senderUID": "AAABBCCC",
-     "recieverUID": "DDDEEFFF",
+     "receiverUID": "DDDEEFFF",
      "functionID": "12",
      "data": [
          255,
@@ -65,7 +65,7 @@ The UID's are 8 hex values in the format `AAABBCCC` where `AAA` corresponds with
 
 The JSON strings are parsed using the [jsmn](https://github.com/zserge/jsmn) library.
 
-Even if certain values aren't being used (ie. the `data` field), they still must be present. The order also must be identical to that above (so for instance, putting `senderUID` after `recieverUID` would not be valid).
+Even if certain values aren't being used (ie. the `data` field), they still must be present. The order also must be identical to that above (so for instance, putting `senderUID` after `receiverUID` would not be valid).
 
 <sup>*</sup>Note that the device type cannot start with the value `0`.
 
@@ -109,7 +109,7 @@ ID's:
 If the JSON string was
 
 ```json
-{"senderUID": "10000123", "recieverUID": "101FFFFF", "functionID": "15", "data": []}
+{"senderUID": "10000123", "receiverUID": "101FFFFF", "functionID": "15", "data": []}
 ```
 
 The sender was the root node in the living room with ID `123`, while the receiver would be all Holonyak devices. Those devices would then run function `15`, which requires no data since the data array is empty.
@@ -118,7 +118,7 @@ The sender was the root node in the living room with ID `123`, while the receive
 If the JSON string was
 
 ```json
-{"senderUID": "10000123", "recieverUID": "10200FFF", "functionID": "3", "data": [0, 0, 255]}
+{"senderUID": "10000123", "receiverUID": "10200FFF", "functionID": "3", "data": [0, 0, 255]}
 ```
 
 The sender was the root node in the living room with ID `123`, with the receivers being all 5050 LED controller devices in the living room. Those devices would then run function `3` with the provided data array.
