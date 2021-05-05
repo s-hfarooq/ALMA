@@ -14,7 +14,7 @@ uint8_t outBuff[1024];
 uint16_t outBuffLen = 0;
 uint8_t inBuff[1024];
 uint16_t inBuffLen = 0;
-bool needsToSend[MAX_NUM_CHILDREN];
+bool needsToSend = false;
 
 /*
  * root_task
@@ -29,6 +29,8 @@ static void root_task(void *arg) {
     size_t size                      = MWIFI_PAYLOAD_LEN;
     uint8_t src_addr[MWIFI_ADDR_LEN] = { 0x0 };
     mwifi_data_type_t data_type      = { 0 };
+    const uint8_t _end_dest_node[6] = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
+
 
     MDF_LOGI("Root is starting");
 
@@ -38,30 +40,30 @@ static void root_task(void *arg) {
             continue;
         }
 
-        for(int j = 0; j < MAX_NUM_CHILDREN; j++) {
-            size = MWIFI_PAYLOAD_LEN;
-            memset(data, 0, MWIFI_PAYLOAD_LEN);
-            ret = mwifi_root_read(src_addr, &data_type, data, &size, portMAX_DELAY);
-            MDF_ERROR_CONTINUE(ret != MDF_OK, "<%s> mwifi_root_read", mdf_err_to_name(ret));
+        size = MWIFI_PAYLOAD_LEN;
+        memset(data, 0, MWIFI_PAYLOAD_LEN);
+        ret = mwifi_root_read(src_addr, &data_type, data, &size, portMAX_DELAY);
+        MDF_ERROR_CONTINUE(ret != MDF_OK, "<%s> mwifi_root_read", mdf_err_to_name(ret));
 
-            size = sprintf(data, "%s", inBuff);
+        size = sprintf(data, "%s", inBuff);
 
-            if(needsToSend[j]) {
-                #if (LOGGING)
-                    MDF_LOGI("Writing data \"%s\" to mesh", data);
-                #endif /* if (LOGGING) */
+        if(needsToSend) {
+            #if (LOGGING)
+                MDF_LOGI("Writing data \"%s\" to mesh", data);
+            #endif /* if (LOGGING) */
 
-                ret = mwifi_root_write(src_addr, 1, &data_type, data, size, false);
-                MDF_ERROR_CONTINUE(ret != MDF_OK, "mwifi_root_recv, ret: %x", ret);
-                needsToSend[j] = false;
+            // ret = mwifi_root_write(src_addr, 1, &data_type, data, size, false);
+            ret = mwifi_root_write(_end_dest_node, 1, &data_type, data, size, true);
+            MDF_ERROR_CONTINUE(ret != MDF_OK, "mwifi_root_recv, ret: %x", ret);
+            needsToSend = false;
 
-                if(j == MAX_NUM_CHILDREN - 1) memset(inBuff, 0, sizeof inBuff);
+            memset(inBuff, 0, sizeof inBuff);
 
-                #if (LOGGING)
-                    MDF_LOGI("Finished sending data");
-                #endif /* if (LOGGING) */
-            }
+            #if (LOGGING)
+                MDF_LOGI("Finished sending data");
+            #endif /* if (LOGGING) */
         }
+        
     }
 
     MDF_LOGW("Root is quitting");
@@ -168,7 +170,7 @@ bool check_for_data() {
 static void i2cs_test_task(void *arg) {
     while(1) {
         if(check_for_data()) {
-            for(int i = 0; i < MAX_NUM_CHILDREN; i++) needsToSend[i] = true;
+            needsToSend = true;
 
             #if (LOGGING)
                 MDF_LOGI("i2c data received (%d): %s", inBuffLen, inBuff);

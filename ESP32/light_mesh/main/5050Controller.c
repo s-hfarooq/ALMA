@@ -47,7 +47,6 @@ uint8_t outBuff[256];
 uint16_t outBuffLen = 0;
 uint8_t inBuff[256];
 uint16_t inBuffLen  = 0;
-bool needsToSend[2] = { false, false };
 
 // Configuring PWM settings
 ledc_timer_config_t ledc_timer = {

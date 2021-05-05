@@ -7,7 +7,6 @@
 #include <sys/param.h>
 
 #define FASTLED_ALLOW_INTERRUPTS 0
-// #define FASTLED_INTERRUPT_RETRY_COUNT 1
 
 #include "FastLED.h"
 
@@ -680,9 +679,8 @@ void runningLights(void *params) {
         position++;
 
         for(int i = 0; i < NUM_LEDS; i++) {
-            setPixel(i, ((sin(i + position) * 127 + 128) / 255) * red,
-                     ((sin(i + position) * 127 + 128) / 255) * green,
-                     ((sin(i + position) * 127 + 128) / 255) * blue);
+            double scaleVal = (sin((double)(i + position)) * 127 + 128) / 255;
+            setPixel(i, scaleVal * red, scaleVal * green, scaleVal * blue);
 
             if(currType != functionNum)
                 return;
