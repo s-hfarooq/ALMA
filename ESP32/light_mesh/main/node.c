@@ -133,8 +133,8 @@ static void node_read_task(void *arg) {
             MDF_LOGI("DATA: %s\n",             parsedData);
         #endif /* if (LOGGING) */
 
-
         int idx = atoi(funcID);
+
         #if (LOGGING)
             MDF_LOGI("STARTING TASK %d", idx);
         #endif /* if (LOGGING) */

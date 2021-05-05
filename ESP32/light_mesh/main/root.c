@@ -29,8 +29,7 @@ static void root_task(void *arg) {
     size_t size                      = MWIFI_PAYLOAD_LEN;
     uint8_t src_addr[MWIFI_ADDR_LEN] = { 0x0 };
     mwifi_data_type_t data_type      = { 0 };
-    const uint8_t _end_dest_node[6] = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
-
+    const uint8_t _end_dest_node[6] = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff }; // Broadcast to all devices
 
     MDF_LOGI("Root is starting");
 
@@ -52,7 +51,6 @@ static void root_task(void *arg) {
                 MDF_LOGI("Writing data \"%s\" to mesh", data);
             #endif /* if (LOGGING) */
 
-            // ret = mwifi_root_write(src_addr, 1, &data_type, data, size, false);
             ret = mwifi_root_write(_end_dest_node, 1, &data_type, data, size, true);
             MDF_ERROR_CONTINUE(ret != MDF_OK, "mwifi_root_recv, ret: %x", ret);
             needsToSend = false;
@@ -136,8 +134,7 @@ bool check_for_data() {
             size_t size_pl = i2c_slave_read_buffer(I2C_SLAVE_NUM, inBuff, inBuff[0], 80 / portTICK_RATE_MS);
             inBuffLen = size_pl;
 
-            // I don't know why but sometimes the first character is weird and
-            // not a {
+            // I don't know why but sometimes the first character is weird and not a {
             if(inBuff[0] != '{') {
                 int offset = 0;
 
