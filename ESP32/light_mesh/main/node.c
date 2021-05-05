@@ -38,7 +38,7 @@ static void node_read_task(void *arg) {
         ret = mwifi_read(src_addr, &data_type, data, &size, portMAX_DELAY);
         MDF_ERROR_CONTINUE(ret != MDF_OK, "mwifi_read, ret: %x", ret);
 
-        // Parse JSON string recieved over mesh network
+        // Parse JSON string received over mesh network
         jsmn_parser p;
         jsmntok_t t[12];
         jsmn_init(&p);
@@ -60,7 +60,7 @@ static void node_read_task(void *arg) {
         // SAMPLE INPUT JSON
         // {
         //     "senderUID": "AAABBCCC",
-        //     "recieverUID": "DDDEEFFF",
+        //     "receiverUID": "DDDEEFFF",
         //     "functionID": "SET_COLOR",
         //     "data": [
         //         255,
@@ -69,13 +69,13 @@ static void node_read_task(void *arg) {
         //     ]
         // }
         //
-        // {"senderUID": "10000123", "recieverUID": "101FFFFF", "functionID": "15", "data": []}
-        // {"senderUID": "10000123", "recieverUID": "101FFFFF", "functionID": "-1", "data": [215, 25, 10]}
-        // {"senderUID": "10000123", "recieverUID": "101FFFFF", "functionID": "-1", "data": [0, 215, 100]}
-        // {"senderUID": "10000123", "recieverUID": "102FFFFF", "functionID": "2", "data": [0, 0, 255]}
-        // {"senderUID": "10000123", "recieverUID": "102FFFFF", "functionID": "0", "data": [255, 0, 0]}
-        // {"senderUID": "10000123", "recieverUID": "102FFFFF", "functionID": "0", "data": [0, 255, 0]}
-        // {"senderUID": "10000123", "recieverUID": "102FFFFF", "functionID": "3", "data": [0, 0, 255]}
+        // {"senderUID": "10000123", "receiverUID": "101FFFFF", "functionID": "15", "data": []}
+        // {"senderUID": "10000123", "receiverUID": "101FFFFF", "functionID": "-1", "data": [215, 25, 10]}
+        // {"senderUID": "10000123", "receiverUID": "101FFFFF", "functionID": "-1", "data": [0, 215, 100]}
+        // {"senderUID": "10000123", "receiverUID": "102FFFFF", "functionID": "2", "data": [0, 0, 255]}
+        // {"senderUID": "10000123", "receiverUID": "102FFFFF", "functionID": "0", "data": [255, 0, 0]}
+        // {"senderUID": "10000123", "receiverUID": "102FFFFF", "functionID": "0", "data": [0, 255, 0]}
+        // {"senderUID": "10000123", "receiverUID": "102FFFFF", "functionID": "3", "data": [0, 0, 255]}
         //
         // UID is 8 hex digits in the format
         //     AAABBCCC
@@ -89,24 +89,24 @@ static void node_read_task(void *arg) {
         //  if unique identifier = FFF -> unique identifier not important for
         // command (all devices matching other parts of UID process command)
 
-        // Parse reciever UID information
+        // Parse receiver UID information
 
         // TODO: fix this -> instead of using hard coded index, use jsmn example
         // and search for specific keys within JSON
-        char *recieverUID = (char *)MDF_MALLOC(sizeof(char) * (t[4].end - t[4].start + 1));
-        sprintf(recieverUID, "%.*s", t[4].end - t[4].start, data + t[4].start);
-        unsigned long recieveJSONID = strtol(recieverUID, NULL, 16);
-        unsigned int recieveType    = recieveJSONID >> (4 * 5);
-        unsigned int recieveLoc     = (recieveJSONID >> (4 * 3)) & 0xFF;
-        unsigned int recieveID      = recieveJSONID & 0xFFF;
-        MDF_FREE(recieverUID);
+        char *receiverUID = (char *)MDF_MALLOC(sizeof(char) * (t[4].end - t[4].start + 1));
+        sprintf(receiverUID, "%.*s", t[4].end - t[4].start, data + t[4].start);
+        unsigned long receiveJSONID = strtol(receiverUID, NULL, 16);
+        unsigned int receiveType    = receiveJSONID >> (4 * 5);
+        unsigned int receiveLoc     = (receiveJSONID >> (4 * 3)) & 0xFF;
+        unsigned int receiveID      = receiveJSONID & 0xFFF;
+        MDF_FREE(receiverUID);
 
-        // Ensure current device should be executing recieved command
-        if(recieveType != 0xFFF && recieveType != CURRENT_TYPE)
+        // Ensure current device should be executing received command
+        if(receiveType != 0xFFF && receiveType != CURRENT_TYPE)
             continue;
-        if(recieveLoc != 0xFF && recieveLoc != CURRENT_LOC)
+        if(receiveLoc != 0xFF && receiveLoc != CURRENT_LOC)
             continue;
-        if(recieveID != 0xFFF && recieveID != CURRENT_ID)
+        if(receiveID != 0xFFF && receiveID != CURRENT_ID)
             continue;
 
         // Parse sender UID information (not currently used)
@@ -128,7 +128,7 @@ static void node_read_task(void *arg) {
 
         #if (LOGGING)
             MDF_LOGI("SENDER: %x | %x | %x",   sendType,    sendLoc,    sendID);
-            MDF_LOGI("RECIEVER: %x | %x | %x", recieveType, recieveLoc, recieveID);
+            MDF_LOGI("RECEIVER: %x | %x | %x", receiveType, receiveLoc, receiveID);
             MDF_LOGI("FUNCID: %s",             funcID);
             MDF_LOGI("DATA: %s\n",             parsedData);
         #endif /* if (LOGGING) */

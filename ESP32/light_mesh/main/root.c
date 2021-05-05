@@ -171,7 +171,7 @@ static void i2cs_test_task(void *arg) {
             for(int i = 0; i < MAX_NUM_CHILDREN; i++) needsToSend[i] = true;
 
             #if (LOGGING)
-                MDF_LOGI("i2c data recieved (%d): %s", inBuffLen, inBuff);
+                MDF_LOGI("i2c data received (%d): %s", inBuffLen, inBuff);
             #endif /* if (LOGGING) */
 
             inBuffLen = 0;

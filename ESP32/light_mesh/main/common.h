@@ -3,10 +3,10 @@
 #include "mdf_common.h"
 #include "mwifi.h"
 
-#define MAX_NUM_CHILDREN 2
+#define MAX_NUM_CHILDREN 10
 
 // 0 to disable logging, 1 to enable
-#define LOGGING 0
+#define LOGGING 1
 
 // 0xFFF = reserved (all), 0x100 = root, 0x101 = Holonyayk, 0x102 = 5050 controller, 0x103 = BT speaker controller
 #define CURRENT_TYPE (0x101)
@@ -18,3 +18,5 @@
 #define CURRENT_ID (0x404)
 
 static const char *TAG = "meshNetwork";
+
+//123456, 13

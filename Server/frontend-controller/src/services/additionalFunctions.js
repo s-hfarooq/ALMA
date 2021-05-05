@@ -10,7 +10,7 @@ export async function sendCommand(data) {
 
 // Creates command JSON string based on strip selected and current device ID
 export function getCommandString(color, option, isFade, fadeSpeed) {
-    let recieverUID = "", functionID = "", data = [];
+    let receiverUID = "", functionID = "", data = [];
 
     // Only couch can run fade command
     if(isFade == 1 && option == "ceiling")
@@ -18,15 +18,15 @@ export function getCommandString(color, option, isFade, fadeSpeed) {
 
     switch (option) {
         case "ceiling":
-            recieverUID = "101FFFFF"; // 101 = type Holonyak, FF = any location, FFF = any ID
+            receiverUID = "101FFFFF"; // 101 = type Holonyak, FF = any location, FFF = any ID
             functionID = "-1";
             break;
         case "couch":
-            recieverUID = "102FFFFF"; // 102 = type 5050 LED controller, FF = any location, FFF = any ID
+            receiverUID = "102FFFFF"; // 102 = type 5050 LED controller, FF = any location, FFF = any ID
             functionID = (isFade == 1) ? "3" : "0";
             break;
         default:
-            recieverUID = "101FFFFF"; // 101 = type Holonyak, FF = any location, FFF = any ID
+            receiverUID = "101FFFFF"; // 101 = type Holonyak, FF = any location, FFF = any ID
     }
 
     if(isFade == 0)
@@ -36,7 +36,7 @@ export function getCommandString(color, option, isFade, fadeSpeed) {
 
     var returnVal = {
         "senderUID": "10000000",
-        "recieverUID": recieverUID,
+        "receiverUID": receiverUID,
         "functionID": functionID,
         "data": data,
     };
@@ -46,11 +46,11 @@ export function getCommandString(color, option, isFade, fadeSpeed) {
 
 // Creates animation JSON string to send to backend API
 export function getAnimationString(animationNum) {
-    let recieverUID = "101FFFFF"; // 101 = type Holonyak, FF = any location, FFF = any ID
+    let receiverUID = "101FFFFF"; // 101 = type Holonyak, FF = any location, FFF = any ID
 
     var returnVal = {
         "senderUID": "10000000",
-        "recieverUID": recieverUID,
+        "receiverUID": receiverUID,
         "functionID": animationNum,
         "data": [ ],
     };

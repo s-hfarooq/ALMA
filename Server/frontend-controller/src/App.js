@@ -32,7 +32,7 @@ class App extends React.Component {
         );
     };
 
-    // Handle animamtion selection dropdown menu
+    // Handle animation selection dropdown menu
     handleAnimationSelect = animationNum => {
         this.setState(
             { animationNum },

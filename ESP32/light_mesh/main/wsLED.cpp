@@ -854,7 +854,7 @@ void advancedAlternatingRainbow(void *params) {
         float spinscale = min(j / 300, 1.0);
         spinscale = min(spinscale, -1.0 * (j + 6375) / 300.0);
         // linear approx of above
-        // appearantly raising cos to the 256 power is 'bad' and 'slow' on
+        // apparently raising cos to the 256 power is 'bad' and 'slow' on
         // an esp32 :/
 
         float spin = spinscale * int(320 * sin(j / 254.64)); // REALLY dont ask
