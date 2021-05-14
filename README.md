@@ -19,8 +19,7 @@
 
 ###### Running frontend
   * Run `npm run build` before pushing frontend changes since running this on the RPi takes very long.
-  * Go into the api folder and run `./server.js`. The site should then be running at `localhost:3080`.
-  * Run forever using `nohup ./server.js &`. You may need to kill the previous instance using `kill PID`. Find the PID by running `ps -ef` and look for the value corresponding to `server.js`. For getting console output, run `npm run dev` instead.
+  * Run forever using `nohup ./server.js &`. You may need to kill the previous instance using `kill PID`. Find the PID by running `ps -ef` and look for the value corresponding to `server.js`. For getting console output, run `npm run dev` instead. The site should then be running at `localhost:3080`.
 
 ## Development Environment
 @weustis you should do this
