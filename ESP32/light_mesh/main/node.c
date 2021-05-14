@@ -157,8 +157,16 @@ static void node_read_task(void *arg) {
             }
         }
 
-        if(k == 1)
+        if(k == 1) {
+            MDF_FREE(senderUID);
+            MDF_FREE(receiverUID);
+            MDF_FREE(funcID);
+            for(int i = 0; i < dataArrSize; i++)
+                MDF_FREE(dataArray[i]);
+            MDF_FREE(dataArray);
+
             continue;
+        }
 
         // Parse receiver UID information
         unsigned long receiveJSONID = strtol(receiverUID, NULL, 16);
