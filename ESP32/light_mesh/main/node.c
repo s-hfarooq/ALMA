@@ -12,6 +12,23 @@
 #endif
 
 /*
+ * jsoneq
+ *   DESCRIPTION: Helper function to check if jsmn token equals desired token
+ *   INPUTS: json - char* to parse through
+ *           tok - current token
+ *           s - string to find 
+ *   RETURN VALUE: none
+ *   SIDE EFFECTS: none
+ */
+static int jsoneq(const char *json, jsmntok_t *tok, const char *s) {
+  if (tok->type == JSMN_STRING && (int)strlen(s) == tok->end - tok->start &&
+      strncmp(json + tok->start, s, tok->end - tok->start) == 0) {
+    return 0;
+  }
+  return -1;
+}
+
+/*
  * node_read_task
  *   DESCRIPTION: function run by child nodes to read
  *   INPUTS: arg - arguments
@@ -37,25 +54,6 @@ static void node_read_task(void *arg) {
         memset(data, 0, MWIFI_PAYLOAD_LEN);
         ret = mwifi_read(src_addr, &data_type, data, &size, portMAX_DELAY);
         MDF_ERROR_CONTINUE(ret != MDF_OK, "mwifi_read, ret: %x", ret);
-
-        // Parse JSON string received over mesh network
-        jsmn_parser p;
-        jsmntok_t t[12];
-        jsmn_init(&p);
-        int r = jsmn_parse(&p, data, strlen(data), t, sizeof(t) / sizeof(t[0]));
-
-        #if (LOGGING)
-            MDF_LOGI("DATA: %s, s: %d", data, r);
-        #endif /* if (LOGGING) */
-
-        // Ensure JSON had enough elements
-        if(r < 8) {
-            #if (LOGGING)
-                MDF_LOGI("r less than 12 (%d)", r);
-            #endif /* if (LOGGING) */
-
-            continue;
-        }
 
         // SAMPLE INPUT JSON
         // {
@@ -89,12 +87,80 @@ static void node_read_task(void *arg) {
         //  if unique identifier = FFF -> unique identifier not important for
         // command (all devices matching other parts of UID process command)
 
-        // Parse receiver UID information
+        // Parse JSON string received over mesh network
+        jsmn_parser p;
+        jsmntok_t t[128];
+        jsmn_init(&p);
+        int r = jsmn_parse(&p, data, strlen(data), t, sizeof(t) / sizeof(t[0]));
 
-        // TODO: fix this -> instead of using hard coded index, use jsmn example
-        // and search for specific keys within JSON
-        char *receiverUID = (char *)MDF_MALLOC(sizeof(char) * (t[4].end - t[4].start + 1));
-        sprintf(receiverUID, "%.*s", t[4].end - t[4].start, data + t[4].start);
+        #if (LOGGING)
+            MDF_LOGI("DATA: %s, s: %d", data, r);
+        #endif /* if (LOGGING) */
+
+        // Ensure JSON has some values
+        if(r < 1 || t[0].type != JSMN_OBJECT) {
+            #if (LOGGING)
+                MDF_LOGI("r less than 0 (%d)", r);
+            #endif /* if (LOGGING) */
+
+            continue;
+        }
+
+        char *senderUID = 0, *receiverUID = 0, *funcID = 0, **dataArray = 0;
+        int dataArrSize = 0;
+
+        // Loop over all keys
+        int seen[3] = {0, 0, 0};
+        for(int i = 1; i < r; i++) {
+            if(jsoneq(data, &t[i], "senderUID") == 0) {
+                senderUID = (char *)MDF_MALLOC(sizeof(char) * (t[i + 1].end - t[i + 1].start + 1));
+                sprintf(senderUID, "%.*s", t[i + 1].end - t[i + 1].start, data + t[i + 1].start);
+                seen[0] = 1;
+                i++;
+            } else if(jsoneq(data, &t[i], "receiverUID") == 0) {
+                receiverUID = (char *)MDF_MALLOC(sizeof(char) * (t[i + 1].end - t[i + 1].start + 1));
+                sprintf(receiverUID, "%.*s", t[i + 1].end - t[i + 1].start, data + t[i + 1].start);
+                seen[1] = 1;
+                i++;
+            } else if(jsoneq(data, &t[i], "functionID") == 0) {
+                funcID = (char *)MDF_MALLOC(sizeof(char) * (t[i + 1].end - t[i + 1].start + 1));
+                sprintf(funcID, "%.*s", t[i + 1].end - t[i + 1].start, data + t[i + 1].start);
+                seen[2] = 1;
+                i++;
+            } else if(jsoneq(data, &t[i], "data") == 0) {
+                if(t[i + 1].type != JSMN_ARRAY)
+                    continue;
+
+                dataArray = (char **)MDF_MALLOC(sizeof(char*)  * t[i + 1].size);
+
+                for(int j = 0; j < t[i + 1].size; j++) {
+                    jsmntok_t *g = &t[i + j + 2];
+                    dataArray[j] = (char *)MDF_MALLOC(sizeof(char) * (g->end - g->start + 1));
+                    sprintf(dataArray[j], "%.*s", g->end - g->start, data + g->start);
+                    dataArrSize++;
+                }
+
+                i += t[i + 1].size + 1;
+            }
+        }
+
+        // Ensure senderUID, receiverUID and functionID exist
+        int k = 0;
+        for(int i = 0; i < 3; i++) {
+            if(seen[i] == 0) {
+                #if (LOGGING)
+                    MDF_LOGI("Value at index %d not seen in JSON", i);
+                #endif
+
+                k = 1;
+                break;
+            }
+        }
+
+        if(k == 1)
+            continue;
+
+        // Parse receiver UID information
         unsigned long receiveJSONID = strtol(receiverUID, NULL, 16);
         unsigned int receiveType    = receiveJSONID >> (4 * 5);
         unsigned int receiveLoc     = (receiveJSONID >> (4 * 3)) & 0xFF;
@@ -109,32 +175,25 @@ static void node_read_task(void *arg) {
         if(receiveID != 0xFFF && receiveID != CURRENT_ID)
             continue;
 
-        // Parse sender UID information (not currently used)
-        char *senderUID = (char *)MDF_MALLOC(sizeof(char) * (t[2].end - t[2].start + 1));
-        sprintf(senderUID, "%.*s", t[2].end - t[2].start, data + t[2].start);
+        // // Parse sender UID information (not currently used)
         unsigned long sendJSONID = strtol(senderUID, NULL, 16);
         unsigned int sendType    = sendJSONID >> (4 * 5);
         unsigned int sendLoc     = (sendJSONID >> (4 * 3)) & 0xFF;
         unsigned int sendID      = sendJSONID & 0xFFF;
         MDF_FREE(senderUID);
 
-        // Parse function ID and data
-        char *funcID = (char *)MDF_MALLOC(sizeof(char) * (t[6].end - t[6].start + 1));
-        char *parsedData = (char *)MDF_MALLOC(sizeof(char) * (t[8].end - t[8].start + 1));
-        sprintf(funcID,     "%.*s", t[6].end - t[6].start, data + t[6].start);
-        sprintf(parsedData, "%.*s", t[8].end - t[8].start, data + t[8].start);
-
-        // Convert parsedData into an array of char pointers?
-
         #if (LOGGING)
             MDF_LOGI("SENDER: %x | %x | %x",   sendType,    sendLoc,    sendID);
             MDF_LOGI("RECEIVER: %x | %x | %x", receiveType, receiveLoc, receiveID);
             MDF_LOGI("FUNCID: %s",             funcID);
-            MDF_LOGI("DATA: %s\n",             parsedData);
+            MDF_LOGI("DATA:");
+
+            for(int i = 0; i < dataArrSize; i++)
+                MDF_LOGI(" - %s", dataArray[i]);
         #endif /* if (LOGGING) */
 
         int idx = atoi(funcID);
-
+        
         #if (LOGGING)
             MDF_LOGI("STARTING TASK %d", idx);
         #endif /* if (LOGGING) */
@@ -143,19 +202,10 @@ static void node_read_task(void *arg) {
 
         // HOLONYAK
         #if (CURRENT_TYPE == 0x101)
-            if(idx == -1) {
-                // Parse data for single color
-                char *ptr = parsedData;
-                int loc   = 0;
-
-                while(*ptr) {
-                    if(isdigit(*ptr)) {
-                        newSetColor[loc] = strtol(ptr, &ptr, 10);
-                        loc++;
-                    } else {
-                        ptr++;
-                    }
-                }
+            // Must have at least 3 colors (R, G, B)
+            if(idx == -1 && dataArrSize > 2) {
+                for(int i = 0; i < 3; i++)
+                    newSetColor[i] = atoi(dataArray[i]);
 
                 #if (LOGGING)
                     MDF_LOGI("Colors: %d %d %d", newSetColor[0], newSetColor[1], newSetColor[2]);
@@ -167,7 +217,7 @@ static void node_read_task(void *arg) {
 
         // 5050 light controller
         #if (CURRENT_TYPE == 0x102)
-            startNew5050Command(idx, parsedData);
+            startNew5050Command(idx, dataArray, dataArrSize);
         #endif // (CURRENT_TYPE == 0x102)
 
         // BT speaker controller
@@ -176,10 +226,17 @@ static void node_read_task(void *arg) {
         #endif // (CURRENT_TYPE == 0x103)
 
         MDF_FREE(funcID);
-        MDF_FREE(parsedData);
+        // MDF_FREE(parsedData);
+
+        // Free dataArray
+        for(int i = 0; i < dataArrSize; i++)
+            MDF_FREE(dataArray[i]);
+        MDF_FREE(dataArray);
     }
 
     MDF_LOGW("Node read task quitting");
+
+
 
     MDF_FREE(data);
     vTaskDelete(NULL);

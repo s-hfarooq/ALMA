@@ -239,6 +239,7 @@ void blinkLeds_chase2(void *pvParameters) {
 
         // Set strings to black first
         fill_solid(leds, NUM_LEDS, CRGB::Black);
+        fill_solid(leds_2, NUM_LEDS_2, CRGB::Black);
         FastLED.show();
 
         if(currType != functionNum)
@@ -328,6 +329,7 @@ void colorPalette(void *pvParameters) {
 void blinkLeds_simple(void *pvParameters) {
     for(int j = 0; j < N_COLORS; j++) {
         for(int i = 0; i < NUM_LEDS; i++) leds[i] = colors[j];
+        for(int i = 0; i < NUM_LEDS_2; i++) leds_2[i] = colors[j];
 
         FastLED.show();
 
@@ -367,9 +369,13 @@ void blinkLeds_chase(void *pvParameters) {
 void cylon(void *params) {
     static uint8_t hue = 0;
 
-    for(int i = 0; i < NUM_LEDS; i++) {
+    for(int i = -NUM_LEDS_2; i < NUM_LEDS; i++) {
         // Set the i'th led to red
-        leds[i] = CHSV(hue++, 255, 255);
+        if(i <= 0)
+            leds_2[-i] = CHSV(hue++, 255, 255);
+        else
+            leds[i] = CHSV(hue++, 255, 255);
+
         FastLED.show();
         fadeall();
 
@@ -380,9 +386,13 @@ void cylon(void *params) {
     }
 
     // Now go in the other direction.
-    for(int i = NUM_LEDS - 1; i > -1; i--) {
+    for(int i = NUM_LEDS - 1; i > -1 - NUM_LEDS_2; i--) {
         // Set the i'th led to red
-        leds[i] = CHSV(hue++, 255, 255);
+        if(i >= 0)
+            leds[i] = CHSV(hue++, 255, 255);
+        else
+            leds_2[-i] = CHSV(hue++, 255, 255);
+            
         FastLED.show();
         fadeall();
 

@@ -278,22 +278,17 @@ void init_5050() {
     }
 }
 
-void startNew5050Command(int funcNum, char *parsedData) {
-    // Parse input string
+void startNew5050Command(int funcNum, char **dataArray, int dataArrSize) {
+    if((funcNum != 3 && dataArrSize < 3) || dataArrSize < 1)
+        return;
+
+    // Parse input data array
     // rCol/speed, gCol, bCol
     int vals[3] = { 0, 0, 0 };
-    char *ptr   = parsedData;
-    int loc     = 0;
-
+    
     int max = (funcNum == 3) ? 1 : 3;
-    while(*ptr && loc < max) {
-        if(isdigit(*ptr)) {
-            vals[loc] = strtol(ptr, &ptr, 10);
-            loc++;
-        } else {
-            ptr++;
-        }
-    }
+    for(int i = 0; i < max; i++)
+        vals[i] = atoi(dataArray[i]);
 
     // Set values
     // Stop fade if currently active

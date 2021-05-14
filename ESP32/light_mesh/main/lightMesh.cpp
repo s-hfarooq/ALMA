@@ -125,7 +125,7 @@ void app_main() {
     for(int i = 0; i < 6; i++)
         config.mesh_id[i] = CONFIG_MESH_ID[i];
     // For now set password to 10 'A's -> should change to something dynamic in
-    // the future -> User input on frontend to configure network?
+    // the future -> TODO: User input on frontend to configure network?
     for(int i = 0; i < 10; i++)
         config.mesh_password[i] = 'A';
     config.mesh_type = CONFIG_DEVICE_TYPE;

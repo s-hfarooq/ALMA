@@ -65,7 +65,7 @@ The UID's are 8 hex values in the format `AAABBCCC` where `AAA` corresponds with
 
 The JSON strings are parsed using the [jsmn](https://github.com/zserge/jsmn) library.
 
-Even if certain values aren't being used (ie. the `data` field), they still must be present. The order also must be identical to that above (so for instance, putting `senderUID` after `receiverUID` would not be valid).
+At minimum, the senderUID, receiverUID, and functionID values must be sent. If one or more of these are missing, the device will ignore the request completely. 
 
 <sup>*</sup>Note that the device type cannot start with the value `0`.
 
