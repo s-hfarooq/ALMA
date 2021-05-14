@@ -157,6 +157,8 @@ void app_main() {
         #if (CURRENT_TYPE != 0x100)
             #if (CURRENT_TYPE == 0x101)
                 wsLEDInit();
+                xTaskCreatePinnedToCore(individuallyAddressableDispatcher,
+                        "leds_task", 8 * 1024, NULL, 100, NULL, 0);
             #endif
 
             #if (CURRENT_TYPE == 0x102)
@@ -167,10 +169,6 @@ void app_main() {
                         NULL, CONFIG_MDF_TASK_DEFAULT_PRIOTY, NULL);
             xTaskCreate(node_read_task, "node_read_task", 4 * 1024,
                         NULL, CONFIG_MDF_TASK_DEFAULT_PRIOTY, NULL);
-
-            #if (CURRENT_TYPE == 0x101)
-                xTaskCreatePinnedToCore(individuallyAddressableDispatcher, "leds_task", 8 * 1024, NULL, 100, NULL, 0);
-            #endif
         #endif // (CURRENT_TYPE != 0x100)
     }
 }

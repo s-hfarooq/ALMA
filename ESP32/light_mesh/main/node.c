@@ -157,6 +157,7 @@ static void node_read_task(void *arg) {
             }
         }
 
+        // If one of the 3 requiared values wasn't present, free memory and continue
         if(k == 1) {
             MDF_FREE(senderUID);
             MDF_FREE(receiverUID);
@@ -189,6 +190,7 @@ static void node_read_task(void *arg) {
         unsigned int sendLoc     = (sendJSONID >> (4 * 3)) & 0xFF;
         unsigned int sendID      = sendJSONID & 0xFFF;
         MDF_FREE(senderUID);
+        int idx = atoi(funcID);
 
         #if (LOGGING)
             MDF_LOGI("SENDER: %x | %x | %x",   sendType,    sendLoc,    sendID);
@@ -198,11 +200,7 @@ static void node_read_task(void *arg) {
 
             for(int i = 0; i < dataArrSize; i++)
                 MDF_LOGI(" - %s", dataArray[i]);
-        #endif /* if (LOGGING) */
 
-        int idx = atoi(funcID);
-        
-        #if (LOGGING)
             MDF_LOGI("STARTING TASK %d", idx);
         #endif /* if (LOGGING) */
 
@@ -234,7 +232,6 @@ static void node_read_task(void *arg) {
         #endif // (CURRENT_TYPE == 0x103)
 
         MDF_FREE(funcID);
-        // MDF_FREE(parsedData);
 
         // Free dataArray
         for(int i = 0; i < dataArrSize; i++)
@@ -243,8 +240,6 @@ static void node_read_task(void *arg) {
     }
 
     MDF_LOGW("Node read task quitting");
-
-
 
     MDF_FREE(data);
     vTaskDelete(NULL);
