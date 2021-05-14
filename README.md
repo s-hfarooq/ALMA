@@ -109,10 +109,10 @@ ID's:
 If the JSON string was
 
 ```json
-{"senderUID": "10000123", "receiverUID": "101FFFFF", "functionID": "15", "data": []}
+{"senderUID": "10000123", "receiverUID": "101FFFFF", "functionID": "15"}
 ```
 
-The sender was the root node in the living room with ID `123`, while the receiver would be all Holonyak devices. Those devices would then run function `15`, which requires no data since the data array is empty.
+The sender was the root node in the living room with ID `123`, while the receiver would be all Holonyak devices. Those devices would then run function 15 which requires no data.
 
 
 If the JSON string was
@@ -122,6 +122,15 @@ If the JSON string was
 ```
 
 The sender was the root node in the living room with ID `123`, with the receivers being all 5050 LED controller devices in the living room. Those devices would then run function `3` with the provided data array.
+
+
+If the JSON string was
+
+```json
+{"receiverUID": "10200FFF", "functionID": "3", "data": [0, 0, 255]}
+```
+
+The receiver would ignore the request since the senderUID, a required token, is not present.
 
 
 ## Other info
