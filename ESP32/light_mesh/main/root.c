@@ -29,19 +29,20 @@ static void root_task(void *arg) {
     size_t size                      = MWIFI_PAYLOAD_LEN;
     uint8_t src_addr[MWIFI_ADDR_LEN] = { 0x0 };
     mwifi_data_type_t data_type      = { 0 };
-    const uint8_t _end_dest_node[6] = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff }; // Broadcast to all devices
+    const uint8_t all_devices[6] = { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFE }; // Broadcast to all devices except root
 
     MDF_LOGI("Root is starting");
 
     for(int i = 0;; ++i) {
         if(!mwifi_is_started()) {
-            vTaskDelay(50 / portTICK_RATE_MS);
+            vTaskDelay(50 / portTICK_RATE_MS);;
             continue;
         }
 
         size = MWIFI_PAYLOAD_LEN;
         memset(data, 0, MWIFI_PAYLOAD_LEN);
         ret = mwifi_root_read(src_addr, &data_type, data, &size, portMAX_DELAY);
+
         MDF_ERROR_CONTINUE(ret != MDF_OK, "<%s> mwifi_root_read", mdf_err_to_name(ret));
 
         size = sprintf(data, "%s", inBuff);
@@ -51,7 +52,7 @@ static void root_task(void *arg) {
                 MDF_LOGI("Writing data \"%s\" to mesh", data);
             #endif /* if (LOGGING) */
 
-            ret = mwifi_root_write(_end_dest_node, 1, &data_type, data, size, true);
+            ret = mwifi_root_write(all_devices, 1, &data_type, data, size, false);
             MDF_ERROR_CONTINUE(ret != MDF_OK, "mwifi_root_recv, ret: %x", ret);
             needsToSend = false;
 
@@ -59,9 +60,9 @@ static void root_task(void *arg) {
 
             #if (LOGGING)
                 MDF_LOGI("Finished sending data");
+                MDF_LOGI("inBuff is now %s", inBuff);
             #endif /* if (LOGGING) */
         }
-        
     }
 
     MDF_LOGW("Root is quitting");
@@ -141,7 +142,7 @@ bool check_for_data() {
                 while(inBuff[offset] != '{') offset++;
 
                 for(int k = 0; k < size_pl; k++)
-                    inBuff[k] = inBuff[k + offset];  // inBuff += offset instead of loop?
+                    inBuff[k] = inBuff[k + offset];
 
                 inBuffLen -= offset;
             }

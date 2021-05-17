@@ -25,7 +25,7 @@
 @weustis you should do this
 
 #### Installation
-Follow the [official guide](https://docs.espressif.com/projects/esp-mdf/en/latest/get-started/) from Espressif to install ESP-MDF - the mesh development framework. You may (and probably should) also install ESP-IDF (IoT development framework) using the [official guide](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/get-started/#installation-step-by-step).
+Follow the [official guide](https://docs.espressif.com/projects/esp-mdf/en/latest/get-started/) from Espressif to install ESP-MDF - the mesh development framework. You probably should also install ESP-IDF (IoT development framework) using the [official guide](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/get-started/#installation-step-by-step) as well.
 
 #### Flashing devices
 1. Make sure PATH to ESP-MDF (or IDF) exists on the current terminal window

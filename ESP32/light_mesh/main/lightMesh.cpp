@@ -149,23 +149,24 @@ void app_main() {
         #if (CURRENT_TYPE == 0x100)
             ESP_ERROR_CHECK(i2c_slave_init());
 
-            xTaskCreate(i2cs_test_task, "slave", 1024 * 2, (void *)1, 4, NULL);
+            xTaskCreate(i2cs_test_task, "slave", 2 * 1024, (void *)1, 4, NULL);
             xTaskCreate(root_task, "root_task", 4 * 1024,
                         NULL, CONFIG_MDF_TASK_DEFAULT_PRIOTY, NULL);
+
         #endif // (CURRENT_TYPE == 0x100)
     } else {
         #if (CURRENT_TYPE != 0x100)
             #if (CURRENT_TYPE == 0x101)
                 wsLEDInit();
                 xTaskCreatePinnedToCore(individuallyAddressableDispatcher,
-                        "leds_task", 8 * 1024, NULL, 100, NULL, 0);
+                        "leds_task", 4 * 1024, NULL, 100, NULL, 0);
             #endif
 
             #if (CURRENT_TYPE == 0x102)
                 init_5050();
             #endif
 
-            xTaskCreate(node_write_task, "node_write_task", 4 * 1024,
+            xTaskCreate(node_write_task, "node_write_task", 2 * 1024,
                         NULL, CONFIG_MDF_TASK_DEFAULT_PRIOTY, NULL);
             xTaskCreate(node_read_task, "node_read_task", 4 * 1024,
                         NULL, CONFIG_MDF_TASK_DEFAULT_PRIOTY, NULL);

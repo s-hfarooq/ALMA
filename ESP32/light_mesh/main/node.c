@@ -55,6 +55,25 @@ static void node_read_task(void *arg) {
         ret = mwifi_read(src_addr, &data_type, data, &size, portMAX_DELAY);
         MDF_ERROR_CONTINUE(ret != MDF_OK, "mwifi_read, ret: %x", ret);
 
+        // Parse JSON string received over mesh network
+        jsmn_parser p;
+        jsmntok_t t[12];
+        jsmn_init(&p);
+        int r = jsmn_parse(&p, data, strlen(data), t, sizeof(t) / sizeof(t[0]));
+
+        #if (LOGGING)
+            MDF_LOGI("DATA: %s, s: %d", data, r);
+        #endif /* if (LOGGING) */
+
+        // Ensure JSON had enough elements
+        if(r < 8) {
+            #if (LOGGING)
+                MDF_LOGI("r less than 12 (%d)", r);
+            #endif /* if (LOGGING) */
+
+            continue;
+        }
+
         // SAMPLE INPUT JSON
         // {
         //     "senderUID": "AAABBCCC",
@@ -87,56 +106,31 @@ static void node_read_task(void *arg) {
         //  if unique identifier = FFF -> unique identifier not important for
         // command (all devices matching other parts of UID process command)
 
-        // Parse JSON string received over mesh network
-        jsmn_parser p;
-        jsmntok_t t[128];
-        jsmn_init(&p);
-        int r = jsmn_parse(&p, data, strlen(data), t, sizeof(t) / sizeof(t[0]));
-
-        #if (LOGGING)
-            MDF_LOGI("DATA: %s, s: %d", data, r);
-        #endif /* if (LOGGING) */
-
-        // Ensure JSON has some values
-        if(r < 1 || t[0].type != JSMN_OBJECT) {
-            #if (LOGGING)
-                MDF_LOGI("r less than 0 (%d)", r);
-            #endif /* if (LOGGING) */
-
-            continue;
-        }
-
-        char *senderUID = 0, *receiverUID = 0, *funcID = 0, **dataArray = 0;
+        char *receiverUID = 0, *senderUID = 0, *funcID = 0, **dataArr = 0;
         int dataArrSize = 0;
 
         // Loop over all keys
-        int seen[3] = {0, 0, 0};
-        for(int i = 1; i < r; i++) {
+        for(int i = 0; i < r; i++) {
             if(jsoneq(data, &t[i], "senderUID") == 0) {
                 senderUID = (char *)MDF_MALLOC(sizeof(char) * (t[i + 1].end - t[i + 1].start + 1));
                 sprintf(senderUID, "%.*s", t[i + 1].end - t[i + 1].start, data + t[i + 1].start);
-                seen[0] = 1;
                 i++;
             } else if(jsoneq(data, &t[i], "receiverUID") == 0) {
                 receiverUID = (char *)MDF_MALLOC(sizeof(char) * (t[i + 1].end - t[i + 1].start + 1));
                 sprintf(receiverUID, "%.*s", t[i + 1].end - t[i + 1].start, data + t[i + 1].start);
-                seen[1] = 1;
                 i++;
             } else if(jsoneq(data, &t[i], "functionID") == 0) {
                 funcID = (char *)MDF_MALLOC(sizeof(char) * (t[i + 1].end - t[i + 1].start + 1));
                 sprintf(funcID, "%.*s", t[i + 1].end - t[i + 1].start, data + t[i + 1].start);
-                seen[2] = 1;
                 i++;
             } else if(jsoneq(data, &t[i], "data") == 0) {
-                if(t[i + 1].type != JSMN_ARRAY)
-                    continue;
-
-                dataArray = (char **)MDF_MALLOC(sizeof(char*)  * t[i + 1].size);
+                dataArr = (char **)malloc(sizeof(char *) * (t[i + 1].size + 1));
 
                 for(int j = 0; j < t[i + 1].size; j++) {
                     jsmntok_t *g = &t[i + j + 2];
-                    dataArray[j] = (char *)MDF_MALLOC(sizeof(char) * (g->end - g->start + 1));
-                    sprintf(dataArray[j], "%.*s", g->end - g->start, data + g->start);
+
+                    dataArr[j] = (char *)MDF_MALLOC(sizeof(char) * (g->end - g->start + 1));
+                    sprintf(dataArr[j], "%.*s", g->end - g->start, data + g->start);
                     dataArrSize++;
                 }
 
@@ -144,28 +138,13 @@ static void node_read_task(void *arg) {
             }
         }
 
-        // Ensure senderUID, receiverUID and functionID exist
-        int k = 0;
-        for(int i = 0; i < 3; i++) {
-            if(seen[i] == 0) {
-                #if (LOGGING)
-                    MDF_LOGI("Value at index %d not seen in JSON", i);
-                #endif
-
-                k = 1;
-                break;
-            }
-        }
-
-        // If one of the 3 requiared values wasn't present, free memory and continue
-        if(k == 1) {
-            MDF_FREE(senderUID);
+        if(receiverUID == 0 || senderUID == 0 || funcID == 0) {
             MDF_FREE(receiverUID);
+            MDF_FREE(senderUID);
             MDF_FREE(funcID);
             for(int i = 0; i < dataArrSize; i++)
-                MDF_FREE(dataArray[i]);
-            MDF_FREE(dataArray);
-
+                MDF_FREE(dataArr[i]);
+            MDF_FREE(dataArr);
             continue;
         }
 
@@ -176,31 +155,40 @@ static void node_read_task(void *arg) {
         unsigned int receiveID      = receiveJSONID & 0xFFF;
         MDF_FREE(receiverUID);
 
-        // Ensure current device should be executing received command
-        if(receiveType != 0xFFF && receiveType != CURRENT_TYPE)
-            continue;
-        if(receiveLoc != 0xFF && receiveLoc != CURRENT_LOC)
-            continue;
-        if(receiveID != 0xFFF && receiveID != CURRENT_ID)
-            continue;
-
-        // // Parse sender UID information (not currently used)
+        // Parse sender UID information (not currently used)
         unsigned long sendJSONID = strtol(senderUID, NULL, 16);
         unsigned int sendType    = sendJSONID >> (4 * 5);
         unsigned int sendLoc     = (sendJSONID >> (4 * 3)) & 0xFF;
         unsigned int sendID      = sendJSONID & 0xFFF;
         MDF_FREE(senderUID);
+
         int idx = atoi(funcID);
+        MDF_FREE(funcID);
+
+        // Ensure current device should be executing received command
+        int earlyQuit = 0;
+        if(receiveType != 0xFFF && receiveType != CURRENT_TYPE)
+            earlyQuit = 1;
+        if(receiveLoc != 0xFF && receiveLoc != CURRENT_LOC)
+            earlyQuit = 1;
+        if(receiveID != 0xFFF && receiveID != CURRENT_ID)
+            earlyQuit = 1;
+
+        if(earlyQuit == 1) {
+            for(int i = 0; i < dataArrSize; i++)
+                MDF_FREE(dataArr[i]);
+            MDF_FREE(dataArr);
+            MDF_LOGI("EARLY QUIT");
+            continue;
+        }
 
         #if (LOGGING)
             MDF_LOGI("SENDER: %x | %x | %x",   sendType,    sendLoc,    sendID);
             MDF_LOGI("RECEIVER: %x | %x | %x", receiveType, receiveLoc, receiveID);
-            MDF_LOGI("FUNCID: %s",             funcID);
+            MDF_LOGI("FUNCID: %d",             idx);
             MDF_LOGI("DATA:");
-
             for(int i = 0; i < dataArrSize; i++)
-                MDF_LOGI(" - %s", dataArray[i]);
-
+                MDF_LOGI(" - %s", dataArr[i]);
             MDF_LOGI("STARTING TASK %d", idx);
         #endif /* if (LOGGING) */
 
@@ -208,10 +196,9 @@ static void node_read_task(void *arg) {
 
         // HOLONYAK
         #if (CURRENT_TYPE == 0x101)
-            // Must have at least 3 colors (R, G, B)
-            if(idx == -1 && dataArrSize > 2) {
+            if(idx == -1) {
                 for(int i = 0; i < 3; i++)
-                    newSetColor[i] = atoi(dataArray[i]);
+                    newSetColor[i] = atoi(dataArr[i]);
 
                 #if (LOGGING)
                     MDF_LOGI("Colors: %d %d %d", newSetColor[0], newSetColor[1], newSetColor[2]);
@@ -223,7 +210,7 @@ static void node_read_task(void *arg) {
 
         // 5050 light controller
         #if (CURRENT_TYPE == 0x102)
-            startNew5050Command(idx, dataArray, dataArrSize);
+            startNew5050Command(idx, dataArr, dataArrSize);
         #endif // (CURRENT_TYPE == 0x102)
 
         // BT speaker controller
@@ -231,12 +218,9 @@ static void node_read_task(void *arg) {
             // TODO
         #endif // (CURRENT_TYPE == 0x103)
 
-        MDF_FREE(funcID);
-
-        // Free dataArray
         for(int i = 0; i < dataArrSize; i++)
-            MDF_FREE(dataArray[i]);
-        MDF_FREE(dataArray);
+            MDF_FREE(dataArr[i]);
+        MDF_FREE(dataArr);
     }
 
     MDF_LOGW("Node read task quitting");
