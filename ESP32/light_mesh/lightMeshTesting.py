@@ -16,6 +16,7 @@ availStrings = ["{\"senderUID\": \"10000123\", \"receiverUID\": \"101FFFFF\", \"
 "{\"senderUID\": \"10000123\", \"receiverUID\": \"102FFFFF\", \"functionID\": \"0\", \"data\": [255, 255, 255]}",
 "{\"senderUID\": \"10000123\", \"receiverUID\": \"102FFFFF\", \"functionID\": \"3\", \"data\": [25]}"]
 
+
 availStringsType = ["Holonyak theaterChase",
 "Holonyak runningLights",
 "Holonyak color 255, 0, 12",

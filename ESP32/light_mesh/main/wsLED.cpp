@@ -113,15 +113,15 @@ extern "C" {
 
 void setPixel(int i, int r, int g, int b) {
     if(i >= 0) {
-            leds[i].r = r;
-            leds[i].g = g;
-            leds[i].b = b;
+        leds[i].r = r;
+        leds[i].g = g;
+        leds[i].b = b;
     }
 
     if(i <= 0) {
-            leds_2[-i].r = r;
-            leds_2[-i].g = g;
-            leds_2[-i].b = b;
+        leds_2[-i].r = r;
+        leds_2[-i].g = g;
+        leds_2[-i].b = b;
     }
 }
 
@@ -142,6 +142,20 @@ void setColor(int red, int green, int blue) {
     fill_solid(leds, NUM_LEDS, newCol);
     fill_solid(leds_2, NUM_LEDS_2, newCol);
     FastLED.show();
+}
+
+void getCurrCol(int i, uint8_t *r, uint8_t *g, uint8_t *b) {
+    if(i >= 0) {
+        *r = leds[i].r;
+        *g = leds[i].g;
+        *b = leds[i].b;
+    }
+    
+    if(i <= 0) {
+        *r = leds_2[-i].r;
+        *g = leds_2[-i].g;
+        *b = leds_2[-i].b;
+    }
 }
 
 void fShow() {
@@ -935,6 +949,42 @@ void strobe(void *params) {
     delay(30);
 }
 
+// Fades from current color to new color
+void setSingleColor(int r, int g, int b, int duration) {
+    uint8_t diff_1[NUM_LEDS][3], diff_2[NUM_LEDS_2][3];
+
+    int delayAmnt = 2;
+    int steps = duration / delayAmnt;
+
+    for(int i = 0; i < NUM_LEDS; i++) {
+        diff_1[i][0] = (r - leds[i].r) / steps;
+        diff_1[i][1] = (g - leds[i].g) / steps;
+        diff_1[i][2] = (b - leds[i].b) / steps;
+    }
+
+    for(int i = 0; i < NUM_LEDS_2; i++) {
+        diff_2[i][0] = (r - leds_2[i].r) / steps;
+        diff_2[i][1] = (g - leds_2[i].g) / steps;
+        diff_2[i][2] = (b - leds_2[i].b) / steps;
+    }
+    
+    for(int i = 0; i < steps - 1; i++) {
+        for(int j = -NUM_LEDS_2; j < NUM_LEDS; j++) {
+            uint8_t oldR = 0, oldG = 0, oldB = 0;
+            getCurrCol(j, &oldR, &oldG, &oldB);
+            if(j > 0)
+                setPixel(j, oldR + diff_1[j][0], oldG + diff_1[j][1], oldB + diff_1[j][2]);
+            else
+                setPixel(j, oldR + diff_2[-j][0], oldG + diff_2[-j][1], oldB + diff_2[-j][2]);
+        }
+
+        fShow();
+        delay(delayAmnt);
+    }
+
+    setColor(r, g, b);
+}
+
 void individuallyAddressableDispatcher(void *params) {
     #if (LOGGING)
         static const char *TAG = "wsLED";
@@ -952,8 +1002,9 @@ void individuallyAddressableDispatcher(void *params) {
 
             // Call new function
             if(currType == -1) {
-                setColor(newSetColor[0], newSetColor[1], newSetColor[2]);
-                delay(75);
+                setSingleColor(newSetColor[0], newSetColor[1], newSetColor[2], 40);
+                // setColor(newSetColor[0], newSetColor[1], newSetColor[2]);
+                // delay(75);
             } else {
                 wsLEDPointers[functionNum](NULL);
             }

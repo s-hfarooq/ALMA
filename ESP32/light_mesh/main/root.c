@@ -35,7 +35,7 @@ static void root_task(void *arg) {
 
     for(int i = 0;; ++i) {
         if(!mwifi_is_started()) {
-            vTaskDelay(50 / portTICK_RATE_MS);;
+            vTaskDelay(50 / portTICK_RATE_MS);
             continue;
         }
 
