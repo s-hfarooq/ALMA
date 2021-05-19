@@ -75,7 +75,7 @@ if __name__ == "__main__":
         # txt = input("Cmd: ")
         idx = random.randint(0, len(availStrings) - 1)
         txt = availStrings[idx]
-        print("Sending command:", availStringsType[idx], "(i:", i, ")")
+        print(f"Sending command: {availStringsType[idx]} (i: {i})")
         strLen = chr(len(txt))
         dev.write((strLen + txt).encode('utf-8'))
         dev.close()
