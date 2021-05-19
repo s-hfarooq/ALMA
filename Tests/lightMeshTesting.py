@@ -10,19 +10,21 @@ import random
 # Public Domain
 
 availStrings = ["{\"senderUID\": \"10000123\", \"receiverUID\": \"101FFFFF\", \"functionID\": \"15\", \"data\": [255, 0, 12]}",
-"{\"senderUID\": \"10000123\", \"receiverUID\": \"101FFFFF\", \"functionID\": \"12\", \"data\": [255, 0, 12]}",
-"{\"senderUID\": \"10000123\", \"receiverUID\": \"101FFFFF\", \"functionID\": \"-1\", \"data\": [255, 0, 12]}",
-"{\"senderUID\": \"10000123\", \"receiverUID\": \"102FFFFF\", \"functionID\": \"0\", \"data\": [0, 0, 255]}",
-"{\"senderUID\": \"10000123\", \"receiverUID\": \"102FFFFF\", \"functionID\": \"0\", \"data\": [255, 255, 255]}",
-"{\"senderUID\": \"10000123\", \"receiverUID\": \"102FFFFF\", \"functionID\": \"3\", \"data\": [25]}"]
+                "{\"senderUID\": \"10000123\", \"receiverUID\": \"101FFFFF\", \"functionID\": \"12\", \"data\": [255, 0, 12]}",
+                "{\"senderUID\": \"10000123\", \"receiverUID\": \"101FFFFF\", \"functionID\": \"-1\", \"data\": [255, 0, 12]}",
+                "{\"senderUID\": \"10000123\", \"receiverUID\": \"102FFFFF\", \"functionID\": \"0\", \"data\": [0, 0, 255]}",
+                "{\"senderUID\": \"10000123\", \"receiverUID\": \"102FFFFF\", \"functionID\": \"0\", \"data\": [255, 255, 255]}",
+                "{\"senderUID\": \"10000123\", \"receiverUID\": \"102FFFFF\", \"functionID\": \"3\", \"data\": [25]}"
+]
 
 
 availStringsType = ["Holonyak theaterChase",
-"Holonyak runningLights",
-"Holonyak color 255, 0, 12",
-"5050 blue",
-"5050 white",
-"5050 fade"]
+                    "Holonyak runningLights",
+                    "Holonyak color 255, 0, 12",
+                    "5050 blue",
+                    "5050 white",
+                    "5050 fade"
+]
 
 I2C_SLAVE=0x0703
 
@@ -64,14 +66,14 @@ class i2c:
 
 if __name__ == "__main__":
     import time
-    import i2c_raw
+    import lightMeshTesting
     import sys
 
     i = 0
 
     # Send data over i2c to ESP32
     while(True):
-        dev = i2c_raw.i2c(0x04, 1) # device 0x04, bus 1
+        dev = lightMeshTesting.i2c(0x04, 1) # device 0x04, bus 1
         # txt = input("Cmd: ")
         idx = random.randint(0, len(availStrings) - 1)
         txt = availStrings[idx]
