@@ -73,13 +73,17 @@ if __name__ == "__main__":
 
     # Send data over i2c to ESP32
     while(True):
-        dev = lightMeshTesting.i2c(0x04, 1) # device 0x04, bus 1
-        # txt = input("Cmd: ")
-        idx = random.randint(0, len(availStrings) - 1)
-        txt = availStrings[idx]
-        print(f"Sending command: {availStringsType[idx]} (i: {i})")
-        strLen = chr(len(txt))
-        dev.write((strLen + txt).encode('utf-8'))
-        dev.close()
-        i += 1
+        try:
+            dev = lightMeshTesting.i2c(0x04, 1) # device 0x04, bus 1
+            # txt = input("Cmd: ")
+            idx = random.randint(0, len(availStrings) - 1)
+            txt = availStrings[idx]
+            print(f"Sending command: {availStringsType[idx]} (i: {i})")
+            strLen = chr(len(txt))
+            dev.write((strLen + txt).encode('utf-8'))
+            dev.close()
+            i += 1
+        except:
+            print("Error - is device connected and powered on?")
+
         time.sleep(2.5)

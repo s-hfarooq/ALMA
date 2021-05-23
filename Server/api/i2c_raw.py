@@ -53,8 +53,11 @@ if __name__ == "__main__":
 
     # Send data over i2c to ESP32
     while(True):
-        dev = i2c_raw.i2c(0x04, 1) # device 0x04, bus 1
-        txt = input("Cmd: ")
-        strLen = chr(len(txt))
-        dev.write((strLen + txt).encode('utf-8'))
-        dev.close()
+        try:
+            dev = i2c_raw.i2c(0x04, 1) # device 0x04, bus 1
+            txt = input("Cmd: ")
+            strLen = chr(len(txt))
+            dev.write((strLen + txt).encode('utf-8'))
+            dev.close()
+        except:
+            print("Error - is device connected and powered on?")
