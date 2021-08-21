@@ -955,18 +955,28 @@ void setSingleColor(int r, int g, int b, int duration) {
 
     int delayAmnt = 2;
     int steps = duration / delayAmnt;
+    bool allZeros = true;
 
     for(int i = 0; i < NUM_LEDS; i++) {
         diff_1[i][0] = (r - leds[i].r) / steps;
         diff_1[i][1] = (g - leds[i].g) / steps;
         diff_1[i][2] = (b - leds[i].b) / steps;
+
+        if(diff_1[i][0] != 0 || diff_1[i][2] != 0 || diff_1[i][2] != 0)
+            allZeros = false;
     }
 
     for(int i = 0; i < NUM_LEDS_2; i++) {
         diff_2[i][0] = (r - leds_2[i].r) / steps;
         diff_2[i][1] = (g - leds_2[i].g) / steps;
         diff_2[i][2] = (b - leds_2[i].b) / steps;
+
+        if(diff_1[i][0] != 0 || diff_1[i][2] != 0 || diff_1[i][2] != 0)
+            allZeros = false;
     }
+
+    if(allZeros)
+        return;
     
     for(int i = 0; i < steps - 1; i++) {
         for(int j = -NUM_LEDS_2; j < NUM_LEDS; j++) {
