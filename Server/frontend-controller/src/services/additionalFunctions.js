@@ -22,7 +22,11 @@ export function getCommandString(color, option, isFade, fadeSpeed) {
             functionID = "-1";
             break;
         case "couch":
-            receiverUID = "102FFFFF"; // 102 = type 5050 LED controller, FF = any location, FFF = any ID
+            receiverUID = "10200FFF"; // 102 = type 5050 LED controller, 00 = living room, FFF = any ID
+            functionID = (isFade == 1) ? "3" : "0";
+            break;
+        case "hassan":
+            receiverUID = "10203FFF"; // 102 = type 5050 LED controller, 03 = Hassan's room, FFF = any ID
             functionID = (isFade == 1) ? "3" : "0";
             break;
         default:
@@ -62,7 +66,8 @@ export function getAnimationString(animationNum) {
 export const lightOptions = [
     // { value: "all", label: "All", color: "#00B8D9" },
     { value: "ceiling", label: "Ceiling", color: "#00B8D9" },
-    { value: "couch", label: "Couch", color: "#5243AA" }
+    { value: "couch", label: "Couch", color: "#5243AA" },
+    { value: "hassan", label: "Hassan's Room", color: "#5243AA" }
 ];
 
 // Available animations to display

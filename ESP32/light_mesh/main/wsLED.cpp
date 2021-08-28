@@ -131,7 +131,7 @@ void setPixelHSV(int i, int h, int s, int v) {
     if(i > -1)
         leds[i] = CHSV(h, s, v);
     else
-        leds_2[-i] = CHSV(h, s, v);
+        leds_2[-i-1] = CHSV(h, s, v);
 }
 
 void setAll(int r, int g, int b) {
@@ -996,36 +996,21 @@ void setSingleColor(int r, int g, int b, int duration) {
 
     setColor(r, g, b);
 }
-void rave(void *pvParameters){
-    const int spacing = 500;
-    const int speed = 10; // approx = 10*num_min it takes to repeat
+
+void rave(void *pvParameters) {
+        const int speed = 100; // approx = 10*num_min it takes to repeat
                           // ie 30 takes 3 min
-    int t, a, b;
-    t = .0001;
-    a = .2;
-    b = .8;
+    int t, a, b,r ;
+
     for(int j = 0; j >= 0; j++) { // base h
-
-        int track_a_hue = 100*sin(t*a*j)*sin(t*j) + .004*j;
-      //  track_a_hue %= 256;
-
-        int track_b_hue = 100*sin(t*b*j)*sin(t*j) + .004*j + 75;
 
         // make sure to not let this run for any more than 31 years!
         for(int i = -NUM_LEDS_2; i < NUM_LEDS; i++) {
 
-            int offset_i = i+ NUM_LEDS_2;
-            float interp = offset_i/spacing;
-            if (interp > 1){
-                interp = 2 - interp;
-            }
-
-            int h = track_a_hue * (1.0 - interp) + track_b_hue * interp;
-
 
             int s = 255;
-            int v = 255;
-            setPixelHSV(i, h, s, v);
+            int v = 200 + 55*sin(.004*i+.005*j); 
+            setPixelHSV(i, j, s, v);
 
             if(currType != functionNum)
                 return;
@@ -1037,11 +1022,37 @@ void rave(void *pvParameters){
         if(currType != functionNum)
             return;
     }
-    // set every nth point to be sinusoid with speed pattern
-    // convert rgb to hsv
-    // lerp hsv inbetween nth points
-    // end points should mirror
 }
+
+void fade(void *params) {
+ 
+    const int speed = 100; // approx = 10*num_min it takes to repeat
+                          // ie 30 takes 3 min
+    int t, a, b,r ;
+
+    for(int j = 0; j >= 0; j++) { // base h
+
+        // make sure to not let this run for any more than 31 years!
+        for(int i = -NUM_LEDS_2; i < NUM_LEDS; i++) {
+
+
+            int s = 255;
+            int v = 200 + 55*sin(.004*i+.005*j); 
+            setPixelHSV(i, j, s, v);
+
+            if(currType != functionNum)
+                return;
+        }
+
+        FastLED.show();
+        delay(speed);
+
+        if(currType != functionNum)
+            return;
+    }
+
+}
+
 void individuallyAddressableDispatcher(void *params) {
     #if (LOGGING)
         static const char *TAG = "wsLED";
