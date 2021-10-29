@@ -92,5 +92,6 @@ export const animationOptions = [
     { value: "17", label: "alternatingRainbow" },
     { value: "18", label: "advancedAlternatingRainbow" },
     { value: "19", label: "strobe" },
-    { value: "20", label: "rave" }
+    { value: "20", label: "rave" },
+    { value: "21", label: "tara" }
 ];
