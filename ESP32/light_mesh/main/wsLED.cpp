@@ -19,6 +19,7 @@ extern const TProgmemPalette16 IRAM_ATTR myRedWhiteBluePalette_p;
 #include "palettes.h"
 
 #define min(a, b) (((a) < (b)) ? (a) : (b))
+#define max(a, b) (((a) > (b)) ? (a) : (b))
 
 #define NUM_LEDS (55 + (3 * 150))
 #define NUM_LEDS_2 153
@@ -107,8 +108,8 @@ static void (*wsLEDPointers[])(void *pvParameters) = {blinkLeds_chase2,         
                                                       alternatingRainbow,          // 17
                                                       advancedAlternatingRainbow,  // 18
                                                       strobe,                      // 19
-                                                      rave,                         // 20
-                                                      tara                     // 21
+                                                      rave,                        // 20
+                                                      tara                         // 21
 };
 
 extern "C" {
@@ -965,14 +966,14 @@ void tara(void *params){
     int r_dist_to_coll =  random8() % (total_leds/3);
     int l_dist_to_coll = random8() % (total_leds/3);
     int comet_start_r = comet_collision_pt - r_dist_to_coll;
-    if comet_start_r < 0{
+
+    if(comet_start_r < 0)
         comet_start_r = total_leds - comet_start_r;
-    }
     
     int comet_start_l = comet_collision_pt + l_dist_to_coll;
-    if comet_start_l > total_leds{
+    if(comet_start_l > total_leds)
         comet_start_l = comet_start_l - total_leds;
-    }
+
     int max_dist = max(r_dist_to_coll, l_dist_to_coll);
 
     for(int i = max_dist; i > 0; i--) {
@@ -980,21 +981,23 @@ void tara(void *params){
         int r_comet_offset = (int)(r_dist_to_coll * (1.0*i)/(1.0*max_dist));
         // set right comet 
         int new_rt_pt = comet_collision_pt - r_comet_offset;
-        if new_rt_pt < 0 
+        if(new_rt_pt < 0 )
             new_rt_pt = total_leds + new_rt_pt; 
         int new_rt_px = new_rt_pt - NUM_LEDS_2;
+
         if(new_rt_px <= 0)
             leds_2[-new_rt_px] = CHSV(0, 0, 255);
         else
             leds[new_rt_px] = CHSV(0, 0, 255);
         
 
-        int l_comet_offset = (int)(l_comet_offset * (1.0*i)/(1.0*max_dist)); 
+        int l_comet_offset = (int)((1.0*i)/(1.0*max_dist)); 
         // set left comet
         int new_lf_pt = comet_collision_pt + l_comet_offset;
-        if new_lf_pt > total_leds 
+        if(new_lf_pt > total_leds )
             new_lf_pt = new_lf_pt - total_leds; 
         int new_lf_px = new_lf_pt - NUM_LEDS_2;
+
         if(new_lf_px <= 0)
             leds_2[-new_lf_px] = CHSV(0, 0, 255);
         else
@@ -1009,13 +1012,13 @@ void tara(void *params){
         delay(CometDelay);
     }
     // explode 
-    for (int i = 0; i<total_leds/2; i++){
+    for(int i = 0; i<total_leds/2; i++) {
         int rx_px = comet_collision_pt - i;
-        if rx_px < 0 
+        if(rx_px < 0 )
             rx_px = total_leds + rx_px;
         rx_px -=  NUM_LEDS_2;
         int lf_px = comet_collision_pt + i; 
-        if lf_px > total_leds 
+        if(lf_px > total_leds )
             lf_px = lf_px - total_leds;
          // FF0064
         lf_px -=  NUM_LEDS_2;
@@ -1029,20 +1032,29 @@ void tara(void *params){
             leds_2[-lf_px] = CRGB(255, 00, 100);
         else
             leds[lf_px] = CRGB(255, 00, 100);
+
         FastLED.show();
         delay(explosionDelay);
 
+        if(currType != functionNum)
+            return;
     }
 
-    for (int i = 0; i<325; i++){
+    for(int i = 0; i<325; i++) {
         fadeall();
         FastLED.show();
         delay(10);
-        
+
+        if(currType != functionNum)
+            return;
     }
 
     int wait_between_comets = random8() % 2000 + 1000;
-    delay(wait_between_comets);
+    for(int i = 0; i < 4; i++) {
+        delay(wait_between_comets/4);
+        if(currType != functionNum)
+            return;
+    }
 }
 
 // Fades from current color to new color
