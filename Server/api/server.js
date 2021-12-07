@@ -6,6 +6,7 @@ const app = express(),
       bodyParser = require("body-parser");
       port = 3080;
 var net = require('net');
+var cors = require('cors');
 
 var lastSentTime = new Date();
 
@@ -15,10 +16,12 @@ var child = spawn('python3',["i2c_raw.py"]);
 
 app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, '../frontend-controller/build')));
+app.use(cors());
 
 app.get('/', (req,res) => {
   res.sendFile(path.join(__dirname, '../frontend-controller/build/index.html'));
 });
+
 
 // Send command via Python script
 app.post('/sendCommand', (req, res) => {
