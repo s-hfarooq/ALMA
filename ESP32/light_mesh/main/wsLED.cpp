@@ -761,10 +761,12 @@ void rainbowCycle(void *params) {
     char *c;
     uint16_t i, j;
 
+    int amnt = NUM_LEDS + NUM_LEDS_2;
+
     for(j = 0; j < 256 * 5; j++) { // 5 cycles of all colors on wheel
-        for(i = 0; i < NUM_LEDS; i++) {
-            c = Wheel(((i * 256 / NUM_LEDS) + j) & 255);
-            setPixel(i, *c, *(c + 1), *(c + 2));
+        for(i = 0; i < amnt; i++) {
+            c = Wheel(((i * 256 / amnt) + j) & 255);
+            setPixel(i - NUM_LEDS_2, *c, *(c + 1), *(c + 2));
 
             if(currType != functionNum)
                 return;
