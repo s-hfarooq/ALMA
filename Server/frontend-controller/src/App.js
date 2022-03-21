@@ -4,6 +4,7 @@ import { ChromePicker } from 'react-color';
 import Select from 'react-select';
 import Button from 'react-bootstrap/Button';
 import InputNumber from 'rc-input-number';
+import ReactGA from 'react-ga';
 
 class App extends React.Component {
     state = {
@@ -11,6 +12,17 @@ class App extends React.Component {
         selectedOption: { value: "ceiling" },
         fadeSpeed: 50,
         animationNum: { value: "0" },
+    }
+
+    // Page analytics
+    setGA = () => {
+        console.log("settingGA");
+        ReactGA.initialize('UA-223462510-1');
+        ReactGA.pageview('Init page view');
+      };
+
+    componentDidMount(){
+        this.setGA();
     }
 
     // Runs everytime a color changes
