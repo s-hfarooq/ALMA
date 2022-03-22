@@ -1,6 +1,9 @@
 
 
 #define FASTLED_INTERNAL
+
+#define MEMORY_BUFFERS 4
+
 #include "FastLED.h"
 
 //static const char *TAG = "FastLED";

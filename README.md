@@ -22,14 +22,20 @@
   * Run forever using `nohup ./server.js &`. You may need to kill the previous instance using `kill PID`. Find the PID by running `ps -ef` and look for the value corresponding to `server.js`. For getting console output, run `npm run dev` instead. The site should then be running at `localhost:3080`.
 
 ## Development Environment
-@weustis you should do this
-
 #### Installation
 Follow the [official guide](https://docs.espressif.com/projects/esp-mdf/en/latest/get-started/) from Espressif to install ESP-MDF - the mesh development framework. You probably should also install ESP-IDF (IoT development framework) using the [official guide](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/get-started/#installation-step-by-step) as well.
 
 #### Flashing devices
 1. Make sure PATH to ESP-MDF (or IDF) exists on the current terminal window
-    * Linux: `. $HOME/esp/esp-mdf/export.sh`
+    * Linux/Mac 
+       
+        ```sh
+        cd ~/esp/esp-idf
+        ./install.sh
+        . ./export.sh
+        export MDF_PATH=~/esp/esp-mdf
+        ```
+
     * Windows
         * No
 2. Ensure all config options are correct (check `idf.py menuconfig` and common.h)
@@ -37,9 +43,11 @@ Follow the [official guide](https://docs.espressif.com/projects/esp-mdf/en/lates
     * Linux
         * `/dev/tty` -> tab to find device port
         * `sudo chmod a+rw /dev/ttyUSB0` (replace `/dev/ttyUSB0` with correct port)
+    * Mac
+        * `/dev/cu.` -> tab to find device port
     * Windows
         * No
-4. Flash the device by running `idf.py -p /dev/ttyUSB0 flash monitor` replacing `/dev/ttyUSB0` with the correct port. This also opens up the serial monitor
+4. Flash the device by running `idf.py -p /dev/ttyUSB0 flash monitor` replacing `/dev/ttyUSB0` with the correct port. This also opens up the serial monitor - remove `monitor` from this like if you don't want to see console logging.
     * If flashing a custom PCB, connect the UART board to the correct pins (look at schematics, make sure `TX` on UART is connected to `RX` on custom PCB, `RX` on UART to `TX` on custom), connect `IO0` to ground, connect the UART board to the computer, then short the `Enable` and ground pins on the custom board (for a very short time). This will put the device into programming mode. Disconnect `IO0` from ground and short Enable to ground again to leave programming mode.
 
 To only build and not flash a device, for instance to check for compilation errors, follow steps 1 and 2 above, then run `idf.py build`.
@@ -135,6 +143,5 @@ The receiver would ignore the request since the senderUID, a required token, is 
 ## Other info
 #### Pi Server
   * IP: 192.168.0.241
-  * has default password (`raspberry`)
   * Website hosted at port 3080
-  * Hyperion (TV Ambilight) hosted at port 8090
+  * [Hyperion](https://github.com/hyperion-project/hyperion.ng) (TV Ambilight) hosted at port 8090

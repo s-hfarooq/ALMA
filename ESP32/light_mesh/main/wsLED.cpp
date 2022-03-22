@@ -5,6 +5,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <sys/param.h>
+#include <stdlib.h>
 
 #define FASTLED_ALLOW_INTERRUPTS 0
 
@@ -116,6 +117,12 @@ extern "C" {
     void mainFunc();
 }
 
+void myShow() {
+    // portDISABLE_INTERRUPTS();
+    FastLED.show();
+    // portENABLE_INTERRUPTS();
+}
+
 void setPixel(int i, int r, int g, int b) {
     if(i >= 0) {
         leds[i].r = r;
@@ -146,7 +153,7 @@ void setColor(int red, int green, int blue) {
     CRGB newCol = CRGB(red, green, blue);
     fill_solid(leds, NUM_LEDS, newCol);
     fill_solid(leds_2, NUM_LEDS_2, newCol);
-    FastLED.show();
+    myShow();
 }
 
 void getCurrCol(int i, uint8_t *r, uint8_t *g, uint8_t *b) {
@@ -164,7 +171,7 @@ void getCurrCol(int i, uint8_t *r, uint8_t *g, uint8_t *b) {
 }
 
 void fShow() {
-    FastLED.show();
+    myShow();
 }
 
 void ChangePalettePeriodically() {
@@ -259,7 +266,7 @@ void blinkLeds_chase2(void *pvParameters) {
         // Set strings to black first
         fill_solid(leds, NUM_LEDS, CRGB::Black);
         fill_solid(leds_2, NUM_LEDS_2, CRGB::Black);
-        FastLED.show();
+        myShow();
 
         if(currType != functionNum)
             return;
@@ -275,7 +282,7 @@ void blinkLeds_chase2(void *pvParameters) {
             leds[i] = color;
             prev = i;
 
-            FastLED.show();
+            myShow();
 
             if(currType != functionNum)
                 return;
@@ -291,7 +298,7 @@ void blinkLeds_chase2(void *pvParameters) {
             leds[i] = color;
             prev = i;
 
-            FastLED.show();
+            myShow();
 
             if(currType != functionNum)
                 return;
@@ -311,7 +318,7 @@ void blinkLeds_chase2(void *pvParameters) {
             leds[i + 1] = color;
             prev = i;
 
-            FastLED.show();
+            myShow();
 
             if(currType != functionNum)
                 return;
@@ -337,7 +344,7 @@ void colorPalette(void *pvParameters) {
             return;
     }
 
-    FastLED.show();
+    myShow();
 
     if(currType != functionNum)
         return;
@@ -350,7 +357,7 @@ void blinkLeds_simple(void *pvParameters) {
         for(int i = 0; i < NUM_LEDS; i++) leds[i] = colors[j];
         for(int i = 0; i < NUM_LEDS_2; i++) leds_2[i] = colors[j];
 
-        FastLED.show();
+        myShow();
 
         if(currType != functionNum)
             return;
@@ -377,7 +384,7 @@ void blinkLeds_chase(void *pvParameters) {
     if(pos == 0)
         led_color = (led_color + 1) % N_COLORS_CHASE;
 
-    FastLED.show();
+    myShow();
 
     if(currType != functionNum)
         return;
@@ -395,7 +402,7 @@ void cylon(void *params) {
         else
             leds[i] = CHSV(hue++, 255, 255);
 
-        FastLED.show();
+        myShow();
         fadeall();
 
         if(currType != functionNum)
@@ -412,7 +419,7 @@ void cylon(void *params) {
         else
             leds_2[-i] = CHSV(hue++, 255, 255);
             
-        FastLED.show();
+        myShow();
         fadeall();
 
         if(currType != functionNum)
@@ -442,7 +449,7 @@ void colorTemperature(void *params) {
         leds[0] = TEMPERATURE_2;        // Show indicator pixel
     }
 
-    FastLED.show();
+    myShow();
     delay(5);
 }
 
@@ -488,7 +495,7 @@ void meteorRain(void *params) {
         if(currType != functionNum)
             return;
 
-        FastLED.show();
+        myShow();
         delay(SpeedDelay);
     }
 
@@ -554,7 +561,7 @@ void confetti(void *params) {
 
     i++;
 
-    FastLED.show();
+    myShow();
     delay(NUM_LEDS / 4);
 }
 
@@ -574,7 +581,7 @@ void fadeInFadeOut(void *params) {
                     break;
             }
 
-            FastLED.show();
+            myShow();
             delay(3);
 
             if(currType != functionNum)
@@ -595,7 +602,7 @@ void fadeInFadeOut(void *params) {
                     break;
             }
 
-            FastLED.show();
+            myShow();
             delay(5);
 
             if(currType != functionNum)
@@ -622,7 +629,7 @@ void cylon2(void *params) {
         for(int j = 1; j <= EyeSize; j++) setPixel(i + j, red, green, blue);
 
         setPixel(i + EyeSize + 1, red / 10, green / 10, blue / 10);
-        FastLED.show();
+        myShow();
 
         if(currType != functionNum)
             return;
@@ -642,7 +649,7 @@ void cylon2(void *params) {
         for(int j = 1; j <= EyeSize; j++) setPixel(i + j, red, green, blue);
 
         setPixel(i + EyeSize + 1, red / 10, green / 10, blue / 10);
-        FastLED.show();
+        myShow();
 
         if(currType != functionNum)
             return;
@@ -661,7 +668,7 @@ void sparkle(void *params) {
 
     int Pixel = rand() % (NUM_LEDS + 1);
     setPixel(Pixel, red, green, blue);
-    FastLED.show();
+    myShow();
     delay(SpeedDelay);
 
     if(currType != functionNum)
@@ -681,14 +688,14 @@ void snowSparkle(void *params) {
 
     int Pixel = rand() % ((NUM_LEDS + 1));
     setPixel(Pixel, 0xff, 0xff, 0xff);
-    FastLED.show();
+    myShow();
 
     if(currType != functionNum)
         return;
 
     delay(SparkleDelay);
     setPixel(Pixel, red, green, blue);
-    FastLED.show();
+    myShow();
 
     if(currType != functionNum)
         return;
@@ -715,7 +722,7 @@ void runningLights(void *params) {
                 return;
         }
 
-        FastLED.show();
+        myShow();
         delay(WaveDelay);
 
         if(currType != functionNum)
@@ -731,7 +738,7 @@ void colorWipe(void *params) {
 
     for(uint16_t i = 0; i < NUM_LEDS; i++) {
         setPixel(i, red, green, blue);
-        FastLED.show();
+        myShow();
 
         delay(SpeedDelay);
 
@@ -746,7 +753,7 @@ void colorWipe(void *params) {
 
     for(uint16_t i = 0; i < NUM_LEDS; i++) {
         setPixel(i, red, green, blue);
-        FastLED.show();
+        myShow();
 
         delay(SpeedDelay);
 
@@ -775,7 +782,7 @@ void rainbowCycle(void *params) {
         if(currType != functionNum)
             return;
 
-        FastLED.show();
+        myShow();
         delay(SpeedDelay);
 
         if(currType != functionNum)
@@ -796,7 +803,7 @@ void theaterChase(void *params) {
         if(currType != functionNum)
             return;
 
-        FastLED.show();
+        myShow();
         delay(SpeedDelay);
 
         for(int i = -NUM_LEDS_2; i < NUM_LEDS; i += 3)
@@ -821,7 +828,7 @@ void theaterChaseRainbow(void *params) {
             if(currType != functionNum)
                 return;
 
-            FastLED.show();
+            myShow();
             delay(SpeedDelay);
 
             for(int i = -NUM_LEDS_2; i < NUM_LEDS; i += 3)
@@ -840,9 +847,9 @@ void alternatingRainbow(void *params) {
     const int speed = 50;
 
     for(int j = 0; j < 256; j++) { // base h
-        for(int i = 0; i < NUM_LEDS; i++) {
+        for(int i = -NUM_LEDS_2; i < NUM_LEDS; i++) {
             // float interp = -1*abs((i%60-30)/spacing) + 1
-            if((i / spacing) % 2) { // 0 when increasing lerp, 1 if decreasing
+            if(abs((i / spacing)) % 2) { // 0 when increasing lerp, 1 if decreasing
                 float interp = ((float)(i % (2 * spacing))) / spacing; // 0 to 1
                 int h = (j + (int)(128 * interp)) % 255;
                 int s = 255;
@@ -859,7 +866,7 @@ void alternatingRainbow(void *params) {
             if(currType != functionNum)
                 return;
         }
-        FastLED.show();
+        myShow();
         delay(speed);
 
         if(currType != functionNum)
@@ -933,7 +940,7 @@ void advancedAlternatingRainbow(void *params) {
                 return;
         }
 
-        FastLED.show();
+        myShow();
         delay(speed);
 
         if(currType != functionNum)
@@ -1005,7 +1012,7 @@ void tara(void *params){
         else
             leds[new_lf_px] = CHSV(0, 0, 255);
 
-        FastLED.show();
+        myShow();
         fadeall();
 
         if(currType != functionNum)
@@ -1035,7 +1042,7 @@ void tara(void *params){
         else
             leds[lf_px] = CRGB(255, 00, 100);
 
-        FastLED.show();
+        myShow();
         delay(explosionDelay);
 
         if(currType != functionNum)
@@ -1044,7 +1051,7 @@ void tara(void *params){
 
     for(int i = 0; i<325; i++) {
         fadeall();
-        FastLED.show();
+        myShow();
         delay(10);
 
         if(currType != functionNum)
@@ -1124,7 +1131,7 @@ void rave(void *pvParameters) {
                 return;
         }
 
-        FastLED.show();
+        myShow();
         delay(speed);
 
         if(currType != functionNum)
@@ -1152,7 +1159,7 @@ void fade(void *params) {
                 return;
         }
 
-        FastLED.show();
+        myShow();
         delay(speed);
 
         if(currType != functionNum)
